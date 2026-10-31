@@ -41,6 +41,8 @@ import snd.komelia.ui.platform.WindowSizeClass.MEDIUM
 import snd.komelia.ui.reader.image.PageMetadata
 import snd.komelia.ui.reader.image.ReaderState
 import snd.komelia.ui.reader.image.ScreenScaleState
+import snd.komelia.ui.reader.image.common.AutoTurnControls
+import snd.komelia.ui.reader.image.common.AutoTurnIntervalRow
 import snd.komelia.ui.reader.image.common.PageSpreadProgressSlider
 import snd.komelia.ui.reader.image.common.ProgressSlider
 import snd.komelia.ui.reader.image.continuous.ContinuousReaderState
@@ -80,6 +82,9 @@ fun BoxScope.SettingsOverlay(
     val flashDuration = commonReaderState.flashDuration.collectAsState().value
     val flashEveryNPages = commonReaderState.flashEveryNPages.collectAsState().value
     val flashWith = commonReaderState.flashWith.collectAsState().value
+    val autoTurnEnabled = commonReaderState.autoTurnEnabled.collectAsState().value
+    val autoTurnInterval = commonReaderState.autoTurnIntervalSeconds.collectAsState().value
+    var showIntervalRow by remember { mutableStateOf(false) }
 
     if ((windowWidth == COMPACT || windowWidth == MEDIUM) && platform != DESKTOP) {
         BottomSheetSettingsOverlay(
@@ -172,7 +177,23 @@ fun BoxScope.SettingsOverlay(
                 onPageNumberChange = pagedReaderState::onPageChange,
                 show = show,
                 layoutDirection = layoutDirection,
-                modifier = Modifier.align(Alignment.BottomStart)
+                modifier = Modifier.align(Alignment.BottomStart),
+                aboveContent = if (showIntervalRow) {
+                    {
+                        AutoTurnIntervalRow(
+                            intervalSeconds = autoTurnInterval,
+                            onIntervalChange = commonReaderState::onAutoTurnIntervalChange
+                        )
+                    }
+                } else null,
+                trailingContent = {
+                    AutoTurnControls(
+                        enabled = autoTurnEnabled,
+                        onToggle = { commonReaderState.autoTurnEnabled.value = !autoTurnEnabled },
+                        intervalSeconds = autoTurnInterval,
+                        onIntervalClick = { showIntervalRow = !showIntervalRow }
+                    )
+                }
             )
         }
 

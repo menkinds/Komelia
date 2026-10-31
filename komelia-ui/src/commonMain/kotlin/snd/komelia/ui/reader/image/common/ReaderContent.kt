@@ -33,6 +33,7 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_continuous
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_paged
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_panels
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.rememberResourceEnvironment
@@ -44,7 +45,9 @@ import snd.komelia.ui.LocalNotifications
 import snd.komelia.ui.LocalPlatform
 import snd.komelia.ui.LocalWindowState
 import snd.komelia.ui.common.components.LoadingMaxSizeIndicator
+import snd.komelia.ui.platform.AppBackgroundEffect
 import snd.komelia.ui.platform.BackPressHandler
+import snd.komelia.ui.platform.KeepScreenOnEffect
 import snd.komelia.ui.platform.PlatformType.MOBILE
 import snd.komelia.ui.reader.image.ReaderState
 import snd.komelia.ui.reader.image.ScreenScaleState
@@ -99,6 +102,31 @@ fun ReaderContent(
     val topLevelFocus = remember { FocusRequester() }
     val volumeKeysNavigation = commonReaderState.volumeKeysNavigation.collectAsState().value
     var hasFocus by remember { mutableStateOf(false) }
+
+    val autoTurnEnabled = commonReaderState.autoTurnEnabled.collectAsState().value
+    val autoTurnInterval = commonReaderState.autoTurnIntervalSeconds.collectAsState().value
+    val activeReaderType = commonReaderState.readerType.collectAsState().value
+    val spreadIndex = pagedReaderState.currentSpreadIndex.collectAsState().value
+    val spreadCount = pagedReaderState.pageSpreads.collectAsState().value.size
+    val transitionPage = pagedReaderState.transitionPage.collectAsState().value
+    val zoomedIn = screenScaleState.zoom.collectAsState().value >
+            pagedReaderState.spreadFitZoom.collectAsState().value + 0.01f
+    KeepScreenOnEffect(autoTurnEnabled)
+    AppBackgroundEffect { commonReaderState.autoTurnEnabled.value = false }
+    // Any key change (page change, overlay toggle, zoom change, interval change) restarts the timer from zero
+    LaunchedEffect(
+        autoTurnEnabled, autoTurnInterval, activeReaderType, showSettingsMenu,
+        spreadIndex, spreadCount, transitionPage, zoomedIn
+    ) {
+        if (!autoTurnEnabled) return@LaunchedEffect
+        if (activeReaderType != PAGED || (spreadCount > 0 && spreadIndex >= spreadCount - 1)) {
+            commonReaderState.autoTurnEnabled.value = false
+            return@LaunchedEffect
+        }
+        if (spreadCount == 0 || showSettingsMenu || zoomedIn || transitionPage != null) return@LaunchedEffect
+        delay(autoTurnInterval * 1000L)
+        pagedReaderState.nextPage()
+    }
 
     BackPressHandler { if (showSettingsMenu) showSettingsMenu = false else onExit() }
     Box(

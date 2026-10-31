@@ -67,6 +67,9 @@ interface ImageReaderSettingsRepository {
     fun getVolumeKeysNavigation(): Flow<Boolean>
     suspend fun putVolumeKeysNavigation(enable: Boolean)
 
+    fun getAutoTurnIntervalSeconds(): Flow<Int>
+    suspend fun putAutoTurnIntervalSeconds(seconds: Int)
+
     fun getUpscalerMode(): Flow<UpscaleMode>
     suspend fun putUpscalerMode(mode: UpscaleMode)
 
