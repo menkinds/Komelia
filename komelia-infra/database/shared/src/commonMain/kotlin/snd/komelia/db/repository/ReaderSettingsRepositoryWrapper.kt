@@ -171,6 +171,14 @@ class ReaderSettingsRepositoryWrapper(
         wrapper.transform { it.copy(autoTurnIntervalSeconds = seconds) }
     }
 
+    override fun getShowClock(): Flow<Boolean> {
+        return wrapper.mapState { it.showClock }
+    }
+
+    override suspend fun putShowClock(show: Boolean) {
+        wrapper.transform { it.copy(showClock = show) }
+    }
+
     override fun getUpscalerMode(): Flow<UpscaleMode> {
         return wrapper.mapState { it.ortUpscalerMode }
     }
