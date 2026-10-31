@@ -31,3 +31,9 @@
 - 업스트림 파일 수정: UpdateClient(repo 상수, draft/prerelease 필터, 403/429 메시지, getText), AppVersion(`current`를 var로, `v` 접두 허용, AppRelease.checksumUrl), StartupUpdateChecker(24h→12h), AndroidAppUpdater(파일로 받아 SHA-256 검증 후 PackageInstaller 세션, 알 수 없는 앱 설치 허용 화면 이동, 캐시 정리, 오류는 AppNotifications), AndroidAppModule/App.kt(설치된 versionName을 AppVersion.current로), androidApp/build.gradle.kts(-Pkomelia.versionName/versionCode), strings.xml(Dismiss→Later), core/build.gradle.kts(commonTest 의존성), android-release.yml.
 - 설치된 버전 비교는 versionName 기준. 태그 없는 로컬 빌드는 0.20.0이라 업데이트 안 뜸(의도).
 - 미검증: java 없어 컴파일/테스트 못 돌림. `./gradlew :komelia-domain:core:jvmTest`로 확인 필요.
+
+## main 푸시 시 자동 릴리스 (2026-10-31)
+- `android-release.yml`: `push: branches [main]` 추가. 다음 태그 = 기존 `^vX.Y.Z$` 중 최고 + PATCH 1 (없으면 v0.3.0). 계산은 `.github/scripts/next-tag.sh`(테스트: `bash .github/scripts/next-tag.test.sh`). Release가 태그를 만든다(git push 안 함).
+- 건너뛰기: 커밋 메시지에 `[skip release]`, 또는 .md / .github/**(이 워크플로 제외)만 바뀐 푸시(paths 필터). minor/major는 수동 실행 `tag` 입력.
+- 동시성: 그룹 `android-release-<ref>`, cancel-in-progress false. GitHub는 대기 중 실행을 1개만 유지하므로 빌드 중 3번 연속 머지하면 가운데 실행은 취소될 수 있음(마지막 커밋은 릴리스됨).
+- 미검증: actionlint 없음(YAML 파싱·bash 테스트만). 실제 러너 실행 필요.
