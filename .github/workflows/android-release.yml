@@ -2,13 +2,21 @@ name: Android release
 
 # Builds the signed Android (arm64) release APK.
 #  - tag push v*        -> GitHub Release with APK + SHA-256
-#  - workflow_dispatch  -> APK uploaded as a workflow artifact only
+#  - workflow_dispatch  -> APK uploaded as a workflow artifact; if the "tag"
+#                          input is set, also a GitHub Release (tag created
+#                          at the built commit)
 
 on:
   push:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, e.g. v0.1.0. Empty = build only, no release"
+        type: string
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -38,6 +46,25 @@ jobs:
       KOMELIA_KEY_ALIAS: ${{ secrets.KOMELIA_KEY_ALIAS }}
       KOMELIA_KEY_PASSWORD: ${{ secrets.KOMELIA_KEY_PASSWORD }}
     steps:
+      - name: Validate release tag (manual run)
+        if: github.event_name == 'workflow_dispatch' && inputs.tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          if ! [[ "$INPUT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+.*$ ]]; then
+            echo "::error::Invalid tag '$INPUT_TAG'. It must look like v0.1.0 (^v[0-9]+\.[0-9]+\.[0-9]+.*\$)."
+            exit 1
+          fi
+          if gh release view "$INPUT_TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "::error::A release for tag '$INPUT_TAG' already exists. Choose a new tag."
+            exit 1
+          fi
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$INPUT_TAG" > /dev/null 2>&1; then
+            echo "::error::Git tag '$INPUT_TAG' already exists. Choose a new tag."
+            exit 1
+          fi
+
       - name: Check signing secrets
         run: |
           missing=""
@@ -152,14 +179,16 @@ jobs:
           if-no-files-found: error
 
       - name: Create GitHub Release
-        if: github.ref_type == 'tag'
+        if: github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.tag != '')
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag }}
         run: |
           sha=$(cat dist/*.sha256)
-          gh release create "$GITHUB_REF_NAME" dist/* \
+          gh release create "$RELEASE_TAG" dist/* \
             --repo "$GITHUB_REPOSITORY" \
-            --title "$GITHUB_REF_NAME" \
+            --target "$GITHUB_SHA" \
+            --title "$RELEASE_TAG" \
             --notes "Android arm64 APK (signed). SHA-256:
 
           \`\`\`
