@@ -150,6 +150,8 @@ jobs:
         run: ./gradlew :androidRelease --no-daemon
 
       - name: Sign APK
+        env:
+          RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag }}
         run: |
           set -eu
           unsigned=$(ls komelia-app/androidApp/build/outputs/apk/release/*.apk | head -n 1)
@@ -159,7 +161,11 @@ jobs:
           mkdir -p dist
           aligned="$RUNNER_TEMP/aligned.apk"
           "$BUILD_TOOLS_DIR/zipalign" -f -p 4 "$unsigned" "$aligned"
-          name="komelia-${GITHUB_REF_NAME//\//-}-arm64.apk"
+          if [ -n "$RELEASE_TAG" ]; then
+            name="komelia-${RELEASE_TAG}-arm64.apk"
+          else
+            name="komelia-${GITHUB_REF_NAME//\//-}-arm64.apk"
+          fi
           "$BUILD_TOOLS_DIR/apksigner" sign \
             --ks "$ks" \
             --ks-key-alias "$KOMELIA_KEY_ALIAS" \
