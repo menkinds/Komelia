@@ -1,0 +1,27 @@
+name: Upstream sync
+
+# Every Monday: merge the latest Snd-R/Komelia release into a branch and open a PR.
+# Requires Settings > Actions > General > "Allow GitHub Actions to create and approve pull requests".
+
+on:
+  schedule:
+    - cron: "0 0 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Sync
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/upstream-sync.sh
