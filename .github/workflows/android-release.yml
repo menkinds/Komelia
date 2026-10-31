@@ -1,6 +1,10 @@
 name: Android release
 
 # Builds the signed Android (arm64) release APK.
+#  - push to main       -> next patch tag (highest vX.Y.Z + 1, none -> v0.3.0)
+#                          is computed and a GitHub Release creates it.
+#                          Skipped by "[skip release]" in the head commit
+#                          message, or when only docs/.github files changed
 #  - tag push v*        -> GitHub Release with APK + SHA-256
 #  - workflow_dispatch  -> APK uploaded as a workflow artifact; if the "tag"
 #                          input is set, also a GitHub Release (tag created
@@ -8,6 +12,14 @@ name: Android release
 
 on:
   push:
+    branches:
+      - main
+    # Evaluated in order, later patterns win; never applied to tag pushes.
+    paths:
+      - "**"
+      - "!**.md"
+      - "!.github/**"
+      - ".github/workflows/android-release.yml"
     tags:
       - "v*"
   workflow_dispatch:
@@ -38,6 +50,10 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     timeout-minutes: 240
+    if: >-
+      github.ref_type == 'tag' ||
+      github.event_name != 'push' ||
+      !contains(github.event.head_commit.message, '[skip release]')
     permissions:
       contents: write
     env:
@@ -81,6 +97,40 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      # Sets RELEASE_TAG for later steps. Empty = build only (manual run
+      # without tag). Runs for main are serialized by the concurrency group,
+      # so two merges never compute the same tag.
+      - name: Resolve release tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -eu
+          tag=""
+          prev=""
+          if [ "$REF_TYPE" = tag ]; then
+            tag="$REF_NAME"
+          elif [ "$EVENT_NAME" = workflow_dispatch ]; then
+            tag="$INPUT_TAG"
+          elif [ "$EVENT_NAME" = push ]; then
+            tags=$(gh api --paginate "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/v" --jq '.[].ref | sub("^refs/tags/"; "")')
+            tag=$(printf '%s\n' "$tags" | bash .github/scripts/next-tag.sh)
+            prev=$(printf '%s\n' "$tags" | bash .github/scripts/next-tag.sh --latest)
+            if gh release view "$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 \
+              || gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" > /dev/null 2>&1; then
+              echo "::error::Computed release tag '$tag' already exists (another run created it?). Re-run this workflow."
+              exit 1
+            fi
+          fi
+          echo "Release tag: ${tag:-<none, build only>} (previous: ${prev:-<none>})"
+          {
+            echo "RELEASE_TAG=$tag"
+            echo "PREV_TAG=$prev"
+          } >> "$GITHUB_ENV"
 
       - uses: actions/setup-java@v4
         with:
@@ -147,8 +197,6 @@ jobs:
         run: ./gradlew android-aarch64_copyJniLibs buildEpubReaders --no-daemon
 
       - name: Assemble release APK (unsigned)
-        env:
-          RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag }}
         run: |
           set -eu
           version_args=""
@@ -173,8 +221,6 @@ jobs:
           ./gradlew :androidRelease --no-daemon $version_args
 
       - name: Sign APK
-        env:
-          RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag }}
         run: |
           set -eu
           unsigned=$(ls komelia-app/androidApp/build/outputs/apk/release/*.apk | head -n 1)
@@ -208,16 +254,27 @@ jobs:
           if-no-files-found: error
 
       - name: Create GitHub Release
-        if: github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.tag != '')
+        if: env.RELEASE_TAG != ''
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag }}
         run: |
+          set -eu
+          # Last check right before creating: the release creates the tag.
+          if [ "$GITHUB_REF_TYPE" != tag ] && git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" > /dev/null 2>&1; then
+            echo "::error::Tag '$RELEASE_TAG' already exists; refusing to create the release."
+            exit 1
+          fi
           sha=$(cat dist/*.sha256)
+          notes_args=""
+          if [ -n "${PREV_TAG:-}" ]; then
+            notes_args="--notes-start-tag $PREV_TAG"
+          fi
+          # shellcheck disable=SC2086
           gh release create "$RELEASE_TAG" dist/* \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --title "$RELEASE_TAG" \
+            --generate-notes $notes_args \
             --notes "Android arm64 APK (signed). SHA-256:
 
           \`\`\`
