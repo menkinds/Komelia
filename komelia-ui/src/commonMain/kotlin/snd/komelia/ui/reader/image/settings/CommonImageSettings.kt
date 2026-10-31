@@ -63,6 +63,8 @@ fun CommonImageSettings(
 
     flashEnabled: Boolean,
     onFlashEnabledChange: (Boolean) -> Unit,
+    showClock: Boolean,
+    onShowClockChange: (Boolean) -> Unit,
     flashEveryNPages: Int,
     onFlashEveryNPagesChange: (Int) -> Unit,
     flashWith: ReaderFlashColor,
@@ -115,7 +117,12 @@ fun CommonImageSettings(
             }
         }
 
-
+        SwitchWithLabel(
+            checked = showClock,
+            onCheckedChange = onShowClockChange,
+            label = { Text("Show clock") },
+            contentPadding = PaddingValues(horizontal = 10.dp)
+        )
 
         if (platform != PlatformType.DESKTOP) {
             SwitchWithLabel(

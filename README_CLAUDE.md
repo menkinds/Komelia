@@ -45,3 +45,9 @@
 - 간격만 저장: ImageReaderSettings.autoTurnIntervalSeconds, 마이그레이션 `V14__auto_page_turn.sql`. ON/OFF는 저장 안 함.
 - 설정(톱니) 패널의 간격 항목은 만들지 않음(오버레이 행만).
 - 미검증: 컴파일 못 함(java 없음). CI android-release로 확인 필요.
+
+## 리더 시계 (2026-10-31)
+- 설정(톱니) 패널 "Show clock" 토글(기본 OFF, 저장). 켜면 `ReaderClockOverlay`(우하단, 반투명 검정 배경+흰 글씨, 터치 통과)가 모든 리더 모드(paged/continuous/panels)에서 표시. 탭 오버레이가 열려 있는 동안은 숨김(슬라이더 가림 방지).
+- 저장: 마이그레이션 `V15__fork_show_clock.sql`(`fork_show_clock`), V14 수정 없음. 포크 마이그레이션은 V15부터 `V<n>__fork_*.sql`.
+- 시간: `ClockPlatform`(expect/actual). Android만 구현(기기 12/24h, 분 경계 정렬 갱신, ON_STOP 동안 정지). jvm/wasm은 빈 문자열(미표시).
+- 미검증: 컴파일 못 함(java 없음). CI android-release로 확인 필요.

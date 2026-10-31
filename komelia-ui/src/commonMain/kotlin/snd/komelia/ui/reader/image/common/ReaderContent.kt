@@ -214,6 +214,9 @@ fun ReaderContent(
             ohShowHelpDialogChange = { showHelpDialog = it },
         )
 
+        // hidden while the tap overlay is open so it never covers the page slider
+        if (commonReaderState.showClock.collectAsState().value && !showSettingsMenu) ReaderClockOverlay()
+
         EInkFlashOverlay(
             enabled = commonReaderState.flashOnPageChange.collectAsState().value,
             pageChangeFlow = commonReaderState.pageChangeFlow,

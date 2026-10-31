@@ -70,6 +70,9 @@ interface ImageReaderSettingsRepository {
     fun getAutoTurnIntervalSeconds(): Flow<Int>
     suspend fun putAutoTurnIntervalSeconds(seconds: Int)
 
+    fun getShowClock(): Flow<Boolean>
+    suspend fun putShowClock(show: Boolean)
+
     fun getUpscalerMode(): Flow<UpscaleMode>
     suspend fun putUpscalerMode(mode: UpscaleMode)
 

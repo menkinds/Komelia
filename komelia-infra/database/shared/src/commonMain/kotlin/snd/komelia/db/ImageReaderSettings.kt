@@ -35,6 +35,7 @@ data class ImageReaderSettings(
     val loadThumbnailPreviews: Boolean = true,
     val volumeKeysNavigation: Boolean = false,
     val autoTurnIntervalSeconds: Int = 10,
+    val showClock: Boolean = false,
 
     val ortUpscalerMode: UpscaleMode = UpscaleMode.NONE,
     val ortUpscalerUserModelPath: PlatformFile? = null,

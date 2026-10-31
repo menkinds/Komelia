@@ -125,6 +125,8 @@ fun SettingsSideMenuOverlay(
 
     flashEnabled: Boolean,
     onFlashEnabledChange: (Boolean) -> Unit,
+    showClock: Boolean,
+    onShowClockChange: (Boolean) -> Unit,
     flashEveryNPages: Int,
     onFlashEveryNPagesChange: (Int) -> Unit,
     flashWith: ReaderFlashColor,
@@ -245,6 +247,8 @@ fun SettingsSideMenuOverlay(
                         onColorCorrectionClick = onColorCorrectionClick,
                         flashEnabled = flashEnabled,
                         onFlashEnabledChange = onFlashEnabledChange,
+                        showClock = showClock,
+                        onShowClockChange = onShowClockChange,
                         flashEveryNPages = flashEveryNPages,
                         onFlashEveryNPagesChange = onFlashEveryNPagesChange,
                         flashWith = flashWith,
