@@ -88,6 +88,9 @@ class PagedReaderState(
     val scaleType = MutableStateFlow(LayoutScaleType.SCREEN)
     val readingDirection = MutableStateFlow(LEFT_TO_RIGHT)
 
+    // zoom value applied when the current spread was loaded; zoom above it means the user zoomed in
+    val spreadFitZoom = MutableStateFlow(1f)
+
     suspend fun initialize() {
         layout.value = settingsRepository.getPagedReaderDisplayLayout().first()
         scaleType.value = settingsRepository.getPagedReaderScaleType().first()
@@ -329,6 +332,7 @@ class PagedReaderState(
 
         val newScale = completedPagesJob.scale
         screenScaleState.apply(newScale)
+        spreadFitZoom.value = screenScaleState.zoom.value
     }
 
     data class PagesLoadJob(

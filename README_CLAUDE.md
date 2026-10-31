@@ -37,3 +37,11 @@
 - 건너뛰기: 커밋 메시지에 `[skip release]`, 또는 .md / .github/**(이 워크플로 제외)만 바뀐 푸시(paths 필터). minor/major는 수동 실행 `tag` 입력.
 - 동시성: 그룹 `android-release-<ref>`, cancel-in-progress false. GitHub는 대기 중 실행을 1개만 유지하므로 빌드 중 3번 연속 머지하면 가운데 실행은 취소될 수 있음(마지막 커밋은 릴리스됨).
 - 미검증: actionlint 없음(YAML 파싱·bash 테스트만). 실제 러너 실행 필요.
+
+## 페이지 모드 자동 넘김 (2026-10-31)
+- 하단바(페이지 슬라이더 오른쪽)에 재생/일시정지 버튼 + "10s" 텍스트(탭하면 3~60초 슬라이더 행이 슬라이더 위에 열림). 페이지 모드(PAGED)에서만. 연속/패널 모드 변경 없음.
+- 타이머는 `common/ReaderContent.kt`의 LaunchedEffect 하나: 키(켜짐, 간격, 오버레이 열림, 페이지, 줌, 전환 페이지)가 바뀌면 처음부터 다시 셈. 오버레이 열림/줌인(`PagedReaderState.spreadFitZoom`보다 큼)/책 전환 페이지에서는 대기만 함. 마지막 페이지 도달 시 OFF(다음 책으로 안 감).
+- OFF 조건: 앱 백그라운드(ON_STOP, `AppBackgroundEffect`, Android만), 리더 종료(`ReaderState.onDispose`), 비 페이지 모드. 켜진 동안 `KeepScreenOnEffect`(View.keepScreenOn, Android만).
+- 간격만 저장: ImageReaderSettings.autoTurnIntervalSeconds, 마이그레이션 `V14__auto_page_turn.sql`. ON/OFF는 저장 안 함.
+- 설정(톱니) 패널의 간격 항목은 만들지 않음(오버레이 행만).
+- 미검증: 컴파일 못 함(java 없음). CI android-release로 확인 필요.

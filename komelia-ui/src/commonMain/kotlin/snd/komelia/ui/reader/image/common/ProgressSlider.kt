@@ -87,6 +87,8 @@ fun PageSpreadProgressSlider(
     show: Boolean,
     layoutDirection: LayoutDirection,
     modifier: Modifier = Modifier,
+    aboveContent: (@Composable () -> Unit)? = null,
+    trailingContent: (@Composable () -> Unit)? = null,
 ) {
     if (pageSpreads.isEmpty()) return
 
@@ -102,13 +104,19 @@ fun PageSpreadProgressSlider(
     ) {
         if (show || isHovered.value) {
             Column {
-                CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
-                    Slider(
-                        pageSpreads = pageSpreads,
-                        currentSpreadIndex = currentSpreadIndex,
-                        onPageNumberChange = onPageNumberChange,
-                        layoutDirection = layoutDirection
-                    )
+                aboveContent?.invoke()
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Box(Modifier.weight(1f)) {
+                        CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
+                            Slider(
+                                pageSpreads = pageSpreads,
+                                currentSpreadIndex = currentSpreadIndex,
+                                onPageNumberChange = onPageNumberChange,
+                                layoutDirection = layoutDirection
+                            )
+                        }
+                    }
+                    trailingContent?.invoke()
                 }
 
                 Spacer(
@@ -203,11 +211,11 @@ private fun Slider(
 
         val previewOffsetX = (constraints.maxWidth * sliderState.coercedValueAsFraction - previewPlaceable.width / 2)
             .roundToInt()
-            .coerceIn(0, constraints.maxWidth - previewPlaceable.width)
+            .coerceIn(0, (constraints.maxWidth - previewPlaceable.width).coerceAtLeast(0))
 
         val labelOffsetX = (constraints.maxWidth * sliderState.coercedValueAsFraction - labelPlaceable.width / 2)
             .roundToInt()
-            .coerceIn(0, constraints.maxWidth - labelPlaceable.width)
+            .coerceIn(0, (constraints.maxWidth - labelPlaceable.width).coerceAtLeast(0))
 
         layout(constraints.maxWidth, previewPlaceable.height + sliderPlaceable.height + labelPlaceable.height) {
             previewPlaceable.placeRelative(

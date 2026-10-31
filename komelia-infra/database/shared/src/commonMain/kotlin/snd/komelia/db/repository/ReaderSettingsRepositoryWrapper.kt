@@ -163,6 +163,14 @@ class ReaderSettingsRepositoryWrapper(
         wrapper.transform { it.copy(volumeKeysNavigation = enable) }
     }
 
+    override fun getAutoTurnIntervalSeconds(): Flow<Int> {
+        return wrapper.mapState { it.autoTurnIntervalSeconds }
+    }
+
+    override suspend fun putAutoTurnIntervalSeconds(seconds: Int) {
+        wrapper.transform { it.copy(autoTurnIntervalSeconds = seconds) }
+    }
+
     override fun getUpscalerMode(): Flow<UpscaleMode> {
         return wrapper.mapState { it.ortUpscalerMode }
     }

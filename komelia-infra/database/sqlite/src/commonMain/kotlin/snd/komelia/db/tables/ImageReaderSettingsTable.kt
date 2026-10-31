@@ -19,6 +19,7 @@ object ImageReaderSettingsTable : Table("ImageReaderSettings") {
 
     val loadThumbnailPreviews = bool("load_thumbnail_previews")
     val volumeKeysNavigation = bool("volume_keys_navigation")
+    val autoTurnIntervalSeconds = integer("auto_turn_interval_seconds")
 
     val flashOnPageChange = bool("flash_on_page_change")
     val flashDuration = long("flash_duration")
