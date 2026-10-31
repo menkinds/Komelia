@@ -12,12 +12,17 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import snd.komelia.offline.sync.downloadChannelId
 import snd.komelia.ui.DependencyContainer
+import snd.komelia.updates.AppVersion
+import snd.komelia.updates.parseReleaseTag
 
 val dependencies = MutableStateFlow<DependencyContainer?>(null)
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
         GlobalExceptionHandler.initialize(applicationContext)
+        // update checks compare against the installed versionName, not the hardcoded upstream constant
+        parseReleaseTag(packageManager.getPackageInfo(packageName, 0).versionName.orEmpty())
+            ?.let { AppVersion.current = it }
         setupNotificationChannels()
         initWorkManager()
     }

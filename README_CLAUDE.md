@@ -24,3 +24,10 @@
 - 장르/저자 탭 필터는 업스트림에 이미 있음(SeriesContent/BookInfoContent → LibraryScreen(filter) → SeriesFilterState.applyFilter, 필터 UI에 활성 표시). 변경 없음. 시리즈 화면은 writer/penciller만 표시.
 - 워크플로: 서명 단계에서 RELEASE_TAG가 있으면 `komelia-<tag>-arm64.apk`.
 - 미검증: java/Gradle 없어 컴파일·테스트 실행 못 함. `Page.totalElements` 사용은 다른 코드(CollectionViewModel)와 같은 API.
+
+## 앱 내 업데이트 → menkinds/Komelia Releases (2026-10-31)
+- 업스트림에 이미 업데이트 체크(StartupUpdateChecker, AndroidAppUpdater, 설정>Updates 화면, UpdateDialog)가 있어 재사용. 새로 만들지 않음.
+- 포크 소유 파일: `komelia-domain/core/.../updates/ForkUpdates.kt` (`FORK_RELEASES_REPO`, 태그 파싱, versionCode 계산, APK/sha256 선택) + `commonTest/.../ForkUpdatesTest.kt`.
+- 업스트림 파일 수정: UpdateClient(repo 상수, draft/prerelease 필터, 403/429 메시지, getText), AppVersion(`current`를 var로, `v` 접두 허용, AppRelease.checksumUrl), StartupUpdateChecker(24h→12h), AndroidAppUpdater(파일로 받아 SHA-256 검증 후 PackageInstaller 세션, 알 수 없는 앱 설치 허용 화면 이동, 캐시 정리, 오류는 AppNotifications), AndroidAppModule/App.kt(설치된 versionName을 AppVersion.current로), androidApp/build.gradle.kts(-Pkomelia.versionName/versionCode), strings.xml(Dismiss→Later), core/build.gradle.kts(commonTest 의존성), android-release.yml.
+- 설치된 버전 비교는 versionName 기준. 태그 없는 로컬 빌드는 0.20.0이라 업데이트 안 뜸(의도).
+- 미검증: java 없어 컴파일/테스트 못 돌림. `./gradlew :komelia-domain:core:jvmTest`로 확인 필요.

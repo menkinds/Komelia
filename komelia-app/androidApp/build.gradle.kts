@@ -72,8 +72,10 @@ android {
         applicationId = "io.github.snd_r.komelia"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = libs.versions.android.versionCode.get().toInt()
-        versionName = libs.versions.app.version.get()
+        // release workflow passes -Pkomelia.versionCode/-Pkomelia.versionName when building a tag
+        versionCode = providers.gradleProperty("komelia.versionCode").orNull?.toInt()
+            ?: libs.versions.android.versionCode.get().toInt()
+        versionName = providers.gradleProperty("komelia.versionName").orNull ?: libs.versions.app.version.get()
 
         val enableSelfUpdates = when (androidVariant) {
             AndroidVariant.STANDALONE -> "true"

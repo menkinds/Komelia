@@ -30,7 +30,7 @@ class StartupUpdateChecker(
             if (!checkForUpdates) return null
 
             val lastChecked = settings.getLastUpdateCheckTimestamp().first()
-            if (lastChecked != null && lastChecked > Clock.System.now().minus(24.hours)) return null
+            if (lastChecked != null && lastChecked > Clock.System.now().minus(12.hours)) return null
 
             val releases = updater.getReleases()
             val latest = releases.first()

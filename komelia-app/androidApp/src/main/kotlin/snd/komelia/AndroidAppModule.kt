@@ -249,7 +249,7 @@ class AndroidAppModule(
     }
 
     override fun createAppUpdater(updateClient: UpdateClient): AppUpdater? {
-        return if (BuildConfig.ENABLE_SELF_UPDATES) AndroidAppUpdater(updateClient, context) else null
+        return if (BuildConfig.ENABLE_SELF_UPDATES) AndroidAppUpdater(updateClient, context, appNotifications) else null
     }
 
     override suspend fun createImageDecoder() = VipsImageDecoder()
