@@ -27,11 +27,14 @@ import snd.komelia.offline.tasks.OfflineTaskEmitter
 import snd.komelia.settings.CommonSettingsRepository
 import snd.komelia.settings.model.BooksLayout
 import snd.komelia.ui.LoadState
+import snd.komelia.ui.book.BookFilter
 import snd.komelia.ui.book.BooksFilterState
+import snd.komelia.ui.book.BooksFilterState.BooksSort
 import snd.komelia.ui.common.menus.BookMenuActions
 import snd.komelia.ui.common.menus.bulk.BookBulkActions
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.KomgaBookReadProgressUpdateRequest
+import snd.komga.client.book.KomgaReadStatus
 import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.search.allOfBooks
 import snd.komga.client.series.KomgaSeriesId
@@ -114,35 +117,22 @@ class SeriesBooksState(
 
             val series = series.filterNotNull().first()
             val filter = this.filterState.state.value
-            val condition = allOfBooks {
-                seriesId { isEqualTo(series.id) }
-                filter.addConditionTo(this)
-            }
-
-            val pageResponse = bookApi.getBookList(
-                conditionBuilder = condition,
-                fullTextSearch = null,
-                pageRequest = KomgaPageRequest(
-                    pageIndex = page - 1,
-                    size = pageLoadSize,
-                    sort = filter.sortOrder.komgaSort
-                )
-            )
+            val pageResponse = fetchBooksPage(series.id, filter, page - 1, pageLoadSize)
 
             val newState = when (currentState) {
                 is LoadState.Success<BooksData> -> currentState.value.copy(
-                    books = pageResponse.content,
+                    books = pageResponse.books,
                     pageSize = pageLoadSize,
                     totalPages = pageResponse.totalPages,
-                    currentPage = pageResponse.number + 1,
-                    selectedBooks = pageResponse.content.filter { it.id in currentState.value.selectedBooks.map { it.id } }
+                    currentPage = pageResponse.pageIndex + 1,
+                    selectedBooks = pageResponse.books.filter { it.id in currentState.value.selectedBooks.map { it.id } }
                 )
 
                 else -> BooksData(
-                    books = pageResponse.content,
+                    books = pageResponse.books,
                     pageSize = pageLoadSize,
                     totalPages = pageResponse.totalPages,
-                    currentPage = pageResponse.number + 1,
+                    currentPage = pageResponse.pageIndex + 1,
                     layout = settingsRepository.getBookListLayout().first(),
                     selectionMode = false,
                     selectedBooks = emptyList()
@@ -150,6 +140,48 @@ class SeriesBooksState(
             }
             mutableState.value = LoadState.Success(newState)
         }.onFailure { mutableState.value = LoadState.Error(it) }
+    }
+
+    private class BooksPage(val books: List<KomeliaBook>, val totalPages: Int, val pageIndex: Int)
+
+    private suspend fun fetchBooksPage(
+        id: KomgaSeriesId,
+        filter: BookFilter,
+        pageIndex: Int,
+        pageSize: Int
+    ): BooksPage {
+        suspend fun query(statuses: List<KomgaReadStatus>?, index: Int, size: Int) = bookApi.getBookList(
+            conditionBuilder = allOfBooks {
+                seriesId { isEqualTo(id) }
+                filter.addConditionTo(this)
+                if (statuses != null) anyOf { statuses.forEach { readStatus { isEqualTo(it) } } }
+            },
+            fullTextSearch = null,
+            pageRequest = KomgaPageRequest(pageIndex = index, size = size, sort = filter.sortOrder.komgaSort)
+        )
+
+        if (filter.sortOrder != BooksSort.UNREAD_FIRST) {
+            val page = query(null, pageIndex, pageSize)
+            return BooksPage(page.content, page.totalPages, page.number)
+        }
+
+        // not completed books first, then completed; see UnreadFirstOrdering
+        val notCompleted = listOf(KomgaReadStatus.UNREAD, KomgaReadStatus.IN_PROGRESS)
+        val completed = listOf(KomgaReadStatus.READ)
+        val notCompletedPages = UnreadFirstOrdering.pagesFor(query(notCompleted, 0, 1).totalElements.toLong(), pageSize)
+        val completedPages = UnreadFirstOrdering.pagesFor(query(completed, 0, 1).totalElements.toLong(), pageSize)
+
+        // reloads can leave the current page past the end (e.g. after marking books as read)
+        val lastPage = maxOf(0, notCompletedPages + completedPages - 1)
+        val index = pageIndex.coerceIn(0, lastPage)
+        val location = UnreadFirstOrdering.locate(index, notCompletedPages)
+        val books = when (location.group) {
+            UnreadFirstOrdering.Group.NOT_COMPLETED -> query(notCompleted, location.pageIndex, pageSize).content
+            UnreadFirstOrdering.Group.COMPLETED ->
+                if (location.pageIndex < completedPages) query(completed, location.pageIndex, pageSize).content
+                else emptyList()
+        }
+        return BooksPage(books, maxOf(1, notCompletedPages + completedPages), index)
     }
 
     fun onBookPageSizeChange(pageSize: Int) {

@@ -98,6 +98,7 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_book_fil
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_book_filter_read_status_read
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_book_filter_read_status_unread
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_book_filter_sort_numbers_asc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_book_filter_sort_unread_first
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_book_filter_sort_numbers_desc
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_publication_status_abandoned
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_filter_publication_status_ended
@@ -222,6 +223,7 @@ data object AppStrings {
 
     fun forBookSort(sort: BooksSort): StringResource {
         return when (sort) {
+            BooksSort.UNREAD_FIRST -> Res.string.series_book_filter_sort_unread_first
             BooksSort.NUMBER_ASC -> Res.string.series_book_filter_sort_numbers_asc
             BooksSort.NUMBER_DESC -> Res.string.series_book_filter_sort_numbers_desc
         }

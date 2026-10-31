@@ -23,7 +23,7 @@ import snd.komga.client.common.KomgaSort.KomgaBooksSort
 import snd.komga.client.search.BookConditionBuilder
 import snd.komga.client.search.KomgaSearchCondition
 data class BookFilter(
-    val sortOrder: BooksSort = BooksSort.NUMBER_ASC,
+    val sortOrder: BooksSort = BooksSort.UNREAD_FIRST,
     val readStatus: List<KomgaReadStatus> = emptyList(),
     val includeTags: List<String> = emptyList(),
     val excludeTags: List<String> = emptyList(),
@@ -178,6 +178,8 @@ class BooksFilterState(
     }
 
     enum class BooksSort(val komgaSort: KomgaBooksSort) {
+        // paged as two queries by SeriesBooksState; komgaSort is the order inside each group
+        UNREAD_FIRST(KomgaBooksSort.byNumberAsc()),
         NUMBER_ASC(KomgaBooksSort.byNumberAsc()),
         NUMBER_DESC(KomgaBooksSort.byNumberDesc()),
 //        FILENAME_ASC(KomgaBooksSort.byFileNameAsc()),

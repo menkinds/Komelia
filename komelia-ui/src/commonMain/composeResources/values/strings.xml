@@ -204,6 +204,7 @@
 
     <string name="series_book_filters">Book Filters</string>
     <string name="series_book_filter_sort">Sort order</string>
+    <string name="series_book_filter_sort_unread_first">Unread first</string>
     <string name="series_book_filter_sort_numbers_asc">Ascending</string>
     <string name="series_book_filter_sort_numbers_desc">Descending</string>
     <string name="series_book_filter_read_status">Read status</string>
