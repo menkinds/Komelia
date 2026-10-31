@@ -17,10 +17,11 @@ data class AppVersion(
 ) : Comparable<AppVersion> {
 
     companion object {
-        val current = AppVersion(0, 20, 0)
+        // overwritten at startup from the installed versionName on Android (see App.kt)
+        var current = AppVersion(0, 20, 0)
 
         fun fromString(value: String): AppVersion {
-            val version = value.split(".")
+            val version = value.removePrefix("v").split(".")
             return when (version.size) {
                 3 -> AppVersion(version[0].toInt(), version[1].toInt(), version[2].toInt())
                 2 -> AppVersion(version[0].toInt(), version[1].toInt(), 0)
@@ -50,6 +51,7 @@ data class AppRelease(
 
     val assetName: String?,
     val assetUrl: String?,
+    val checksumUrl: String? = null,
 )
 
 object AppVersionSerializer : KSerializer<AppVersion> {

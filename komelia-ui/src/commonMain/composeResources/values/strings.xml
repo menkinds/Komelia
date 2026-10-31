@@ -947,7 +947,7 @@
     <string name="komf_reset_remove_comicinfo_desc">Requires write access to files</string>
 
     <string name="app_updates_new_version_available">New version is available</string>
-    <string name="app_updates_dismiss">Dismiss</string>
+    <string name="app_updates_dismiss">Later</string>
     <string name="app_updates_update">Update</string>
     <string name="app_updates_updating">Updating</string>
     <string name="app_updates_cancel">Cancel</string>

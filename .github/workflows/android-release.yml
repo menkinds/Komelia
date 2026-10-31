@@ -147,7 +147,30 @@ jobs:
         run: ./gradlew android-aarch64_copyJniLibs buildEpubReaders --no-daemon
 
       - name: Assemble release APK (unsigned)
-        run: ./gradlew :androidRelease --no-daemon
+        env:
+          RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag }}
+        run: |
+          set -eu
+          version_args=""
+          if [ -n "$RELEASE_TAG" ]; then
+            if ! [[ "$RELEASE_TAG" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+) ]]; then
+              echo "::error::Tag '$RELEASE_TAG' must look like v1.2.3"
+              exit 1
+            fi
+            major=$((10#${BASH_REMATCH[1]})); minor=$((10#${BASH_REMATCH[2]})); patch=$((10#${BASH_REMATCH[3]}))
+            if [ "$minor" -ge 100 ] || [ "$patch" -ge 100 ]; then
+              echo "::error::minor and patch must be below 100 (versionCode = MAJOR*10000 + MINOR*100 + PATCH)"
+              exit 1
+            fi
+            version_code=$((major * 10000 + minor * 100 + patch))
+            if [ "$version_code" -le 25 ]; then
+              echo "::error::versionCode $version_code must be higher than the previously shipped 25"
+              exit 1
+            fi
+            version_args="-Pkomelia.versionName=${RELEASE_TAG#v} -Pkomelia.versionCode=$version_code"
+            echo "versionName=${RELEASE_TAG#v} versionCode=$version_code"
+          fi
+          ./gradlew :androidRelease --no-daemon $version_args
 
       - name: Sign APK
         env:

@@ -8,7 +8,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.time.Instant
 
-private const val komeliaBaseUrl = "https://api.github.com/repos/Snd-R/Komelia"
+private const val komeliaBaseUrl = "https://api.github.com/repos/$FORK_RELEASES_REPO"
 private const val onnxRuntimeBaseUrl = "https://api.github.com/repos/microsoft/onnxruntime"
 
 class UpdateClient(
@@ -17,17 +17,42 @@ class UpdateClient(
 ) {
 
     suspend fun getKomeliaReleases(): List<GithubRelease> {
-        return ktor.get("$komeliaBaseUrl/releases") {
-            parameter("per_page", 5)
-        }.body()
+        val releases: List<GithubRelease> = getChecked("$komeliaBaseUrl/releases") {
+            parameter("per_page", 10)
+        }
+        return releases.filter { !it.draft && !it.prerelease }
     }
 
     suspend fun getKomeliaLatestRelease(): GithubRelease {
-        return ktor.get("$komeliaBaseUrl/releases/latest").body()
+        return getChecked("$komeliaBaseUrl/releases/latest")
     }
 
     suspend fun getOnnxRuntimeRelease(tagName: String): GithubRelease {
         return ktor.get("$onnxRuntimeBaseUrl/releases/tags/$tagName").body()
+    }
+
+    suspend fun getText(url: String): String {
+        val response = ktorWithoutCache.get(url)
+        checkStatus(response)
+        return response.bodyAsText()
+    }
+
+    private suspend inline fun <reified T> getChecked(
+        url: String,
+        block: HttpRequestBuilder.() -> Unit = {}
+    ): T {
+        val response = ktor.get(url, block)
+        checkStatus(response)
+        return response.body()
+    }
+
+    private fun checkStatus(response: HttpResponse) {
+        val status = response.status.value
+        if (status in 200..299) return
+        val rateLimited = status == 429 || (status == 403 && response.headers["X-RateLimit-Remaining"] == "0")
+        throw UpdateCheckException(
+            if (rateLimited) "GitHub rate limit reached, try again later" else "Update server returned HTTP $status"
+        )
     }
 
     suspend fun streamFile(url: String, block: suspend (response: HttpResponse) -> Unit) {
@@ -45,6 +70,8 @@ data class GithubRelease(
     @SerialName("html_url")
     val htmlUrl: String,
     val body: String,
+    val draft: Boolean = false,
+    val prerelease: Boolean = false,
     val assets: List<GithubReleaseAsset>
 )
 
