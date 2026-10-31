@@ -1,5 +1,31 @@
 # README_CLAUDE.md (인계)
 
+## 현재 상태 (2026-10-31 일일 정리, KST)
+- 저장소: menkinds/Komelia (Snd-R/Komelia 포크, 앱 이름 PAGES, Android 전용). 기본 브랜치 main.
+- PR 상태 (main의 git log 기준. gh는 이 세션에서 거부되어 미사용):
+  - #1 CI 워크플로+주간 동기화: 병합됨
+  - #2 SDK 설치 수정: 병합됨
+  - #3 네이티브 빌드 수정: 병합됨
+  - #4 수동 실행 Release 생성: 병합됨
+  - #5 PAGES 이름/Unread first: 병합됨
+  - #6 앱 내 업데이트: 병합됨
+  - #7 main 푸시 자동 릴리스: 병합됨
+  - #8 페이지 모드 자동 넘김: 병합됨
+  - #9 리더 시계(옵션): main 로그에 없음. 병합 여부 미확인
+- PR 없는 작업: job 022017(실패: git clone, 원격에 master 브랜치 없음), job 075855(v0.1.0 태그 푸시, 코드 변경 없음. 태그 결과는 미확인).
+- 이 세션들에서 빌드·테스트를 실제로 돌린 기록은 없음(java/Android SDK 없음). 모든 기능은 CI 확인 전까지 미검증.
+
+## 열린 항목
+- android-release 실제 러너 실행 결과 확인(SDK 설치, 네이티브 Docker 빌드, 서명, 자동 릴리스) — 미확인.
+- `./gradlew :komelia-domain:core:jvmTest`, komelia-ui jvmTest 실행 필요.
+- #9(시계) 병합 여부와 내용 확인. 이 파일에 시계 항목 없음.
+- 동시 머지 시 가운데 릴리스 실행이 취소될 수 있음(아래 자동 릴리스 항목).
+
+## 다음 단계 (제안, 추정)
+- 러너 로그(특히 native-build-log artifact) 확인 후 실패 시 수정.
+- 첫 자동 릴리스 태그와 앱 내 업데이트 동작을 실기기로 확인.
+- 시계 PR 병합 후 이 문서에 항목 추가.
+
 ## menkinds/komelia 포크 (Android 전용)
 - 추가: `.github/workflows/android-release.yml`(태그 v* → 서명 APK Release), `.github/workflows/upstream-sync.yml` + `.github/scripts/upstream-sync.sh`(월요일 Snd-R/Komelia 최신 릴리스 병합 PR, 충돌 시 이슈), README "포크 사용법".
 - Gradle: `./gradlew :androidRelease`(= androidApp:assembleRelease). 서명은 Gradle이 아니라 워크플로에서 zipalign+apksigner (업스트림 파일 수정 없음).
