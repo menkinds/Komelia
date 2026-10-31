@@ -66,17 +66,6 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Install native build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            build-essential cmake ninja-build nasm autoconf automake autopoint \
-            autotools-dev libtool texinfo pkg-config libglib2.0-dev python3-pip \
-            python3-setuptools python3-wheel python3-numpy
-          # distro meson may be too old for libvips/glib
-          python3 -m pip install --user --break-system-packages meson
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-
       - name: Install Android SDK components
         run: |
           set -eu
@@ -97,9 +86,35 @@ jobs:
             echo "BUILD_TOOLS_DIR=$SDK/build-tools/${BUILD_TOOLS_VERSION}"
           } >> "$GITHUB_ENV"
 
-      # Same steps as the README "Android App" section, without docker.
+      # Same method as upstream: the README "Android App" section builds the
+      # native libraries inside cmake/android.Dockerfile (ubuntu 25.10, apt
+      # meson/cmake/ninja/nasm/..., NDK 28.0.13004108). Host ubuntu-24.04 tools
+      # (cmake/meson versions, preinstalled /usr/local binaries) differ, so run
+      # the upstream image instead of installing tools on the host.
+      - name: Build native build image
+        run: docker build -t komelia-build-android . -f ./cmake/android.Dockerfile
+
+      # Run as the runner's uid so build output in the workspace stays writable
+      # without chown/chmod. Full output is kept in native-build.log because
+      # parallel ninja output can bury the first real error.
       - name: Build native libraries (aarch64)
-        run: bash ./cmake/android-build.sh aarch64
+        run: |
+          docker run --rm \
+            --user "$(id -u):$(id -g)" -e HOME=/tmp \
+            -v "$PWD:/build" komelia-build-android aarch64 2>&1 | tee "$RUNNER_TEMP/native-build.log"
+
+      - name: Show first native build error
+        if: failure()
+        run: |
+          grep -n -m 20 -E "FAILED:|error:|Error [0-9]+|CMake Error|fatal error|undefined reference|No such file" "$RUNNER_TEMP/native-build.log" || true
+
+      - name: Upload native build log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-build-log
+          path: ${{ runner.temp }}/native-build.log
+          if-no-files-found: ignore
 
       - name: Copy native libraries and build epub readers
         run: ./gradlew android-aarch64_copyJniLibs buildEpubReaders --no-daemon
