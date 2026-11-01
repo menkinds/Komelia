@@ -37,6 +37,7 @@ import snd.komelia.ui.platform.CommonParcelable
 import snd.komelia.ui.platform.CommonParcelize
 import snd.komelia.ui.platform.CommonParcelizeRawValue
 import snd.komelia.ui.series.SeriesScreen
+import snd.komelia.ui.pages.SeriesRatingPrompts
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.KomgaBookReadProgressUpdateRequest
 import snd.komga.client.common.KomgaReadingDirection
@@ -244,6 +245,7 @@ class ReaderState(
                     currentBook.id,
                     KomgaBookReadProgressUpdateRequest(page)
                 )
+                SeriesRatingPrompts.onBookProgress(bookApi, seriesApi, appNotifications, currentBook, page)
             }
         }
     }

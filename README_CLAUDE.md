@@ -106,3 +106,11 @@
 - 장르/태그/저자 칩 탭 → `LibraryScreen(null, filter)`(전체 라이브러리 화면 재사용, `SeriesScreenFilter.libraryIdFor`). 필터가 넘어오면 임시 필터라 저장/복원 안 함. 19+ 숨김은 기존 `RestrictedKomgaApi`가 그대로 적용. 다른 칩(출판사, 상태, 연령, 언어)은 기존처럼 해당 라이브러리.
 - 알려진 한계: 이미 기본값인데 숨겨진 저장값만 남은 경우 Reset은 상태 변화가 없어 저장을 다시 하지 않음.
 - 미검증: 컴파일 못 함(java/SDK 없음).
+
+## 시리즈 별점 ★N 태그 (2026-11-01)
+- 별점 = Komga 시리즈 태그 `★N`(U+2605, N=1..5). 다른 저장소/DB 캐시 없음, 항상 시리즈 메타데이터에서 읽음(cBossard가 양방향 동기화).
+- 새 파일: `komelia-ui/.../ui/pages/SeriesRating.kt` (파싱/갱신 `SeriesRating`, 별 UI `SeriesRatingStars`, 완독 프롬프트 `SeriesRatingPrompts` + `SeriesRatingPromptHost`).
+- 설정: `withRating`이 `★*` 전부 제거 후 `★N` 추가, 다른 태그 유지. 같은 별 다시 탭 → 해제. `SeriesViewModel.setRating`이 즉시 반영, 서버 실패 시 되돌리고 오류 알림.
+- 프롬프트: `ReaderState.onProgressChange`가 마지막 페이지 근처에서 책을 다시 조회해 completed 확인 → `getBookSiblingNext == null`(시리즈 마지막 책) → 별점 없음이면 `MainView`의 호스트가 다이얼로그 표시.
+- 한계: 이미지 리더(ReaderState)만 연결. Ttsu/Komga EPUB 리더 완독은 프롬프트 안 뜸. 한국어 `dialog_confirm`="확인"을 values-ko에 추가(앱 전체 확인 버튼에 적용).
+- 미검증: 컴파일 못 함(java/SDK 없음). `tags` 타입은 List<String>으로 가정.
