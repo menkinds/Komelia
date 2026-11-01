@@ -84,6 +84,7 @@ class ReaderViewModel(
         navigator = navigator,
         appNotifications = appNotifications,
         readerSettingsRepository = readerSettingsRepository,
+        imageLoader = imageLoader,
         currentBookId = currentBookId,
         markReadProgress = markReadProgress,
         stateScope = screenModelScope,

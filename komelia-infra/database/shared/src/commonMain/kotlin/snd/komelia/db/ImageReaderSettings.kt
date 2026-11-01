@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import snd.komelia.image.ReduceKernel
 import snd.komelia.image.UpsamplingMode
 import snd.komelia.image.UpscaleMode
+import snd.komelia.pages.TextAwareAutoTurnSettings
 import snd.komelia.settings.model.ContinuousReadingDirection
 import snd.komelia.settings.model.LayoutScaleType
 import snd.komelia.settings.model.PageDisplayLayout
@@ -36,6 +37,7 @@ data class ImageReaderSettings(
     val volumeKeysNavigation: Boolean = false,
     val autoTurnIntervalSeconds: Int = 10,
     val showClock: Boolean = false,
+    val textAwareAutoTurn: TextAwareAutoTurnSettings = TextAwareAutoTurnSettings(),
 
     val ortUpscalerMode: UpscaleMode = UpscaleMode.NONE,
     val ortUpscalerUserModelPath: PlatformFile? = null,

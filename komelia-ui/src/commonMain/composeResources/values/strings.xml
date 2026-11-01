@@ -1038,5 +1038,21 @@
     <string name="error_copied">Copied to clipboard</string>
     <string name="error_restart">Restart</string>
     <string name="error_exit">Exit</string>
-
+    <string name="auto_turn_text_aware">Adjust to amount of text</string>
+    <string name="auto_turn_text_aware_per_char">Per character: %1$d ms</string>
+    <string name="auto_turn_text_aware_min">Minimum: %1$d s</string>
+    <string name="auto_turn_text_aware_max">Maximum: %1$d s</string>
+    <string name="auto_turn_ocr_language">OCR language</string>
+    <string name="auto_turn_ocr_japanese">Japanese</string>
+    <string name="auto_turn_ocr_korean">Korean</string>
+    <string name="auto_turn_ocr_chinese">Chinese</string>
+    <string name="auto_turn_ocr_latin">English / Latin</string>
+    <string name="auto_turn_ocr_state_missing">Not installed</string>
+    <string name="auto_turn_ocr_state_downloading">Downloading</string>
+    <string name="auto_turn_ocr_state_installed">Installed</string>
+    <string name="auto_turn_ocr_state_unavailable">Unavailable</string>
+    <string name="auto_turn_ocr_download">Download</string>
+    <string name="auto_turn_ocr_reason_unsupported">Text recognition is not supported on this platform. The base interval is used.</string>
+    <string name="auto_turn_ocr_reason_no_services">Google Play services is not available. The base interval is used.</string>
+    <string name="auto_turn_ocr_reason_model_missing">The selected OCR language is not installed. The base interval is used.</string>
 </resources>

@@ -7,6 +7,7 @@ import snd.komelia.db.SettingsStateWrapper
 import snd.komelia.image.ReduceKernel
 import snd.komelia.image.UpsamplingMode
 import snd.komelia.image.UpscaleMode
+import snd.komelia.pages.TextAwareAutoTurnSettings
 import snd.komelia.settings.ImageReaderSettingsRepository
 import snd.komelia.settings.model.ContinuousReadingDirection
 import snd.komelia.settings.model.LayoutScaleType
@@ -169,6 +170,14 @@ class ReaderSettingsRepositoryWrapper(
 
     override suspend fun putAutoTurnIntervalSeconds(seconds: Int) {
         wrapper.transform { it.copy(autoTurnIntervalSeconds = seconds) }
+    }
+
+    override fun getTextAwareAutoTurn(): Flow<TextAwareAutoTurnSettings> {
+        return wrapper.mapState { it.textAwareAutoTurn }
+    }
+
+    override suspend fun putTextAwareAutoTurn(settings: TextAwareAutoTurnSettings) {
+        wrapper.transform { it.copy(textAwareAutoTurn = settings) }
     }
 
     override fun getShowClock(): Flow<Boolean> {

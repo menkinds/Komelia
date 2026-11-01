@@ -133,3 +133,13 @@
 - 로딩 중: `ImageReaderScreen(libraryIdHint)`(`readerScreen(book)`이 book.libraryId를 넘김)과 EpubScreen의 `book`으로 책 로딩 전에도 태그. 로딩이 잠금에 끊겨 Error가 되면, 해제 후 `screenReloadEvents`에서 같은 책으로 `initialize` 재시도(이미지 리더). BookScreen/Oneshot/Series는 기존대로 vm의 항목이 이미 있으면 그 libraryId 사용.
 - 한계: bookId만으로 열린 리더(힌트 없음)는 로딩 중 일반 잠금. Epub 리더는 로딩 실패 시 재시도 없음(Error 화면).
 - 테스트: `AdultLockStateTest`에 혼합 컬렉션, 일반 항목만 있는 읽기 목록, 잠금 항목 있는 읽기 목록, 책 로딩 상태(힌트 유무) 추가. 러너에 Android SDK/java가 없어 실행·컴파일 못 함 → 첫 컴파일은 릴리스 빌드.
+
+## 글자 양에 맞춘 자동 넘김 (ML Kit OCR) (2026-11-01)
+- 자동 넘김 오버레이(하단 "10s" 탭)의 슬라이더 아래에 "글자 양에 맞춰 조절"(기본 OFF). 켜면 페이지별 지연 = clamp(기본 간격 + 글자당 ms × 글자 수, 최소, 최대). 기본: 글자당 100ms, 최소 2s, 최대 30s. 꺼져 있으면 동작 변화 없음.
+- 마이그레이션 **V19** `V19__fork_text_aware_auto_turn.sql`(ImageReaderSettings에 `fork_auto_turn_*` 5열: text_aware, per_char_ms, min_seconds, max_seconds, ocr_language). 설정 API `getTextAwareAutoTurn/putTextAwareAutoTurn`(`TextAwareAutoTurnSettings`, core `snd.komelia.pages`). OCR 언어 기본 JAPANESE, 선택 저장.
+- 순수 로직(core `snd/komelia/pages/TextAwareAutoTurn.kt`): `TextAwareDelay.delayMs`, `OcrTextCounter`(공백·기호 제외, 글자/숫자만 셈; 신뢰도 0.4 미만 줄 제외; 블록 글자 3자 미만=고립 기호/짧은 효과음 제외), `SimpleLru`(50). 테스트 `commonTest/.../pages/TextAwareAutoTurnTest.kt`.
+- UI(`komelia-ui/.../ui/pages/`): `TextAwareAutoTurnState`(설정+글자 수 캐시+대기), `TextAwareAutoTurnSettingsPanel`(스위치, 슬라이더, OCR 언어 행: 없음/다운로드 중/설치됨 + 다운로드 버튼, 이유 문구), `PageTextRecognizer`(인터페이스; expect `rememberPageTextRecognizer`). jvm/wasm은 `NoPageTextRecognizer`(null → 기본 간격).
+- 타이머(`ReaderContent` LaunchedEffect): 기본 간격으로 시작, 그 안에 글자 수가 도착하면 남은 시간을 조정, 못 오면(또는 OCR 실패) 기본 간격에 넘김. 다음 스프레드는 현재 페이지 표시 중 미리 OCR. 키는 책+페이지+언어, 이미지는 `BookImageLoader.loadImage`로 따로 디코드(디스크 캐시 재사용, 리더 이미지와 공유 안 함).
+- Android(`PageTextRecognizer.android.kt`): 번들 없는 Play 서비스 ML Kit(`play-services-mlkit-text-recognition`, `-japanese/-korean/-chinese`), 모델은 `ModuleInstallClient`로 요청 시 다운로드(APK 크기 증가 없음). 긴 변 2048px로 축소 후 ARGB 비트맵으로 인식(Default 디스패처). 이미지 데이터는 기기 밖으로 안 나감.
+- 업스트림 파일 수정: ReaderState(ctor에 imageLoader, `textAwareAutoTurn`), ReaderViewModel, ReaderContent, SettingsContent, ImageReaderSettings/Repository/Wrapper/Exposed/Table, AppMigrations, strings(values, values-ko), libs.versions.toml, komelia-ui/build.gradle.kts.
+- 한계/미검증: java/Android SDK 없어 컴파일·테스트 못 함. ML Kit 일본어 인식기는 세로쓰기 인식률이 낮을 수 있음(실기기 확인 필요). `play-services-base:18.5.0`, ML Kit 버전, `TextRecognizer`가 `OptionalModuleApi`인 점, `Line.confidence` API는 CI에서 확인.

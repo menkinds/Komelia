@@ -41,6 +41,7 @@ import snd.komelia.ui.platform.WindowSizeClass.MEDIUM
 import snd.komelia.ui.reader.image.PageMetadata
 import snd.komelia.ui.reader.image.ReaderState
 import snd.komelia.ui.reader.image.ScreenScaleState
+import snd.komelia.ui.pages.TextAwareAutoTurnSettingsPanel
 import snd.komelia.ui.reader.image.common.AutoTurnControls
 import snd.komelia.ui.reader.image.common.AutoTurnIntervalRow
 import snd.komelia.ui.reader.image.common.PageSpreadProgressSlider
@@ -185,10 +186,13 @@ fun BoxScope.SettingsOverlay(
                 modifier = Modifier.align(Alignment.BottomStart),
                 aboveContent = if (showIntervalRow) {
                     {
-                        AutoTurnIntervalRow(
-                            intervalSeconds = autoTurnInterval,
-                            onIntervalChange = commonReaderState::onAutoTurnIntervalChange
-                        )
+                        Column {
+                            AutoTurnIntervalRow(
+                                intervalSeconds = autoTurnInterval,
+                                onIntervalChange = commonReaderState::onAutoTurnIntervalChange
+                            )
+                            TextAwareAutoTurnSettingsPanel(commonReaderState.textAwareAutoTurn)
+                        }
                     }
                 } else null,
                 trailingContent = {

@@ -12,6 +12,9 @@ androidx-biometric = "1.1.0"
 androidx-lifecycle = "2.10.0"
 androidx-core-ktx = "1.19.0"
 androidx-datastore = "1.2.1"
+play-services-base = "18.5.0"
+play-services-mlkit-text-recognition = "19.0.1"
+play-services-mlkit-text-recognition-asian = "16.0.1"
 androix-documentfile = "1.1.0"
 androidx-window = "1.5.1"
 androidx-workManager = "2.11.2"
@@ -55,6 +58,11 @@ voyager = "2.2.21-1.10.3"
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
+play-services-base = { module = "com.google.android.gms:play-services-base", version.ref = "play-services-base" }
+play-services-mlkit-text-recognition = { module = "com.google.android.gms:play-services-mlkit-text-recognition", version.ref = "play-services-mlkit-text-recognition" }
+play-services-mlkit-text-recognition-japanese = { module = "com.google.android.gms:play-services-mlkit-text-recognition-japanese", version.ref = "play-services-mlkit-text-recognition-asian" }
+play-services-mlkit-text-recognition-korean = { module = "com.google.android.gms:play-services-mlkit-text-recognition-korean", version.ref = "play-services-mlkit-text-recognition-asian" }
+play-services-mlkit-text-recognition-chinese = { module = "com.google.android.gms:play-services-mlkit-text-recognition-chinese", version.ref = "play-services-mlkit-text-recognition-asian" }
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "androidx-biometric" }
 androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "androidx-lifecycle" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core-ktx" }
