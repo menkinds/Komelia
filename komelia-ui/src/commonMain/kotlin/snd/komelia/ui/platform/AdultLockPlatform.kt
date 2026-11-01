@@ -3,12 +3,16 @@ package snd.komelia.ui.platform
 import androidx.compose.runtime.Composable
 import snd.komelia.adult.AdultLockState
 
+/** False on platforms that cannot unlock. There the lock selection is not offered. */
+expect val adultLockSupported: Boolean
+
 /**
- * Returns an action that asks the user to authenticate and, on success, unlocks [lockState].
+ * Returns an action that asks the user to authenticate and, on success, unlocks [lockState]
+ * and calls [onUnlocked].
  * Failure or cancel keeps the lock without any message. On platforms without support the action does nothing.
  */
 @Composable
-expect fun rememberAdultUnlockRequest(lockState: AdultLockState): () -> Unit
+expect fun rememberAdultUnlockRequest(lockState: AdultLockState, onUnlocked: () -> Unit): () -> Unit
 
 /** Locks [lockState] when the whole app goes to background. Does nothing on platforms without support. */
 @Composable

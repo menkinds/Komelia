@@ -39,7 +39,7 @@ class ExposedSettingsRepository(database: Database) : ExposedRepository(database
                 it[updateLastCheckedTimestamp] = settings.updateLastCheckedTimestamp?.toString()
                 it[updateLastCheckedReleaseVersion] = settings.updateLastCheckedReleaseVersion?.toString()
                 it[updateDismissedVersion] = settings.updateDismissedVersion?.toString()
-                it[restrictedLibraryId] = settings.restrictedLibraryId
+                it[restrictedLibraryIds] = settings.restrictedLibraryIds.joinToString(",")
             }
         }
     }
@@ -59,7 +59,8 @@ class ExposedSettingsRepository(database: Database) : ExposedRepository(database
             },
             updateLastCheckedReleaseVersion = get(AppSettingsTable.updateLastCheckedReleaseVersion)
                 ?.let { AppVersion.fromString(it) },
-            restrictedLibraryId = get(AppSettingsTable.restrictedLibraryId),
+            restrictedLibraryIds = get(AppSettingsTable.restrictedLibraryIds)
+                .split(",").filter { it.isNotBlank() }.toSet(),
             updateDismissedVersion = get(AppSettingsTable.updateDismissedVersion)
                 ?.let { AppVersion.fromString(it) },
         )

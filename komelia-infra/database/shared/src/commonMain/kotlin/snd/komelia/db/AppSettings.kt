@@ -21,5 +21,5 @@ data class AppSettings(
     val updateLastCheckedTimestamp: Instant? = null,
     val updateLastCheckedReleaseVersion: AppVersion? = null,
     val updateDismissedVersion: AppVersion? = null,
-    val restrictedLibraryId: String? = null,
+    val restrictedLibraryIds: Set<String> = emptySet(),
 )

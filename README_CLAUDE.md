@@ -91,3 +91,10 @@
 - 설정 항목: 외형(Appearance) 설정의 드롭다운(`settings_restricted_library*`, ko 포함 `values-ko`). 설정값이 있으면 해제 상태에서만 보임(잠김 땐 숨김). 새로 고르면 즉시 lock.
 - 위험한 곳(컴파일 못 함): expect/actual 3개 타깃, `androidx.biometric:biometric:1.1.0`·`androidx.lifecycle:lifecycle-process:2.10.0` 버전, `combinedClickable` opt-in, `Page(...)` 생성자 인자(RemoteBookApi 것과 동일), `LabeledEntry<String?>`, `values-ko` 리소스 폴더, 마이그레이션 파일 등록.
 - 남은 누출 가능성: 저자 이름 자동완성(`getAuthorsNames/Roles`), `getSeriesTags(libraryId)`, 컬렉션/읽기목록 카드의 항목 수·썸네일(섞인 항목), 검색 결과 전체 건수/페이지 수(서버 값).
+
+## 19+ 잠금 v2: 여러 라이브러리 + 길게 누르기로 선택 (2026-11-01)
+- 마이그레이션 **V17** `V17__fork_restricted_libraries.sql`: 새 열 `fork_restricted_library_ids` (TEXT NOT NULL DEFAULT '', 쉼표 구분). V16의 단일 id는 UPDATE로 복사. 옛 열 `fork_restricted_library_id`는 남겨 두고 코드에서 쓰지 않음. 설정 코드명 `restrictedLibraryIds: Set<String>`(`getRestrictedLibraryIds/putRestrictedLibraryIds`).
+- `AdultLockState`: `libraryIds`, `hiddenLibraryIds`, `currentHiddenLibraryIds()`, `isHidden()`(집합 포함 여부). `RestrictedKomgaApi`는 `isHidden`만 쓰므로 필터는 모든 id에 적용됨.
+- 설정 > 외형의 19+ 항목 제거. 라이브러리 목록 제목(드로어/네비의 Libraries 버튼) 길게 누르기: 집합이 비었거나 해제 상태 → unlock 후 `RestrictedLibrariesDialog`(체크박스, 변경 즉시 저장). 잠김+비어 있지 않음 → BiometricPrompt, 성공 시 unlock + 다이얼로그.
+- 비 Android: `adultLockSupported=false`라 길게 눌러도 아무 일 없음(선택 불가, 해제 불가).
+- 미검증: 컴파일 못 함.

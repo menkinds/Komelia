@@ -542,9 +542,8 @@
     <string name="settings_announcements_title">Announcements</string>
     <string name="settings_appearance_title">Appearance</string>
     <string name="settings_app_theme">App Theme</string>
-    <string name="settings_restricted_library">19+ library</string>
-    <string name="settings_restricted_library_none">None</string>
-    <string name="settings_restricted_library_description">Locks and hides the selected library</string>
+    <string name="settings_restricted_library">19+ libraries</string>
+    <string name="settings_restricted_library_description">Locks and hides the selected libraries</string>
     <string name="settings_app_theme_dark">Dark</string>
     <string name="settings_app_theme_light">Light</string>
     <string name="settings_app_theme_darker">Darker</string>
