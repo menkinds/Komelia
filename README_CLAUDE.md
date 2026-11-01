@@ -98,3 +98,11 @@
 - 설정 > 외형의 19+ 항목 제거. 라이브러리 목록 제목(드로어/네비의 Libraries 버튼) 길게 누르기: 집합이 비었거나 해제 상태 → unlock 후 `RestrictedLibrariesDialog`(체크박스, 변경 즉시 저장). 잠김+비어 있지 않음 → BiometricPrompt, 성공 시 unlock + 다이얼로그.
 - 비 Android: `adultLockSupported=false`라 길게 눌러도 아무 일 없음(선택 불가, 해제 불가).
 - 미검증: 컴파일 못 함.
+
+## 라이브러리 정렬/필터 기억 + 태그 탭은 전체 라이브러리 검색 (2026-11-01)
+- 마이그레이션 **V18** `V18__fork_library_series_filter.sql`: `AppSettings.fork_library_series_filter` (TEXT NOT NULL DEFAULT ''). 값은 JSON(`SavedSeriesFilter`, series/SavedSeriesFilter.kt). 설정 API `getLibrarySeriesFilter/putLibrarySeriesFilter`(CommonSettingsRepository).
+- 모든 라이브러리 화면(전체 보기 포함)이 한 세트를 공유. 변경 즉시 저장(`LibrarySeriesTabState.saveFilter`), 화면 진입 시 복원(`restoreSavedFilter`). 검색어는 저장 안 함. "Reset filters" → 기본값 저장.
+- 현재 라이브러리에 없는 태그/장르/출판사/언어/연령/출간연도/저자는 적용만 건너뛰고(`SeriesFilterState.restore`), 저장값에서는 지우지 않음(`unavailable`을 저장 시 합침). 저자는 이름 검색으로 확인(조회 실패 시 유지).
+- 장르/태그/저자 칩 탭 → `LibraryScreen(null, filter)`(전체 라이브러리 화면 재사용, `SeriesScreenFilter.libraryIdFor`). 필터가 넘어오면 임시 필터라 저장/복원 안 함. 19+ 숨김은 기존 `RestrictedKomgaApi`가 그대로 적용. 다른 칩(출판사, 상태, 연령, 언어)은 기존처럼 해당 라이브러리.
+- 알려진 한계: 이미 기본값인데 숨겨진 저장값만 남은 경우 Reset은 상태 변화가 없어 저장을 다시 하지 않음.
+- 미검증: 컴파일 못 함(java/SDK 없음).

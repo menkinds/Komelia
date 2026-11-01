@@ -105,7 +105,7 @@ class BookScreen(
                 },
                 onParentSeriesPress = { book?.seriesId?.let { seriesId -> navigator.push(SeriesScreen(seriesId)) } },
                 onFilterClick = { filter ->
-                    navigator.push(LibraryScreen(requireNotNull(book?.libraryId), filter))
+                    navigator.push(LibraryScreen(filter.libraryIdFor(requireNotNull(book?.libraryId)), filter))
                 },
                 cardWidth = vm.cardWidth.collectAsState().value,
             )

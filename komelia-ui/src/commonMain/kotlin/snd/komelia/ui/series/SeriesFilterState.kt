@@ -186,6 +186,12 @@ class SeriesFilterState(
     var languagesOptions by mutableStateOf<List<String>>(emptyList())
         private set
 
+    // referential option lists were fetched successfully, so saved values can be checked against them
+    private var optionsLoaded = false
+
+    // saved values that don't exist in the current library. They are not applied but are kept when saving
+    private var unavailable = SavedSeriesFilter()
+
     suspend fun initialize() {
         appNotifications.runCatchingToNotifications {
             genresOptions = referentialApi.getGenres(libraryIds = library.value?.id?.let { listOf(it) }.orEmpty())
@@ -202,7 +208,65 @@ class SeriesFilterState(
             languagesOptions = referentialApi.getLanguages(
                 libraryIds = library.value?.id?.let { listOf(it) }.orEmpty()
             )
+            optionsLoaded = true
         }
+    }
+
+    /** Applies a previously saved filter. Values that are not available in the current library are skipped. */
+    suspend fun restore(saved: SavedSeriesFilter) {
+        if (!optionsLoaded) {
+            mutableFilterState.value = saved.toFilter()
+            unavailable = SavedSeriesFilter()
+            checkIfAllDefault()
+            return
+        }
+
+        val knownAuthors = saved.authors.map { it.name }.distinct().filter { name ->
+            // lookup failure keeps the value
+            runCatching { referentialApi.getAuthors(name).content.any { it.name == name } }.getOrDefault(true)
+        }.toSet()
+
+        val skipped = SavedSeriesFilter(
+            includeGenres = saved.includeGenres.filter { it !in genresOptions },
+            excludeGenres = saved.excludeGenres.filter { it !in genresOptions },
+            includeTags = saved.includeTags.filter { it !in tagOptions },
+            excludeTags = saved.excludeTags.filter { it !in tagOptions },
+            releaseDates = saved.releaseDates.filter { it !in releaseDateOptions },
+            ageRatings = saved.ageRatings.filter { it !in ageRatingsOptions },
+            publishers = saved.publishers.filter { it !in publishersOptions },
+            languages = saved.languages.filter { it !in languagesOptions },
+            authors = saved.authors.filter { it.name !in knownAuthors },
+        )
+        unavailable = skipped
+        mutableFilterState.value = saved.copy(
+            includeGenres = saved.includeGenres - skipped.includeGenres.toSet(),
+            excludeGenres = saved.excludeGenres - skipped.excludeGenres.toSet(),
+            includeTags = saved.includeTags - skipped.includeTags.toSet(),
+            excludeTags = saved.excludeTags - skipped.excludeTags.toSet(),
+            releaseDates = saved.releaseDates - skipped.releaseDates.toSet(),
+            ageRatings = saved.ageRatings - skipped.ageRatings.toSet(),
+            publishers = saved.publishers - skipped.publishers.toSet(),
+            languages = saved.languages - skipped.languages.toSet(),
+            authors = saved.authors - skipped.authors.toSet(),
+        ).toFilter()
+        checkIfAllDefault()
+    }
+
+    /** Current sort and filters (without search term) plus saved values that were skipped as unavailable */
+    fun toSaved(): SavedSeriesFilter {
+        val current = SavedSeriesFilter.fromFilter(state.value)
+        val skipped = unavailable
+        return current.copy(
+            includeGenres = (current.includeGenres + skipped.includeGenres).distinct(),
+            excludeGenres = (current.excludeGenres + skipped.excludeGenres).distinct(),
+            includeTags = (current.includeTags + skipped.includeTags).distinct(),
+            excludeTags = (current.excludeTags + skipped.excludeTags).distinct(),
+            releaseDates = (current.releaseDates + skipped.releaseDates).distinct(),
+            ageRatings = (current.ageRatings + skipped.ageRatings).distinct(),
+            publishers = (current.publishers + skipped.publishers).distinct(),
+            languages = (current.languages + skipped.languages).distinct(),
+            authors = (current.authors + skipped.authors).distinct(),
+        )
     }
 
     fun applyFilter(filter: SeriesScreenFilter) {
@@ -394,11 +458,18 @@ class SeriesFilterState(
     }
 
     fun reset() {
+        unavailable = SavedSeriesFilter()
         isChanged = false
         mutableFilterState.value = DEFAULT
     }
 
     fun resetTagFilters() {
+        unavailable = unavailable.copy(
+            includeGenres = emptyList(),
+            includeTags = emptyList(),
+            excludeGenres = emptyList(),
+            excludeTags = emptyList(),
+        )
         mutableFilterState.update {
             it.copy(
                 includeGenres = DEFAULT.includeGenres,

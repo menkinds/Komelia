@@ -89,7 +89,7 @@ class SeriesScreen(
                         seriesMenuActions = vm.seriesMenuActions(),
                         onFilterClick = { filter ->
                             val series = requireNotNull(vm.series.value)
-                            navigator.push(LibraryScreen(series.libraryId, filter))
+                            navigator.push(LibraryScreen(filter.libraryIdFor(series.libraryId), filter))
                         },
 
                         currentTab = vm.currentTab,

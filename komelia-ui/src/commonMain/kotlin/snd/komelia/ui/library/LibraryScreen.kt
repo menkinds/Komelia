@@ -333,4 +333,8 @@ data class SeriesScreenFilter(
     val genres: List<String>? = null,
     val tags: List<String>? = null,
     val authors: List<KomgaAuthor>? = null,
-)
+) {
+    /** genre, tag and author taps list series from all libraries. Other chips stay in the library of the series */
+    fun libraryIdFor(seriesLibraryId: KomgaLibraryId): KomgaLibraryId? =
+        if (genres != null || tags != null || authors != null) null else seriesLibraryId
+}

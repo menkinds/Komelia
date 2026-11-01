@@ -113,7 +113,7 @@ class OneshotScreen(
                     onFilterClick = { filter ->
                         navigator.popUntilRoot()
                         navigator.dispose(navigator.lastItem)
-                        navigator.replaceAll(LibraryScreen(book.libraryId, filter))
+                        navigator.replaceAll(LibraryScreen(filter.libraryIdFor(book.libraryId), filter))
                     },
                     onBookDownload = vm::onBookDownload,
                     onBookDownloadDelete = vm::onBookDownloadDelete,
