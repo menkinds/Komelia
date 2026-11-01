@@ -1055,4 +1055,6 @@
     <string name="auto_turn_ocr_reason_unsupported">Text recognition is not supported on this platform. The base interval is used.</string>
     <string name="auto_turn_ocr_reason_no_services">Google Play services is not available. The base interval is used.</string>
     <string name="auto_turn_ocr_reason_model_missing">The selected OCR language is not installed. The base interval is used.</string>
+    <string name="adult_lock_locked">Locked</string>
+    <string name="adult_lock_unlock">Unlock</string>
 </resources>

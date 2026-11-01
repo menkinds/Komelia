@@ -9,15 +9,32 @@ import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.adult_lock_locked
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.adult_lock_unlock
+import org.jetbrains.compose.resources.stringResource
+import android.os.Handler
+import android.os.Looper
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
@@ -45,15 +62,29 @@ actual fun rememberAdultUnlockRequest(lockState: AdultLockState, onUnlocked: () 
 
 @Composable
 actual fun AdultRelockEffect(lockState: AdultLockState) {
-    // process lifecycle changes to STOPPED only when no activity of the app is visible.
-    // The biometric dialog is a fragment of the same activity, so it does not trigger it.
+    // process lifecycle changes to STOPPED only when no activity of the app is visible, and it comes late
+    // (about 700 ms after the last activity stopped). The biometric dialog is a fragment of the same activity,
+    // so it does not trigger it.
+    val context = LocalContext.current
     DisposableEffect(lockState) {
         val lifecycle = ProcessLifecycleOwner.get().lifecycle
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_STOP) lockState.lockOnBackground()
         }
         lifecycle.addObserver(observer)
-        onDispose { lifecycle.removeObserver(observer) }
+
+        // lock early on the activity stop too (idempotent), except for a configuration change (rotation)
+        val activity = context.findFragmentActivity()
+        val activityObserver = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP && activity?.isChangingConfigurations == false) {
+                lockState.lockOnBackground()
+            }
+        }
+        activity?.lifecycle?.addObserver(activityObserver)
+        onDispose {
+            lifecycle.removeObserver(observer)
+            activity?.lifecycle?.removeObserver(activityObserver)
+        }
     }
 }
 
@@ -63,7 +94,7 @@ private fun authenticate(
     resume: Boolean = false,
     onFailed: (errorCode: Int) -> Unit = {},
     onUnlocked: () -> Unit,
-) {
+): BiometricPrompt? {
     // BIOMETRIC_STRONG | DEVICE_CREDENTIAL is not supported by the library on API 28-29
     val authenticators =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) BIOMETRIC_STRONG or DEVICE_CREDENTIAL
@@ -89,14 +120,17 @@ private fun authenticate(
         }
     )
 
-    try {
+    return try {
         prompt.authenticate(promptInfo)
+        prompt
     } catch (e: IllegalArgumentException) {
         // unsupported authenticator combination: stay locked
         onFailed(BiometricPrompt.ERROR_HW_UNAVAILABLE)
+        null
     } catch (e: IllegalStateException) {
         // activity is not in a state that can show the prompt: stay locked
         onFailed(BiometricPrompt.ERROR_HW_UNAVAILABLE)
+        null
     }
 }
 
@@ -120,33 +154,72 @@ actual fun AdultResumeOverlay(lockState: AdultLockState) {
     // back press on the overlay counts as a cancel
     BackHandler { lockState.cancelResume() }
 
-    // prompt is shown only while the activity is RESUMED; system cancel (app left again) keeps the overlay
-    // and prompts again on the next resume, any other error leaves the restricted screens
+    // The prompt is started at once when the activity is already RESUMED and on every ON_RESUME. The active prompt
+    // is tracked by instance (no stale flag): it is cancelled when the activity stops, so the next resume shows a
+    // new one. Cancel, dismiss or any error keeps the overlay; the Unlock button starts the prompt again.
+    val showPrompt = remember(activity) { mutableStateOf<() -> Unit>({}) }
     DisposableEffect(activity) {
         if (activity == null) {
             lockState.cancelResume()
             return@DisposableEffect onDispose {}
         }
-        var promptShown = false
-        fun showPrompt() {
-            if (promptShown || !lockState.resumePending.value) return
-            promptShown = true
-            authenticate(
+        val handler = Handler(Looper.getMainLooper())
+        var active: BiometricPrompt? = null
+        var retried = false
+
+        fun show() {
+            if (!lockState.resumePending.value) return
+            if (active != null) return
+            if (!activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return
+            var started: BiometricPrompt? = null
+            started = authenticate(
                 activity = activity,
                 lockState = lockState,
                 resume = true,
-                onFailed = { code ->
-                    promptShown = false
-                    if (code != BiometricPrompt.ERROR_CANCELED) lockState.cancelResume()
-                },
+                onFailed = { if (active === started) active = null },
             ) {}
+            if (started != null) {
+                active = started
+                retried = false
+            } else if (!retried) {
+                // activity was not ready: retry once on the next frame, later on the next ON_RESUME or the button
+                retried = true
+                handler.post { show() }
+            }
+        }
+
+        fun cancelActive() {
+            val prompt = active ?: return
+            active = null
+            try {
+                prompt.cancelAuthentication()
+            } catch (e: IllegalStateException) {
+                // nothing to cancel
+            }
+        }
+
+        showPrompt.value = {
+            // button: always opens a prompt again
+            cancelActive()
+            retried = false
+            handler.post { show() }
         }
 
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) showPrompt()
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> show()
+                // the biometric dialog does not stop the activity: a stopped activity means the prompt is gone
+                Lifecycle.Event.ON_STOP -> cancelActive()
+                else -> {}
+            }
         }
         activity.lifecycle.addObserver(observer)
-        onDispose { activity.lifecycle.removeObserver(observer) }
+        show()
+        onDispose {
+            activity.lifecycle.removeObserver(observer)
+            handler.removeCallbacksAndMessages(null)
+            cancelActive()
+        }
     }
 
     // opaque: nothing of the screen below is visible before auth, and touches do not pass through
@@ -154,6 +227,18 @@ actual fun AdultResumeOverlay(lockState: AdultLockState) {
         Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .pointerInput(Unit) { awaitPointerEventScope { while (true) awaitPointerEvent().changes.forEach { it.consume() } } }
-    )
+            .pointerInput(Unit) { awaitPointerEventScope { while (true) awaitPointerEvent().changes.forEach { it.consume() } } },
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Icon(Icons.Default.Lock, contentDescription = null, modifier = Modifier.size(48.dp))
+            Text(stringResource(Res.string.adult_lock_locked), style = MaterialTheme.typography.titleMedium)
+            Button(onClick = { showPrompt.value() }) {
+                Text(stringResource(Res.string.adult_lock_unlock))
+            }
+        }
+    }
 }

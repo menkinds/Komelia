@@ -160,4 +160,29 @@ class AdultLockStateTest {
         state.registerVisibleScreen("collection", emptyList<String>())
         assertFalse(state.isViewingRestrictedContent())
     }
+
+    @Test
+    fun lockOnBackgroundTwiceIsIdempotent() {
+        // activity stop and process stop both call it
+        state.registerVisibleScreen("reader", "adult")
+        state.lockOnBackground()
+        state.lockOnBackground()
+        assertTrue(state.resumePending.value)
+        assertFalse(state.unlocked.value)
+        state.unlockAfterResume()
+        assertTrue(state.unlocked.value)
+        assertFalse(state.resumePending.value)
+    }
+
+    @Test
+    fun pendingStaysUntilUnlockOrCancel() {
+        // prompt errors do not touch the state: overlay stays, a later success unlocks
+        state.registerVisibleScreen("reader", "adult")
+        state.lockOnBackground()
+        assertTrue(state.resumePending.value)
+        assertTrue(state.consumeKeepScreens())
+        assertTrue(state.resumePending.value)
+        state.unlockAfterResume()
+        assertTrue(state.unlocked.value)
+    }
 }

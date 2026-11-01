@@ -19,4 +19,6 @@
     <string name="auto_turn_ocr_reason_unsupported">이 플랫폼에서는 글자 인식을 지원하지 않습니다. 기본 간격을 사용합니다.</string>
     <string name="auto_turn_ocr_reason_no_services">Google Play 서비스를 사용할 수 없습니다. 기본 간격을 사용합니다.</string>
     <string name="auto_turn_ocr_reason_model_missing">선택한 OCR 언어가 설치되어 있지 않습니다. 기본 간격을 사용합니다.</string>
+    <string name="adult_lock_locked">잠김</string>
+    <string name="adult_lock_unlock">잠금 해제</string>
 </resources>
