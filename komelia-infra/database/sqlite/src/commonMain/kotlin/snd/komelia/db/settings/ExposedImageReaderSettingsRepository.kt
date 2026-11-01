@@ -13,6 +13,8 @@ import snd.komelia.db.tables.ImageReaderSettingsTable
 import snd.komelia.image.ReduceKernel
 import snd.komelia.image.UpsamplingMode
 import snd.komelia.image.UpscaleMode
+import snd.komelia.pages.OcrLanguage
+import snd.komelia.pages.TextAwareAutoTurnSettings
 import snd.komelia.settings.model.ContinuousReadingDirection
 import snd.komelia.settings.model.LayoutScaleType
 import snd.komelia.settings.model.PageDisplayLayout
@@ -50,6 +52,14 @@ class ExposedImageReaderSettingsRepository(database: Database) : ExposedReposito
                         volumeKeysNavigation = it[ImageReaderSettingsTable.volumeKeysNavigation],
                         autoTurnIntervalSeconds = it[ImageReaderSettingsTable.autoTurnIntervalSeconds],
                         showClock = it[ImageReaderSettingsTable.showClock],
+                        textAwareAutoTurn = TextAwareAutoTurnSettings(
+                            enabled = it[ImageReaderSettingsTable.textAwareAutoTurn],
+                            perCharMs = it[ImageReaderSettingsTable.textAwarePerCharMs],
+                            minSeconds = it[ImageReaderSettingsTable.textAwareMinSeconds],
+                            maxSeconds = it[ImageReaderSettingsTable.textAwareMaxSeconds],
+                            ocrLanguage = runCatching { OcrLanguage.valueOf(it[ImageReaderSettingsTable.textAwareOcrLanguage]) }
+                                .getOrDefault(OcrLanguage.JAPANESE),
+                        ),
                         ortUpscalerMode = UpscaleMode.valueOf(it[ImageReaderSettingsTable.ortUpscalerMode]),
                         ortUpscalerUserModelPath = it[ImageReaderSettingsTable.ortUpscalerUserModelPath]
                             ?.let { PlatformFile(it) },
@@ -83,6 +93,11 @@ class ExposedImageReaderSettingsRepository(database: Database) : ExposedReposito
                 it[volumeKeysNavigation] = settings.volumeKeysNavigation
                 it[autoTurnIntervalSeconds] = settings.autoTurnIntervalSeconds
                 it[showClock] = settings.showClock
+                it[textAwareAutoTurn] = settings.textAwareAutoTurn.enabled
+                it[textAwarePerCharMs] = settings.textAwareAutoTurn.perCharMs
+                it[textAwareMinSeconds] = settings.textAwareAutoTurn.minSeconds
+                it[textAwareMaxSeconds] = settings.textAwareAutoTurn.maxSeconds
+                it[textAwareOcrLanguage] = settings.textAwareAutoTurn.ocrLanguage.name
                 it[upsamplingMode] = settings.upsamplingMode.name
                 it[ortUpscalerMode] = settings.ortUpscalerMode.name
                 it[ortUpscalerUserModelPath] = settings.ortUpscalerUserModelPath?.path

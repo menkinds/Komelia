@@ -2,4 +2,21 @@
     <string name="settings_restricted_library">19+ 라이브러리</string>
     <string name="settings_restricted_library_description">선택한 라이브러리를 잠그고 숨깁니다</string>
     <string name="dialog_confirm">확인</string>
+    <string name="auto_turn_text_aware">글자 양에 맞춰 조절</string>
+    <string name="auto_turn_text_aware_per_char">글자당 %1$d ms</string>
+    <string name="auto_turn_text_aware_min">최소 %1$d초</string>
+    <string name="auto_turn_text_aware_max">최대 %1$d초</string>
+    <string name="auto_turn_ocr_language">OCR 언어</string>
+    <string name="auto_turn_ocr_japanese">일본어</string>
+    <string name="auto_turn_ocr_korean">한국어</string>
+    <string name="auto_turn_ocr_chinese">중국어</string>
+    <string name="auto_turn_ocr_latin">영어/라틴</string>
+    <string name="auto_turn_ocr_state_missing">없음</string>
+    <string name="auto_turn_ocr_state_downloading">다운로드 중</string>
+    <string name="auto_turn_ocr_state_installed">설치됨</string>
+    <string name="auto_turn_ocr_state_unavailable">사용 불가</string>
+    <string name="auto_turn_ocr_download">다운로드</string>
+    <string name="auto_turn_ocr_reason_unsupported">이 플랫폼에서는 글자 인식을 지원하지 않습니다. 기본 간격을 사용합니다.</string>
+    <string name="auto_turn_ocr_reason_no_services">Google Play 서비스를 사용할 수 없습니다. 기본 간격을 사용합니다.</string>
+    <string name="auto_turn_ocr_reason_model_missing">선택한 OCR 언어가 설치되어 있지 않습니다. 기본 간격을 사용합니다.</string>
 </resources>

@@ -17,6 +17,7 @@ import snd.komelia.AppNotification
 import snd.komelia.AppNotifications
 import snd.komelia.color.repository.BookColorCorrectionRepository
 import snd.komelia.image.ReaderImage.PageId
+import snd.komelia.image.BookImageLoader
 import snd.komelia.image.ReduceKernel
 import snd.komelia.image.UpsamplingMode
 import snd.komelia.image.availableReduceKernels
@@ -38,6 +39,7 @@ import snd.komelia.ui.platform.CommonParcelize
 import snd.komelia.ui.platform.CommonParcelizeRawValue
 import snd.komelia.ui.series.SeriesScreen
 import snd.komelia.ui.pages.SeriesRatingPrompts
+import snd.komelia.ui.pages.TextAwareAutoTurnState
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.KomgaBookReadProgressUpdateRequest
 import snd.komga.client.common.KomgaReadingDirection
@@ -51,6 +53,7 @@ class ReaderState(
     private val navigator: Navigator,
     private val appNotifications: AppNotifications,
     private val readerSettingsRepository: ImageReaderSettingsRepository,
+    imageLoader: BookImageLoader,
     private val currentBookId: MutableStateFlow<KomgaBookId?>,
     private val markReadProgress: Boolean,
     private val stateScope: CoroutineScope,
@@ -84,6 +87,7 @@ class ReaderState(
     val volumeKeysNavigation = MutableStateFlow(false)
     val autoTurnIntervalSeconds = MutableStateFlow(10)
     val autoTurnEnabled = MutableStateFlow(false)
+    val textAwareAutoTurn = TextAwareAutoTurnState(readerSettingsRepository, imageLoader, stateScope)
     val showClock = MutableStateFlow(false)
     val pixelDensity = MutableStateFlow<Density?>(null)
 
@@ -101,6 +105,7 @@ class ReaderState(
         volumeKeysNavigation.value = readerSettingsRepository.getVolumeKeysNavigation().first()
         showClock.value = readerSettingsRepository.getShowClock().first()
         autoTurnIntervalSeconds.value = readerSettingsRepository.getAutoTurnIntervalSeconds().first().coerceIn(3, 60)
+        textAwareAutoTurn.load()
 
         appNotifications.runCatchingToNotifications {
             state.value = LoadState.Loading

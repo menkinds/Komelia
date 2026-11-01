@@ -21,6 +21,11 @@ object ImageReaderSettingsTable : Table("ImageReaderSettings") {
     val volumeKeysNavigation = bool("volume_keys_navigation")
     val autoTurnIntervalSeconds = integer("auto_turn_interval_seconds")
     val showClock = bool("fork_show_clock")
+    val textAwareAutoTurn = bool("fork_auto_turn_text_aware")
+    val textAwarePerCharMs = integer("fork_auto_turn_per_char_ms")
+    val textAwareMinSeconds = integer("fork_auto_turn_min_seconds")
+    val textAwareMaxSeconds = integer("fork_auto_turn_max_seconds")
+    val textAwareOcrLanguage = text("fork_auto_turn_ocr_language")
 
     val flashOnPageChange = bool("flash_on_page_change")
     val flashDuration = long("flash_duration")

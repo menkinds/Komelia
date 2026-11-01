@@ -110,6 +110,12 @@ kotlin {
             implementation(libs.slf4j.api)
             implementation(projects.komeliaInfra.imageDecoder.vips)
             implementation(projects.komeliaInfra.onnxruntime.jvm)
+            // PAGES: unbundled ML Kit text recognition (models are downloaded on demand by Play services)
+            implementation(libs.play.services.base)
+            implementation(libs.play.services.mlkit.text.recognition)
+            implementation(libs.play.services.mlkit.text.recognition.japanese)
+            implementation(libs.play.services.mlkit.text.recognition.korean)
+            implementation(libs.play.services.mlkit.text.recognition.chinese)
         }
 
         jvmMain.dependencies {

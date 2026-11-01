@@ -59,6 +59,7 @@ import snd.komelia.ui.reader.image.panels.PanelsReaderContent
 import snd.komelia.ui.reader.image.panels.PanelsReaderState
 import snd.komelia.ui.reader.image.settings.SettingsOverlay
 import snd.komelia.ui.settings.imagereader.onnxruntime.OnnxRuntimeSettingsState
+import snd.komelia.ui.pages.rememberPageTextRecognizer
 import snd.komelia.ui.strings.AppStrings
 
 @Composable
@@ -105,6 +106,9 @@ fun ReaderContent(
 
     val autoTurnEnabled = commonReaderState.autoTurnEnabled.collectAsState().value
     val autoTurnInterval = commonReaderState.autoTurnIntervalSeconds.collectAsState().value
+    val textAwareSettings = commonReaderState.textAwareAutoTurn.settings.collectAsState().value
+    val ocrRecognizer = rememberPageTextRecognizer()
+    val ocrModelStates = ocrRecognizer.modelStates.collectAsState().value
     val activeReaderType = commonReaderState.readerType.collectAsState().value
     val spreadIndex = pagedReaderState.currentSpreadIndex.collectAsState().value
     val spreadCount = pagedReaderState.pageSpreads.collectAsState().value.size
@@ -116,7 +120,7 @@ fun ReaderContent(
     // Any key change (page change, overlay toggle, zoom change, interval change) restarts the timer from zero
     LaunchedEffect(
         autoTurnEnabled, autoTurnInterval, activeReaderType, showSettingsMenu,
-        spreadIndex, spreadCount, transitionPage, zoomedIn
+        spreadIndex, spreadCount, transitionPage, zoomedIn, textAwareSettings, ocrModelStates
     ) {
         if (!autoTurnEnabled) return@LaunchedEffect
         if (activeReaderType != PAGED || (spreadCount > 0 && spreadIndex >= spreadCount - 1)) {
@@ -124,7 +128,13 @@ fun ReaderContent(
             return@LaunchedEffect
         }
         if (spreadCount == 0 || showSettingsMenu || zoomedIn || transitionPage != null) return@LaunchedEffect
-        delay(autoTurnInterval * 1000L)
+        val spreads = pagedReaderState.pageSpreads.value
+        commonReaderState.textAwareAutoTurn.awaitTurnDelay(
+            recognizer = ocrRecognizer,
+            baseSeconds = autoTurnInterval,
+            pages = spreads.getOrNull(spreadIndex).orEmpty(),
+            nextPages = spreads.getOrNull(spreadIndex + 1),
+        )
         pagedReaderState.nextPage()
     }
 
