@@ -48,6 +48,8 @@ import snd.komelia.ui.komf.KomfMainScreen
 import snd.komelia.ui.login.LoginScreen
 import snd.komelia.ui.pages.SeriesRatingPromptHost
 import snd.komelia.ui.platform.AdultRelockEffect
+import snd.komelia.ui.platform.AdultResumeOverlay
+import snd.komelia.ui.platform.LocalAdultLockState
 import snd.komelia.ui.platform.BackPressHandler
 import snd.komelia.ui.platform.ConfigurePlatformTheme
 import snd.komelia.ui.platform.PlatformTitleBar
@@ -116,12 +118,14 @@ fun MainView(
                 LocalBookDownloadEvents provides dependencies.offlineDependencies?.bookDownloadEvents,
                 LocalOfflineMode provides dependencies.isOffline,
                 LocalKomgaState provides dependencies.komgaSharedState,
-                LocalOfflineAvailable provides (dependencies.offlineDependencies != null)
+                LocalOfflineAvailable provides (dependencies.offlineDependencies != null),
+                LocalAdultLockState provides dependencies.adultLockState,
             ) {
                 // composed for the whole session (also while the reader or settings are on top)
                 AdultRelockEffect(dependencies.adultLockState)
                 SeriesRatingPromptHost()
                 MainContent(platformType, dependencies.komgaSharedState)
+                AdultResumeOverlay(dependencies.adultLockState)
 
                 AppNotifications(dependencies.appNotifications, theme)
                 val updateChecker = remember { viewModelFactory.getStartupUpdateChecker() }

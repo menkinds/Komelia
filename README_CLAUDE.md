@@ -114,3 +114,15 @@
 - 프롬프트: `ReaderState.onProgressChange`가 마지막 페이지 근처에서 책을 다시 조회해 completed 확인 → `getBookSiblingNext == null`(시리즈 마지막 책) → 별점 없음이면 `MainView`의 호스트가 다이얼로그 표시.
 - 한계: 이미지 리더(ReaderState)만 연결. Ttsu/Komga EPUB 리더 완독은 프롬프트 안 뜸. 한국어 `dialog_confirm`="확인"을 values-ko에 추가(앱 전체 확인 버튼에 적용).
 - 미검증: 컴파일 못 함(java/SDK 없음). `tags` 타입은 List<String>으로 가정.
+
+## 19+ 잠금: 재인증 후 같은 화면 유지 (2026-11-01)
+- 이전: ON_STOP마다 `lock()` → `MainScreenViewModel`이 리더 pop + 메인 스택 Home 교체. 인증해도 책 위치를 잃음. 마이그레이션 변경 없음(V16/V17/V18 그대로).
+- 지금: `AdultLockState.lockOnBackground()`(Android `AdultRelockEffect`의 ON_STOP). 숨김 라이브러리 화면이 열려 있으면 `resumePending=true` + 잠금(API 필터는 즉시 적용, 유예 없음)만 하고 **화면 스택은 그대로**. 아니면 예전처럼 일반 잠금.
+- "숨김 라이브러리 화면" 판별: 화면이 `AdultLockScreenTag(libraryId)`(platform/AdultLockScreenTag.kt)로 지금 보이는 내용의 libraryId를 등록. 적용: ImageReader, Epub, Book, Oneshot, Series, Library 화면. 컬렉션/읽기목록 화면은 태그 없음(일반 잠금).
+- 오버레이: `AdultResumeOverlay`(MainView 최상단, Android 구현). 불투명 배경으로 아래 화면을 완전히 가리고 터치 차단. 액티비티가 RESUMED가 되면 BiometricPrompt 자동 표시.
+  - 성공 → `unlockAfterResume()`: 오버레이 제거, 화면 리셋 없음(`consumeKeepScreens`), `screenReloadFlow`로 잠긴 동안 실패했을 수 있는 데이터만 재조회. 리더는 같은 ViewModel이라 책/페이지/모드/줌/읽기 진행 그대로.
+  - 취소/실패/뒤로가기 → `cancelResume()`: 잠금 유지, 리더 pop + Home 교체(예전 동작). 진행은 리더가 페이지 변경 때마다 저장한 값 유지.
+  - 시스템 취소(`ERROR_CANCELED`, 인증 중 다시 백그라운드)는 오버레이 유지, 다음 RESUME에 다시 표시.
+- 프로세스 종료(5번): **자동 복원 안 함**. 재실행은 항상 잠김 + 오버레이 대상 아님. 인증 후 책을 직접 열면 서버에 저장된 마지막 페이지에서 이어 읽음(기존 동작). 이유: 복원된 Voyager 스택의 리더가 잠긴 API에서 책 조회 실패 → 자동 복원은 스택 복원/인증 순서를 건드려야 해서 침습적.
+- 알려진 한계: 로딩 중(libraryId 미확정)에 백그라운드로 가면 일반 잠금. 시리즈/책 화면의 SSE 핸들러가 잠긴 동안 재조회해 실패할 수 있음(해제 후 reload로 복구).
+- 테스트: `komelia-domain/core/src/commonTest/.../adult/AdultLockStateTest.kt`(순수 Kotlin 상태 로직). 러너에 Android SDK/java가 없어 실행 못 함 → 첫 컴파일·테스트는 릴리스 빌드/CI. Android 오버레이·BiometricPrompt 흐름은 실기기 확인 필요.

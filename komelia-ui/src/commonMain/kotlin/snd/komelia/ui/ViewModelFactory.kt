@@ -755,7 +755,7 @@ class ViewModelFactory(
 
     fun getLibraries(): StateFlow<List<KomgaLibrary>> = dependencies.komgaSharedState.libraries
 
-    fun isLibraryHidden(libraryId: KomgaLibraryId): Boolean = dependencies.adultLockState.isHidden(libraryId)
+    fun isLibraryHidden(libraryId: KomgaLibraryId): Boolean = dependencies.adultLockState.let { it.isHidden(libraryId) && !it.resumePending.value }
 
     private fun getLibraryFlow(id: KomgaLibraryId?): Flow<KomgaLibrary?> {
         if (id == null) return flowOf(null)

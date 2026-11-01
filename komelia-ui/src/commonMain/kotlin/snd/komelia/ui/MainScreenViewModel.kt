@@ -69,17 +69,38 @@ class MainScreenViewModel(
         screenModelScope.launch {
             // relock: reader and settings live in the parent navigator, above the main screen
             adultLockState.unlocked.drop(1).collect { unlocked ->
-                if (!unlocked) navigatorFlow.value?.parent?.popUntil { it is MainScreen }
+                if (!unlocked && !adultLockState.resumePending.value) leaveRestrictedScreens()
+            }
+        }
+        screenModelScope.launch {
+            // overlay auth cancelled/failed (still locked): leave the restricted screens as a normal relock does
+            adultLockState.resumePending.drop(1).collect { pending ->
+                if (!pending && !adultLockState.unlocked.value) {
+                    leaveRestrictedScreens()
+                    resetScreens()
+                }
+            }
+        }
+        screenModelScope.launch {
+            // overlay auth succeeded: screens were kept, only refresh data that may have failed while locked
+            adultLockState.resumePending.drop(1).collect { pending ->
+                if (!pending && adultLockState.unlocked.value) screenReloadFlow.tryEmit(Unit)
             }
         }
         screenModelScope.launch {
             // visibility of the restricted library changed: drop every screen that may show its content
-            adultLockState.hiddenLibraryIds.drop(1).collect { resetScreens() }
+            adultLockState.hiddenLibraryIds.drop(1).collect {
+                if (!adultLockState.consumeKeepScreens()) resetScreens()
+            }
         }
     }
 
     fun setRestrictedLibraries(libraryIds: Set<String>) {
         screenModelScope.launch { settingsRepository.putRestrictedLibraryIds(libraryIds) }
+    }
+
+    private fun leaveRestrictedScreens() {
+        navigatorFlow.value?.parent?.popUntil { it is MainScreen }
     }
 
     private fun resetScreens() {

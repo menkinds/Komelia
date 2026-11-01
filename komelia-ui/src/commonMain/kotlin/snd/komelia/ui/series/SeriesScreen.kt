@@ -1,5 +1,6 @@
 package snd.komelia.ui.series
 
+import snd.komelia.ui.platform.AdultLockScreenTag
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -73,6 +74,7 @@ class SeriesScreen(
             onDispose { vm.stopKomgaEventHandler() }
         }
 
+        AdultLockScreenTag(vm.series.collectAsState().value?.libraryId)
         ScreenPullToRefreshBox(screenState = vm.state, onRefresh = vm::reload) {
             when (val state = vm.state.collectAsState().value) {
                 is Error -> ErrorContent(

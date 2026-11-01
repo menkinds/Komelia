@@ -10,3 +10,6 @@ actual fun rememberAdultUnlockRequest(lockState: AdultLockState, onUnlocked: () 
 
 @Composable
 actual fun AdultRelockEffect(lockState: AdultLockState) = Unit
+
+@Composable
+actual fun AdultResumeOverlay(lockState: AdultLockState) = Unit

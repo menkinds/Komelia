@@ -1,5 +1,6 @@
 package snd.komelia.ui.book
 
+import snd.komelia.ui.platform.AdultLockScreenTag
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -67,6 +68,7 @@ class BookScreen(
         }
 
         val book = vm.book.collectAsState().value
+        AdultLockScreenTag(book?.libraryId)
 
         ScreenPullToRefreshBox(
             screenState = vm.state,
