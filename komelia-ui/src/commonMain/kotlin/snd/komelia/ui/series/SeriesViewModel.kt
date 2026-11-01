@@ -21,7 +21,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import snd.komelia.AppNotification
 import snd.komelia.AppNotifications
+import snd.komelia.ui.pages.SeriesRating
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import snd.komelia.komga.api.KomgaBookApi
 import snd.komelia.komga.api.KomgaCollectionsApi
 import snd.komelia.komga.api.KomgaReferentialApi
@@ -144,6 +149,27 @@ class SeriesViewModel(
             mutableState.value = Loading
             loadSeries()
             booksState.reload()
+        }
+    }
+
+    private val ratingMutex = Mutex()
+
+    /** Sets (or clears, when null) the PAGES star rating. Shown at once, rolled back if the server call fails. */
+    fun setRating(rating: Int?) {
+        screenModelScope.launch {
+            ratingMutex.withLock {
+                val current = series.value ?: return@withLock
+                val oldTags = current.metadata.tags
+                val newTags = SeriesRating.withRating(oldTags, rating).sorted()
+                series.value = current.copy(metadata = current.metadata.copy(tags = newTags))
+                runCatching { SeriesRating.save(seriesApi, current.id, oldTags, rating) }
+                    .onFailure { e ->
+                        series.update { s ->
+                            s?.copy(metadata = s.metadata.copy(tags = oldTags))
+                        }
+                        notifications.add(AppNotification.Error("별점을 저장하지 못했어요: ${e.message ?: "오류"}"))
+                    }
+            }
         }
     }
 

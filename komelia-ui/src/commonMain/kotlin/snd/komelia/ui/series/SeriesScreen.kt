@@ -87,6 +87,7 @@ class SeriesScreen(
                         library = vm.library.collectAsState().value,
                         onLibraryClick = { navigator.push(LibraryScreen(it.id)) },
                         seriesMenuActions = vm.seriesMenuActions(),
+                        onRatingChange = vm::setRating,
                         onFilterClick = { filter ->
                             val series = requireNotNull(vm.series.value)
                             navigator.push(LibraryScreen(filter.libraryIdFor(series.libraryId), filter))

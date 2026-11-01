@@ -98,6 +98,8 @@ import snd.komelia.ui.icons.outlined.ChevronForward
 import snd.komelia.ui.icons.outlined.LinkedServices
 import snd.komelia.ui.icons.outlined.NewsStand
 import snd.komelia.ui.library.SeriesScreenFilter
+import snd.komelia.ui.pages.SeriesRating
+import snd.komelia.ui.pages.SeriesRatingStars
 import snd.komelia.ui.platform.VerticalScrollbarWithFullSpans
 import snd.komelia.ui.platform.WindowSizeClass.COMPACT
 import snd.komelia.ui.platform.WindowSizeClass.EXPANDED
@@ -120,6 +122,7 @@ fun SeriesContent(
     library: KomgaLibrary?,
     onLibraryClick: (KomgaLibrary) -> Unit,
     seriesMenuActions: SeriesMenuActions,
+    onRatingChange: (Int?) -> Unit,
     onFilterClick: (SeriesScreenFilter) -> Unit,
     currentTab: SeriesTab,
     onTabChange: (SeriesTab) -> Unit,
@@ -178,6 +181,14 @@ fun SeriesContent(
             ) {
 
                 if (series != null && library != null) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        val rating = SeriesRating.fromTags(series.metadata.tags)
+                        SeriesRatingStars(
+                            rating = rating,
+                            onRate = { star -> onRatingChange(if (star == rating) null else star) },
+                            modifier = Modifier.padding(start = 10.dp, top = 4.dp)
+                        )
+                    }
                     item(span = { GridItemSpan(maxLineSpan) }) {
                         if (mangaBaka != null) {
                             MangaBakaSeriesContent(

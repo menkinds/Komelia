@@ -1,4 +1,5 @@
 <resources>
     <string name="settings_restricted_library">19+ 라이브러리</string>
     <string name="settings_restricted_library_description">선택한 라이브러리를 잠그고 숨깁니다</string>
+    <string name="dialog_confirm">확인</string>
 </resources>
