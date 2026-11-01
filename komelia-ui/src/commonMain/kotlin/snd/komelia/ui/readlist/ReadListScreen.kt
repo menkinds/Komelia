@@ -1,5 +1,6 @@
 package snd.komelia.ui.readlist
 
+import snd.komelia.ui.platform.AdultLockScreenTag
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -43,6 +44,7 @@ class ReadListScreen(val readListId: KomgaReadListId) : ReloadableScreen {
         }
 
         val navigator = LocalNavigator.currentOrThrow
+        AdultLockScreenTag(vm.books.map { it.libraryId })
 
         ScreenPullToRefreshBox(screenState = vm.state, onRefresh = vm::reload) {
             when (val state = vm.state.collectAsState().value) {

@@ -61,7 +61,8 @@ class EpubScreen(
         }
 
         val state = vm.state.collectAsState().value
-        if (state is LoadState.Success) AdultLockScreenTag(state.value.book.collectAsState().value?.libraryId)
+        val loadedBook = if (state is LoadState.Success) state.value.book.collectAsState().value else null
+        AdultLockScreenTag(loadedBook?.libraryId ?: book?.libraryId)
         Column {
             PlatformTitleBar(applyInsets = false) {
                 if (canIntegrateWithSystemBar()) {

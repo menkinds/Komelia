@@ -1,5 +1,6 @@
 package snd.komelia.ui.collection
 
+import snd.komelia.ui.platform.AdultLockScreenTag
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -37,6 +38,7 @@ class CollectionScreen(val collectionId: KomgaCollectionId) : ReloadableScreen {
         }
 
         val navigator = LocalNavigator.currentOrThrow
+        AdultLockScreenTag(vm.series.map { it.libraryId })
 
         when (vm.state.collectAsState().value) {
             Uninitialized -> LoadingMaxSizeIndicator()
