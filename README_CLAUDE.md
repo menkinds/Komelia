@@ -154,3 +154,6 @@
 - Android(`PageTextRecognizer.android.kt`): 번들 없는 Play 서비스 ML Kit(`play-services-mlkit-text-recognition`, `-japanese/-korean/-chinese`), 모델은 `ModuleInstallClient`로 요청 시 다운로드(APK 크기 증가 없음). 긴 변 2048px로 축소 후 ARGB 비트맵으로 인식(Default 디스패처). 이미지 데이터는 기기 밖으로 안 나감.
 - 업스트림 파일 수정: ReaderState(ctor에 imageLoader, `textAwareAutoTurn`), ReaderViewModel, ReaderContent, SettingsContent, ImageReaderSettings/Repository/Wrapper/Exposed/Table, AppMigrations, strings(values, values-ko), libs.versions.toml, komelia-ui/build.gradle.kts.
 - 한계/미검증: java/Android SDK 없어 컴파일·테스트 못 함. ML Kit 일본어 인식기는 세로쓰기 인식률이 낮을 수 있음(실기기 확인 필요). `play-services-base:18.5.0`, ML Kit 버전, `TextRecognizer`가 `OptionalModuleApi`인 점, `Line.confidence` API는 CI에서 확인.
+
+## 2026-11-02 별점 프롬프트 수정
+- 완독 별점 다이얼로그에서 별을 누르면 "rememberCoroutineScope left the composition"이 뜨고 저장이 안 되던 문제. `SeriesRatingPromptHost`의 scope를 early return 앞으로 옮겨 다이얼로그가 닫혀도 유지되게 함. `onBookProgress`는 CancellationException을 다시 던져 오류 알림을 띄우지 않음. 빌드·실기기 미확인.
