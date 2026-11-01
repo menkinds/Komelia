@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,6 +21,9 @@ import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_app_image_card_size
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_app_theme
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_restricted_library
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_restricted_library_description
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_restricted_library_none
 import org.jetbrains.compose.resources.stringResource
 import snd.komelia.settings.model.AppTheme
 import snd.komelia.ui.common.components.AppSliderDefaults
@@ -28,10 +32,15 @@ import snd.komelia.ui.common.components.LabeledEntry
 import snd.komelia.ui.platform.cursorForHand
 import snd.komelia.ui.strings.AppStrings
 import snd.komelia.ui.strings.stringLabels
+import snd.komga.client.library.KomgaLibrary
 import kotlin.math.roundToInt
 
 @Composable
 fun AppearanceSettingsContent(
+    libraries: List<KomgaLibrary>,
+    restrictedLibraryId: String?,
+    unlocked: Boolean,
+    onRestrictedLibraryChange: (String?) -> Unit,
     cardWidth: Dp,
     onCardWidthChange: (Dp) -> Unit,
     currentTheme: AppTheme,
@@ -48,6 +57,26 @@ fun AppearanceSettingsContent(
             onOptionChange = { onThemeChange(it.value) },
             inputFieldModifier = Modifier.widthIn(min = 250.dp)
         )
+
+        // hidden (not disabled) while locked so that nothing hints at the feature
+        if (restrictedLibraryId == null || unlocked) {
+            val noneLabel = stringResource(Res.string.settings_restricted_library_none)
+            val options = listOf(LabeledEntry<String?>(null, noneLabel)) +
+                    libraries.map { LabeledEntry<String?>(it.id.value, it.name) }
+            DropdownChoiceMenu(
+                label = { Text(stringResource(Res.string.settings_restricted_library)) },
+                selectedOption = options.firstOrNull { it.value == restrictedLibraryId }
+                    ?: LabeledEntry<String?>(null, noneLabel),
+                options = options,
+                onOptionChange = { onRestrictedLibraryChange(it.value) },
+                inputFieldModifier = Modifier.widthIn(min = 250.dp)
+            )
+            Text(
+                stringResource(Res.string.settings_restricted_library_description),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(horizontal = 10.dp)
+            )
+        }
 
         HorizontalDivider()
 

@@ -8,6 +8,8 @@ android-versionCode = "25"
 
 androidx-activityCompose = "1.13.0"
 androidx-appcompat = "1.8.0"
+androidx-biometric = "1.1.0"
+androidx-lifecycle = "2.10.0"
 androidx-core-ktx = "1.19.0"
 androidx-datastore = "1.2.1"
 androix-documentfile = "1.1.0"
@@ -53,6 +55,8 @@ voyager = "2.2.21-1.10.3"
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "androidx-biometric" }
+androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "androidx-lifecycle" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core-ktx" }
 androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "androidx-datastore" }
 androidx-documentfile = { module = "androidx.documentfile:documentfile", version.ref = "androix-documentfile" }

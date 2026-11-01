@@ -39,6 +39,7 @@ class ExposedSettingsRepository(database: Database) : ExposedRepository(database
                 it[updateLastCheckedTimestamp] = settings.updateLastCheckedTimestamp?.toString()
                 it[updateLastCheckedReleaseVersion] = settings.updateLastCheckedReleaseVersion?.toString()
                 it[updateDismissedVersion] = settings.updateDismissedVersion?.toString()
+                it[restrictedLibraryId] = settings.restrictedLibraryId
             }
         }
     }
@@ -58,6 +59,7 @@ class ExposedSettingsRepository(database: Database) : ExposedRepository(database
             },
             updateLastCheckedReleaseVersion = get(AppSettingsTable.updateLastCheckedReleaseVersion)
                 ?.let { AppVersion.fromString(it) },
+            restrictedLibraryId = get(AppSettingsTable.restrictedLibraryId),
             updateDismissedVersion = get(AppSettingsTable.updateDismissedVersion)
                 ?.let { AppVersion.fromString(it) },
         )

@@ -4,6 +4,7 @@ import coil3.ImageLoader
 import coil3.PlatformContext
 import kotlinx.coroutines.flow.StateFlow
 import snd.komelia.AppNotifications
+import snd.komelia.adult.AdultLockState
 import snd.komelia.AppRepositories
 import snd.komelia.AppWindowState
 import snd.komelia.KomgaAuthenticationState
@@ -51,5 +52,6 @@ data class DependencyContainer(
     val panelDetector: KomeliaPanelDetector?,
 
     val offlineDependencies: OfflineDependencies?,
+    val adultLockState: AdultLockState,
 )
 

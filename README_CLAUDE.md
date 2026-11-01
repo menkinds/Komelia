@@ -77,3 +77,17 @@
 - 저장: 마이그레이션 `V15__fork_show_clock.sql`(`fork_show_clock`), V14 수정 없음. 포크 마이그레이션은 V15부터 `V<n>__fork_*.sql`.
 - 시간: `ClockPlatform`(expect/actual). Android만 구현(기기 12/24h, 분 경계 정렬 갱신, ON_STOP 동안 정지). jvm/wasm은 빈 문자열(미표시).
 - 미검증: 컴파일 못 함(java 없음). CI android-release로 확인 필요.
+
+## 19+ 라이브러리 잠금 (2026-11-01) — PR "feat: 19+ library lock (hidden adult library, biometric unlock)"
+- 마이그레이션: **V16** `V16__fork_restricted_library.sql` (`AppSettings.fork_restricted_library_id`, nullable TEXT). 설정 이름 `restrictedLibraryId`(코드명), UI 문자열에는 "adult" 없음.
+- 상태: `snd.komelia.adult.AdultLockState`(core). `unlocked: StateFlow<Boolean>` 기본 false(콜드 스타트 잠김), `libraryId`(설정값, null이면 기능 꺼짐), `hiddenLibraryId`(지금 숨길 id 또는 null).
+- 중앙 필터: `RestrictedKomgaApi`(core, `KomgaApi by delegate`)가 AppModule의 `komgaApi` 두 경로(remote/offline) 모두를 감쌈. library/series/book/collections/readList/referential API만 재정의.
+  - libraryIds 인자가 있는 API(getNewSeries, getUpdatedSeries, getBooksOnDeck, collections/readLists getAll, referential 목록)는 서버 필터로 "숨길 것 제외 전체 id"를 넘김. 나머지(검색, 조건 목록, latest, 컬렉션/읽기목록 내용)는 결과를 클라이언트에서 `libraryId`로 거름. 이때 `totalElements`는 그 페이지에서 뺀 개수만큼만 보정(페이지가 짧을 수 있음, 전체 페이지 수는 서버 값).
+  - 개별 조회(getOneSeries, getOne(book), getLibrary)는 숨김 라이브러리면 `NotFoundException("Not found")`. `LibraryScreen`은 숨김 id면 빈 화면.
+- 잠금 해제: 드로어/네비의 "Libraries" 버튼 길게 누르기(탭 동작 그대로). 버튼 모양은 기능 on/off와 무관하게 동일(항상 long-click 변형 사용). 기능이 꺼졌거나 이미 해제면 아무 일 없음.
+- Android(`AdultLockPlatform.android.kt`): `BiometricPrompt` + `BIOMETRIC_STRONG or DEVICE_CREDENTIAL`(API 30 미만은 라이브러리 제약으로 `BIOMETRIC_WEAK or DEVICE_CREDENTIAL`), negative button 없음. 성공 → unlock, 오류/취소 → 아무것도 안 함. 재잠금: `ProcessLifecycleOwner` ON_STOP → lock (MainView에서 세션 내내 구성됨). BiometricPrompt는 같은 Activity의 fragment라 프로세스 ON_STOP을 안 일으킴. API 28-29 기기 자격증명 화면은 ON_STOP 후 성공 콜백이 unlock하므로 최종 상태는 해제.
+- 비 Android(jvm/wasmJs): expect/actual 스텁(`rememberAdultUnlockRequest` = 아무것도 안 하는 람다, `AdultRelockEffect` = 없음). 설정이 있으면 라이브러리는 숨겨진 채 해제 수단 없음.
+- 화면 갱신: `MainScreenViewModel`이 `hiddenLibraryId` 변화 시 메인 스택을 Home으로 교체+reload, 재잠금 시 루트 스택(리더/설정)을 MainScreen까지 pop. `AppModule`은 `hiddenLibraryId` 변화 시 `KomgaAuthenticationState.reloadLibraries()`.
+- 설정 항목: 외형(Appearance) 설정의 드롭다운(`settings_restricted_library*`, ko 포함 `values-ko`). 설정값이 있으면 해제 상태에서만 보임(잠김 땐 숨김). 새로 고르면 즉시 lock.
+- 위험한 곳(컴파일 못 함): expect/actual 3개 타깃, `androidx.biometric:biometric:1.1.0`·`androidx.lifecycle:lifecycle-process:2.10.0` 버전, `combinedClickable` opt-in, `Page(...)` 생성자 인자(RemoteBookApi 것과 동일), `LabeledEntry<String?>`, `values-ko` 리소스 폴더, 마이그레이션 파일 등록.
+- 남은 누출 가능성: 저자 이름 자동완성(`getAuthorsNames/Roles`), `getSeriesTags(libraryId)`, 컬렉션/읽기목록 카드의 항목 수·썸네일(섞인 항목), 검색 결과 전체 건수/페이지 수(서버 값).

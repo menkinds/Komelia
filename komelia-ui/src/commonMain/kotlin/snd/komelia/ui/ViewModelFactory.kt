@@ -180,6 +180,7 @@ class ViewModelFactory(
                 bookDownloadEvents = dependencies.offlineDependencies?.bookDownloadEvents
             ),
             libraries = dependencies.komgaSharedState.libraries,
+            adultLockState = dependencies.adultLockState,
             offlineSettingsRepository = dependencies.offlineDependencies?.repositories?.offlineSettingsRepository,
             taskEmitter = dependencies.offlineDependencies?.taskEmitter,
         )
@@ -470,7 +471,11 @@ class ViewModelFactory(
     }
 
     fun getAppearanceViewModel(): AppSettingsViewModel {
-        return AppSettingsViewModel(appRepositories.settingsRepository)
+        return AppSettingsViewModel(
+            settingsRepository = appRepositories.settingsRepository,
+            libraryApi = komgaApi.libraryApi,
+            adultLockState = dependencies.adultLockState,
+        )
     }
 
     fun getSettingsUpdatesViewModel(): AppUpdatesViewModel {
@@ -750,6 +755,8 @@ class ViewModelFactory(
     fun getStartupUpdateChecker() = startupUpdateChecker
 
     fun getLibraries(): StateFlow<List<KomgaLibrary>> = dependencies.komgaSharedState.libraries
+
+    fun isLibraryHidden(libraryId: KomgaLibraryId): Boolean = dependencies.adultLockState.isHidden(libraryId)
 
     private fun getLibraryFlow(id: KomgaLibraryId?): Flow<KomgaLibrary?> {
         if (id == null) return flowOf(null)

@@ -99,6 +99,8 @@ kotlin {
 
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.biometric)
+            implementation(libs.androidx.lifecycle.process)
             implementation(libs.androidx.datastore)
             implementation(libs.commons.compress)
             implementation(libs.ktor.client.okhttp)
