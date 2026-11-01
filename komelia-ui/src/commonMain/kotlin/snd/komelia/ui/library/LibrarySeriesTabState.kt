@@ -7,6 +7,7 @@ import androidx.compose.ui.unit.Dp
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import snd.komelia.AppNotifications
 import snd.komelia.komga.api.KomgaReferentialApi
 import snd.komelia.komga.api.KomgaSeriesApi
@@ -27,6 +29,7 @@ import snd.komelia.offline.tasks.OfflineTaskEmitter
 import snd.komelia.settings.CommonSettingsRepository
 import snd.komelia.ui.LoadState
 import snd.komelia.ui.common.menus.SeriesMenuActions
+import snd.komelia.ui.series.SavedSeriesFilter
 import snd.komelia.ui.series.SeriesFilter
 import snd.komelia.ui.series.SeriesFilterState
 import snd.komga.client.common.KomgaPageRequest
@@ -67,6 +70,11 @@ class LibrarySeriesTabState(
         appNotifications = notifications,
     )
 
+    // Sort/filter values are shared by all libraries and saved on every change.
+    // A filter passed to initialize() (tap on a genre, tag or author) is temporary and is never saved
+    private var persistFilter = false
+    private var lastSavedFilter: String? = null
+
     private val reloadEventsEnabled = MutableStateFlow(true)
     private val reloadJobsFlow = MutableSharedFlow<Unit>(1, 0, BufferOverflow.DROP_OLDEST)
 
@@ -76,6 +84,7 @@ class LibrarySeriesTabState(
         screenModelScope.launch {
             filterState.initialize()
             if (filter != null) filterState.applyFilter(filter)
+            else restoreSavedFilter()
 
             pageLoadSize.value = settingsRepository.getSeriesPageLoadSize().first()
             loadSeriesPage(1)
@@ -96,8 +105,30 @@ class LibrarySeriesTabState(
             delay(1000)
         }.launchIn(screenModelScope)
 
-        filterState.state.drop(1).onEach { loadSeriesPage(1) }
-            .launchIn(screenModelScope)
+        filterState.state.drop(1).onEach {
+            saveFilter()
+            loadSeriesPage(1)
+        }.launchIn(screenModelScope)
+    }
+
+    private suspend fun restoreSavedFilter() {
+        val saved = runCatching {
+            SavedSeriesFilter.fromJson(settingsRepository.getLibrarySeriesFilter().first())
+        }.getOrNull()
+        if (saved != null) filterState.restore(saved)
+        lastSavedFilter = filterState.toSaved().toJson()
+        persistFilter = true
+    }
+
+    private suspend fun saveFilter() {
+        if (!persistFilter) return
+        val json = filterState.toSaved().toJson()
+        if (json == lastSavedFilter) return
+        lastSavedFilter = json
+        // keep saving if the screen is left right after the change
+        withContext(NonCancellable) {
+            notifications.runCatchingToNotifications { settingsRepository.putLibrarySeriesFilter(json) }
+        }
     }
 
     fun reload() {

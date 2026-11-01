@@ -23,6 +23,7 @@ object AppSettingsTable : Table("AppSettings") {
     val updateDismissedVersion = text("update_dismissed_version").nullable()
     // comma separated library ids. Old single id column fork_restricted_library_id is not used since V17
     val restrictedLibraryIds = text("fork_restricted_library_ids")
+    val librarySeriesFilter = text("fork_library_series_filter")
 
     override val primaryKey = PrimaryKey(version)
 }

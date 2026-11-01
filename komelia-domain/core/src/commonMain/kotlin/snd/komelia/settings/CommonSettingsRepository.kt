@@ -42,4 +42,7 @@ interface CommonSettingsRepository {
 
     fun getRestrictedLibraryIds(): Flow<Set<String>>
     suspend fun putRestrictedLibraryIds(libraryIds: Set<String>)
+
+    fun getLibrarySeriesFilter(): Flow<String>
+    suspend fun putLibrarySeriesFilter(filterJson: String)
 }

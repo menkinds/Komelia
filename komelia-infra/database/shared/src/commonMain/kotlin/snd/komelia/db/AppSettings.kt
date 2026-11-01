@@ -22,4 +22,6 @@ data class AppSettings(
     val updateLastCheckedReleaseVersion: AppVersion? = null,
     val updateDismissedVersion: AppVersion? = null,
     val restrictedLibraryIds: Set<String> = emptySet(),
+    // JSON of the shared library series sort/filter set. Empty string = defaults
+    val librarySeriesFilter: String = "",
 )

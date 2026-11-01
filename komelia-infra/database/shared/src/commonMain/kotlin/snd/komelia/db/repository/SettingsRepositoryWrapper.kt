@@ -111,4 +111,12 @@ class SettingsRepositoryWrapper(
         wrapper.transform { it.copy(restrictedLibraryIds = libraryIds) }
     }
 
+    override fun getLibrarySeriesFilter(): Flow<String> {
+        return wrapper.state.map { it.librarySeriesFilter }.distinctUntilChanged()
+    }
+
+    override suspend fun putLibrarySeriesFilter(filterJson: String) {
+        wrapper.transform { it.copy(librarySeriesFilter = filterJson) }
+    }
+
 }
