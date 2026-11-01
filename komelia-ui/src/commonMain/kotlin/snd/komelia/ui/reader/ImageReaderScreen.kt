@@ -33,6 +33,7 @@ import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.ui.BookSiblingsContext
 import snd.komelia.ui.LoadState
 import snd.komelia.ui.LoadState.Success
+import snd.komelia.ui.LocalReloadEvents
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.LocalWindowState
 import snd.komelia.ui.MainScreen
@@ -47,6 +48,7 @@ import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.MediaProfile.DIVINA
 import snd.komga.client.book.MediaProfile.EPUB
 import snd.komga.client.book.MediaProfile.PDF
+import snd.komga.client.library.KomgaLibraryId
 
 fun readerScreen(
     book: KomeliaBook,
@@ -60,7 +62,8 @@ fun readerScreen(
             ImageReaderScreen(
                 bookId = book.id,
                 markReadProgress = markReadProgress,
-                bookSiblingsContext = context
+                bookSiblingsContext = context,
+                libraryIdHint = book.libraryId
             )
         }
         mediaProfile == EPUB -> EpubScreen(
@@ -78,6 +81,8 @@ class ImageReaderScreen(
     private val bookId: KomgaBookId,
     private val bookSiblingsContext: BookSiblingsContext,
     private val markReadProgress: Boolean = true,
+    /** library of the book if the opener knew it, so the lock applies while the book is still loading */
+    private val libraryIdHint: KomgaLibraryId? = null,
 ) : Screen {
 
     @Composable
@@ -115,7 +120,15 @@ class ImageReaderScreen(
 
         val vmState = vm.readerState.state.collectAsState(Dispatchers.Main.immediate)
         val currentBook = vm.readerState.booksState.collectAsState().value?.currentBook
-        AdultLockScreenTag(currentBook?.libraryId)
+        AdultLockScreenTag(currentBook?.libraryId ?: libraryIdHint)
+
+        // book load that was cut by the lock (backgrounded while loading): continue with the same book after auth
+        val reloadEvents = LocalReloadEvents.current
+        LaunchedEffect(Unit) {
+            reloadEvents.collect {
+                if (vm.readerState.state.value is LoadState.Error) vm.initialize(KomgaBookId(currentBookId))
+            }
+        }
 
         Column {
             PlatformTitleBar(Modifier.zIndex(10f), false) {

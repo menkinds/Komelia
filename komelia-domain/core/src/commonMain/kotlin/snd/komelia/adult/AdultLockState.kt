@@ -37,11 +37,15 @@ class AdultLockState(
 
     private var restoredWithoutReset = false
 
-    // screen token -> library id of the content it shows (only screens that are composed right now)
-    private val visibleLibraries = LinkedHashMap<Any, String>()
+    // screen token -> library ids of the content it shows (only screens that are composed right now)
+    private val visibleLibraries = LinkedHashMap<Any, Set<String>>()
 
-    fun registerVisibleScreen(token: Any, libraryId: String?) {
-        if (libraryId == null) visibleLibraries.remove(token) else visibleLibraries[token] = libraryId
+    fun registerVisibleScreen(token: Any, libraryId: String?) =
+        registerVisibleScreen(token, listOfNotNull(libraryId))
+
+    /** a screen can show content of several libraries (collection, read list); empty = nothing known yet */
+    fun registerVisibleScreen(token: Any, libraryIds: Collection<String>) {
+        if (libraryIds.isEmpty()) visibleLibraries.remove(token) else visibleLibraries[token] = libraryIds.toSet()
     }
 
     fun unregisterVisibleScreen(token: Any) {
@@ -51,7 +55,7 @@ class AdultLockState(
     /** true if a screen that shows content of a restricted library is open */
     fun isViewingRestrictedContent(): Boolean {
         val restricted = libraryIds.value
-        return visibleLibraries.values.any { it in restricted }
+        return visibleLibraries.values.any { ids -> ids.any { it in restricted } }
     }
 
     /**

@@ -14,12 +14,16 @@ val LocalAdultLockState = compositionLocalOf<AdultLockState?> { null }
  * When the app goes to background while such a screen is open it is kept under an auth overlay.
  */
 @Composable
-fun AdultLockScreenTag(libraryId: KomgaLibraryId?) {
+fun AdultLockScreenTag(libraryId: KomgaLibraryId?) = AdultLockScreenTag(listOfNotNull(libraryId))
+
+/** Same for a screen that mixes content of several libraries (collection, read list): locked if any is restricted. */
+@Composable
+fun AdultLockScreenTag(libraryIds: Collection<KomgaLibraryId>) {
     val lockState = LocalAdultLockState.current ?: return
     val token = remember { Any() }
-    val id = libraryId?.value
-    DisposableEffect(lockState, token, id) {
-        lockState.registerVisibleScreen(token, id)
+    val ids = libraryIds.mapTo(HashSet()) { it.value }
+    DisposableEffect(lockState, token, ids) {
+        lockState.registerVisibleScreen(token, ids)
         onDispose { lockState.unregisterVisibleScreen(token) }
     }
 }

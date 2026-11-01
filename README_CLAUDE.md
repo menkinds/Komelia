@@ -126,3 +126,10 @@
 - 프로세스 종료(5번): **자동 복원 안 함**. 재실행은 항상 잠김 + 오버레이 대상 아님. 인증 후 책을 직접 열면 서버에 저장된 마지막 페이지에서 이어 읽음(기존 동작). 이유: 복원된 Voyager 스택의 리더가 잠긴 API에서 책 조회 실패 → 자동 복원은 스택 복원/인증 순서를 건드려야 해서 침습적.
 - 알려진 한계: 로딩 중(libraryId 미확정)에 백그라운드로 가면 일반 잠금. 시리즈/책 화면의 SSE 핸들러가 잠긴 동안 재조회해 실패할 수 있음(해제 후 reload로 복구).
 - 테스트: `komelia-domain/core/src/commonTest/.../adult/AdultLockStateTest.kt`(순수 Kotlin 상태 로직). 러너에 Android SDK/java가 없어 실행 못 함 → 첫 컴파일·테스트는 릴리스 빌드/CI. Android 오버레이·BiometricPrompt 흐름은 실기기 확인 필요.
+
+## 19+ 잠금: 컬렉션/읽기 목록에서 연 책도 재인증 후 유지 (2026-11-01)
+- 위 "재인증 후 같은 화면 유지" 방식을 그대로 재사용(같은 `AdultLockScreenTag`/오버레이). 판단은 책·시리즈 화면별: 리더/책/시리즈는 원래 자기 libraryId로 태그됨.
+- 컬렉션·읽기 목록 화면: 지금 보이는 항목(`series`/`books`)의 libraryId 전체를 태그(`AdultLockScreenTag(Collection<KomgaLibraryId>)`, `AdultLockState.registerVisibleScreen(token, Collection)`). 하나라도 잠금 라이브러리면 그 화면도 잠금(오버레이로 가림). 모두 일반 라이브러리면 예전처럼 일반 잠금.
+- 로딩 중: `ImageReaderScreen(libraryIdHint)`(`readerScreen(book)`이 book.libraryId를 넘김)과 EpubScreen의 `book`으로 책 로딩 전에도 태그. 로딩이 잠금에 끊겨 Error가 되면, 해제 후 `screenReloadEvents`에서 같은 책으로 `initialize` 재시도(이미지 리더). BookScreen/Oneshot/Series는 기존대로 vm의 항목이 이미 있으면 그 libraryId 사용.
+- 한계: bookId만으로 열린 리더(힌트 없음)는 로딩 중 일반 잠금. Epub 리더는 로딩 실패 시 재시도 없음(Error 화면).
+- 테스트: `AdultLockStateTest`에 혼합 컬렉션, 일반 항목만 있는 읽기 목록, 잠금 항목 있는 읽기 목록, 책 로딩 상태(힌트 유무) 추가. 러너에 Android SDK/java가 없어 실행·컴파일 못 함 → 첫 컴파일은 릴리스 빌드.
