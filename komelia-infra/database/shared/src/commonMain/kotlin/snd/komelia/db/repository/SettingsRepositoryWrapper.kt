@@ -103,12 +103,12 @@ class SettingsRepositoryWrapper(
         wrapper.transform { it.copy(appTheme = theme) }
     }
 
-    override fun getRestrictedLibraryId(): Flow<String?> {
-        return wrapper.state.map { it.restrictedLibraryId }.distinctUntilChanged()
+    override fun getRestrictedLibraryIds(): Flow<Set<String>> {
+        return wrapper.state.map { it.restrictedLibraryIds }.distinctUntilChanged()
     }
 
-    override suspend fun putRestrictedLibraryId(libraryId: String?) {
-        wrapper.transform { it.copy(restrictedLibraryId = libraryId) }
+    override suspend fun putRestrictedLibraryIds(libraryIds: Set<String>) {
+        wrapper.transform { it.copy(restrictedLibraryIds = libraryIds) }
     }
 
 }

@@ -32,6 +32,10 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,7 +60,6 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.navbar_settings
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
-import snd.komelia.adult.AdultLockState
 import snd.komelia.ui.book.bookScreen
 import snd.komelia.ui.home.HomeScreen
 import snd.komelia.ui.library.LibraryScreen
@@ -66,7 +69,9 @@ import snd.komelia.ui.platform.PlatformType.WEB_KOMF
 import snd.komelia.ui.platform.WindowSizeClass
 import snd.komelia.ui.platform.WindowSizeClass.FULL
 import snd.komelia.ui.platform.cursorForHand
+import snd.komelia.ui.platform.adultLockSupported
 import snd.komelia.ui.platform.rememberAdultUnlockRequest
+import snd.komelia.ui.dialogs.RestrictedLibrariesDialog
 import snd.komelia.ui.search.SearchScreen
 import snd.komelia.ui.series.seriesScreen
 import snd.komelia.ui.settings.MobileSettingsScreen
@@ -311,7 +316,7 @@ class MainScreen(
                 navigator.replaceAll(LibraryScreen())
                 if (width != FULL) coroutineScope.launch { vm.navBarState.snapTo(Closed) }
             },
-            onLibrariesLongClick = rememberLibrariesLongClick(vm.adultLockState),
+            onLibrariesLongClick = rememberLibrariesLongClick(vm),
 
             onLibraryClick = {
                 navigator.replaceAll(LibraryScreen(it))
@@ -322,13 +327,37 @@ class MainScreen(
         )
     }
 
-    /** Always non-null so that the button looks the same whether the feature is on or off. */
+    /**
+     * Hidden entry point of the restricted library lock, always non-null so that the button looks
+     * the same whether the feature is on or off.
+     * No libraries selected or already unlocked: open the selection. Locked: authenticate first.
+     */
     @Composable
-    private fun rememberLibrariesLongClick(lockState: AdultLockState): () -> Unit {
-        val unlockRequest = rememberAdultUnlockRequest(lockState)
-        val libraryId = lockState.libraryId.collectAsState().value
+    private fun rememberLibrariesLongClick(vm: MainScreenViewModel): () -> Unit {
+        val lockState = vm.adultLockState
+        var showSelection by remember { mutableStateOf(false) }
+        val unlockRequest = rememberAdultUnlockRequest(lockState) { showSelection = true }
+        val restrictedIds = lockState.libraryIds.collectAsState().value
         val unlocked = lockState.unlocked.collectAsState().value
-        return { if (libraryId != null && !unlocked) unlockRequest() }
+
+        if (showSelection) {
+            RestrictedLibrariesDialog(
+                libraries = vm.libraries.collectAsState().value,
+                selectedIds = restrictedIds,
+                onSelectionChange = vm::setRestrictedLibraries,
+                onDismiss = { showSelection = false }
+            )
+        }
+
+        return {
+            if (adultLockSupported) {
+                if (restrictedIds.isEmpty() || unlocked) {
+                    // all libraries have to be listed while the selection is edited
+                    lockState.unlock()
+                    showSelection = true
+                } else unlockRequest()
+            }
+        }
     }
 
     @Composable
@@ -347,7 +376,7 @@ class MainScreen(
                 navigator.replaceAll(LibraryScreen())
                 coroutineScope.launch { vm.navBarState.snapTo(Closed) }
             },
-            onLibrariesLongClick = rememberLibrariesLongClick(vm.adultLockState),
+            onLibrariesLongClick = rememberLibrariesLongClick(vm),
 
             onLibraryClick = {
                 navigator.replaceAll(LibraryScreen(it))

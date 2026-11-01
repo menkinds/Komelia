@@ -181,6 +181,7 @@ class ViewModelFactory(
             ),
             libraries = dependencies.komgaSharedState.libraries,
             adultLockState = dependencies.adultLockState,
+            settingsRepository = appRepositories.settingsRepository,
             offlineSettingsRepository = dependencies.offlineDependencies?.repositories?.offlineSettingsRepository,
             taskEmitter = dependencies.offlineDependencies?.taskEmitter,
         )
@@ -473,8 +474,6 @@ class ViewModelFactory(
     fun getAppearanceViewModel(): AppSettingsViewModel {
         return AppSettingsViewModel(
             settingsRepository = appRepositories.settingsRepository,
-            libraryApi = komgaApi.libraryApi,
-            adultLockState = dependencies.adultLockState,
         )
     }
 

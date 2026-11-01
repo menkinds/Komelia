@@ -17,6 +17,7 @@ import snd.komelia.AppNotifications
 import snd.komelia.adult.AdultLockState
 import snd.komelia.komga.api.KomgaLibraryApi
 import snd.komelia.offline.settings.OfflineSettingsRepository
+import snd.komelia.settings.CommonSettingsRepository
 import snd.komelia.offline.tasks.OfflineTaskEmitter
 import snd.komelia.ui.book.BookScreen
 import snd.komelia.ui.collection.CollectionScreen
@@ -49,6 +50,7 @@ class MainScreenViewModel(
     val notificationsState: NotificationsState,
     val libraries: StateFlow<List<KomgaLibrary>>,
     val adultLockState: AdultLockState,
+    private val settingsRepository: CommonSettingsRepository,
 ) : ScreenModel {
 
     val isOffline = offlineSettingsRepository?.getOfflineMode()
@@ -72,8 +74,12 @@ class MainScreenViewModel(
         }
         screenModelScope.launch {
             // visibility of the restricted library changed: drop every screen that may show its content
-            adultLockState.hiddenLibraryId.drop(1).collect { resetScreens() }
+            adultLockState.hiddenLibraryIds.drop(1).collect { resetScreens() }
         }
+    }
+
+    fun setRestrictedLibraries(libraryIds: Set<String>) {
+        screenModelScope.launch { settingsRepository.putRestrictedLibraryIds(libraryIds) }
     }
 
     private fun resetScreens() {

@@ -9,27 +9,24 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import snd.komga.client.library.KomgaLibraryId
 
 /**
- * Single source of truth for the lock of the restricted ("19+") library.
- * Feature is inactive while [libraryId] is null. State is never persisted: it is locked on every cold start.
+ * Single source of truth for the lock of the restricted ("19+") libraries.
+ * Feature is inactive while [libraryIds] is empty. State is never persisted: it is locked on every cold start.
  */
 class AdultLockState(
-    /** persisted id of the restricted library (null = feature off) */
-    val libraryId: StateFlow<String?>,
+    /** persisted ids of the restricted libraries (empty = feature off) */
+    val libraryIds: StateFlow<Set<String>>,
 ) {
     private val mutableUnlocked = MutableStateFlow(false)
     val unlocked: StateFlow<Boolean> = mutableUnlocked.asStateFlow()
 
-    /** id of the library that must be hidden right now, null when the feature is off or unlocked */
-    val hiddenLibraryId: Flow<String?> = combine(libraryId, unlocked) { id, isUnlocked ->
-        if (isUnlocked) null else id
+    /** ids of the libraries that must be hidden right now, empty when the feature is off or unlocked */
+    val hiddenLibraryIds: Flow<Set<String>> = combine(libraryIds, unlocked) { ids, isUnlocked ->
+        if (isUnlocked) emptySet() else ids
     }.distinctUntilChanged()
 
-    fun currentHiddenLibraryId(): String? = if (unlocked.value) null else libraryId.value
+    fun currentHiddenLibraryIds(): Set<String> = if (unlocked.value) emptySet() else libraryIds.value
 
-    fun isHidden(libraryId: KomgaLibraryId): Boolean {
-        val hidden = currentHiddenLibraryId() ?: return false
-        return hidden == libraryId.value
-    }
+    fun isHidden(libraryId: KomgaLibraryId): Boolean = libraryId.value in currentHiddenLibraryIds()
 
     fun unlock() {
         mutableUnlocked.value = true

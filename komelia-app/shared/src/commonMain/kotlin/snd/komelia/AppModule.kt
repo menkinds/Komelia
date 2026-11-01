@@ -154,7 +154,7 @@ abstract class AppModule {
         }
 
         val adultLockState = AdultLockState(
-            appRepositories.settingsRepository.getRestrictedLibraryId().stateIn(initScope)
+            appRepositories.settingsRepository.getRestrictedLibraryIds().stateIn(initScope)
         )
 
         val komgaApi = isOffline.map { offline ->
@@ -187,7 +187,7 @@ abstract class AppModule {
         )
         initScope.launch {
             // lock or setting change: library list has to be fetched again
-            adultLockState.hiddenLibraryId.drop(1).collect { komgaSharedState.reloadLibraries() }
+            adultLockState.hiddenLibraryIds.drop(1).collect { komgaSharedState.reloadLibraries() }
         }
 
 

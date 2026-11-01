@@ -21,7 +21,8 @@ object AppSettingsTable : Table("AppSettings") {
     val updateLastCheckedTimestamp = text("update_last_checked_timestamp").nullable()
     val updateLastCheckedReleaseVersion = text("update_last_checked_release_version").nullable()
     val updateDismissedVersion = text("update_dismissed_version").nullable()
-    val restrictedLibraryId = text("fork_restricted_library_id").nullable()
+    // comma separated library ids. Old single id column fork_restricted_library_id is not used since V17
+    val restrictedLibraryIds = text("fork_restricted_library_ids")
 
     override val primaryKey = PrimaryKey(version)
 }

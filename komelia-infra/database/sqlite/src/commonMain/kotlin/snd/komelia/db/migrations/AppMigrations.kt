@@ -23,6 +23,7 @@ class AppMigrations : MigrationResourcesProvider() {
         "V14__auto_page_turn.sql",
         "V15__fork_show_clock.sql",
         "V16__fork_restricted_library.sql",
+        "V17__fork_restricted_libraries.sql",
     )
 
     override suspend fun getMigration(name: String): ByteArray? {

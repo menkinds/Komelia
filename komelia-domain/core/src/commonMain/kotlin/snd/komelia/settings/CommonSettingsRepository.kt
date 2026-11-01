@@ -40,6 +40,6 @@ interface CommonSettingsRepository {
     fun getAppTheme(): Flow<AppTheme>
     suspend fun putAppTheme(theme: AppTheme)
 
-    fun getRestrictedLibraryId(): Flow<String?>
-    suspend fun putRestrictedLibraryId(libraryId: String?)
+    fun getRestrictedLibraryIds(): Flow<Set<String>>
+    suspend fun putRestrictedLibraryIds(libraryIds: Set<String>)
 }

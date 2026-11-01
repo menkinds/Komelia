@@ -53,10 +53,10 @@ internal class LibraryScope(
     private val libraryApi: KomgaLibraryApi,
 ) {
     fun isHidden(libraryId: KomgaLibraryId) = lock.isHidden(libraryId)
-    fun isActive() = lock.currentHiddenLibraryId() != null
+    fun isActive() = lock.currentHiddenLibraryIds().isNotEmpty()
 
     /**
-     * Library ids for a server side `library_id` filter: every library except the hidden one.
+     * Library ids for a server side `library_id` filter: every library except the hidden ones.
      * Returns [requested] unchanged when nothing is hidden or when no other library is left
      * (an empty id list would mean "all libraries" on the server; the client side filter still applies then).
      */

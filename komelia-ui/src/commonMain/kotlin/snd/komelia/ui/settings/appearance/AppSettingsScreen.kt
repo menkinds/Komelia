@@ -28,10 +28,6 @@ class AppSettingsScreen : Screen {
                 is LoadState.Error -> Text("${result::class.simpleName}: ${result.exception.message}")
                 LoadState.Uninitialized, LoadState.Loading -> LoadingMaxSizeIndicator()
                 is LoadState.Success -> AppearanceSettingsContent(
-                    libraries = vm.libraries,
-                    restrictedLibraryId = vm.restrictedLibraryId.collectAsState().value,
-                    unlocked = vm.unlocked.collectAsState().value,
-                    onRestrictedLibraryChange = vm::onRestrictedLibraryChange,
                     cardWidth = vm.cardWidth,
                     onCardWidthChange = vm::onCardWidthChange,
                     currentTheme = vm.currentTheme,
