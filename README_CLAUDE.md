@@ -1,30 +1,41 @@
 # README_CLAUDE.md (인계)
 
-## 현재 상태 (2026-10-31 일일 정리, KST)
+## 현재 상태 (2026-11-01 일일 정리, KST)
 - 저장소: menkinds/Komelia (Snd-R/Komelia 포크, 앱 이름 PAGES, Android 전용). 기본 브랜치 main.
 - PR 상태 (main의 git log 기준. gh는 이 세션에서 거부되어 미사용):
-  - #1 CI 워크플로+주간 동기화: 병합됨
-  - #2 SDK 설치 수정: 병합됨
-  - #3 네이티브 빌드 수정: 병합됨
-  - #4 수동 실행 Release 생성: 병합됨
-  - #5 PAGES 이름/Unread first: 병합됨
-  - #6 앱 내 업데이트: 병합됨
-  - #7 main 푸시 자동 릴리스: 병합됨
-  - #8 페이지 모드 자동 넘김: 병합됨
-  - #9 리더 시계(옵션): main 로그에 없음. 병합 여부 미확인
-- PR 없는 작업: job 022017(실패: git clone, 원격에 master 브랜치 없음), job 075855(v0.1.0 태그 푸시, 코드 변경 없음. 태그 결과는 미확인).
+  - #1~#8 (CI, SDK, 네이티브 빌드, 수동 Release, PAGES 이름/Unread first, 앱 내 업데이트, 자동 릴리스, 자동 넘김): 병합됨
+  - #9 리더 시계: 병합됨 (main에 커밋 a2dd6af3, 병합 ba33594e)
+  - #10 2026-10-31 일일 정리: 병합됨
+  - #11 19+ 잠금: 병합됨
+  - #12 19+ 잠금 v2(여러 라이브러리): 병합됨
+  - #13 런처 아이콘(사이버펑크 네온 P): 병합됨
+  - #14 라이브러리 필터 기억 + 태그 탭 전체 검색: 병합됨
+  - #15 시리즈 별점 ★N 태그: 병합됨
+  - #16 19+ 잠금 재인증 후 화면 유지: 병합됨
+  - #17 19+ 잠금 컬렉션/읽기 목록: 병합됨
+  - #18 텍스트 인식 자동 넘김(온디바이스 OCR): main 로그에 없음. 병합 여부 미확인 (이 문서에 내용 없음)
+- PR 없는 작업: 2026-10-31 job 022017(실패: git clone), job 075855(v0.1.0 태그 푸시). 2026-11-01 job 093056(새 런처 아이콘, PR 없음). 아이콘은 job 114822 재시도가 #13으로 병합됨. job 093056의 결과는 미확인.
 - 이 세션들에서 빌드·테스트를 실제로 돌린 기록은 없음(java/Android SDK 없음). 모든 기능은 CI 확인 전까지 미검증.
+
+## 2026-11-01 변경 요약
+- 19+ 잠금 신설(#11) → 여러 라이브러리(#12) → 재인증 후 화면 유지(#16) → 컬렉션/읽기 목록 확장(#17). 아래 상세 절 참고.
+- 런처 아이콘 교체(#13): mipmap PNG, adaptive icon XML, 배경 #01010D. 아래 상세 없음. 파일 목록은 커밋 b0683f84 참고.
+- 라이브러리 정렬/필터 기억(V18)과 태그 탭 전체 검색(#14).
+- 시리즈 별점 ★N 태그와 마지막 책 완독 프롬프트(#15).
+- DB 마이그레이션: V16, V17, V18 추가 (V15까지는 2026-10-31).
 
 ## 열린 항목
 - android-release 실제 러너 실행 결과 확인(SDK 설치, 네이티브 Docker 빌드, 서명, 자동 릴리스) — 미확인.
-- `./gradlew :komelia-domain:core:jvmTest`, komelia-ui jvmTest 실행 필요.
-- #9(시계) 병합 여부와 내용 확인. 이 파일에 시계 항목 없음.
+- `./gradlew :komelia-domain:core:jvmTest`, komelia-ui jvmTest 실행 필요 (AdultLockStateTest 포함).
+- #18(OCR 자동 넘김) 병합 여부와 내용 확인.
+- 19+ 잠금의 남은 누출 가능성(저자 자동완성, 태그 목록, 컬렉션 카드 개수 등)과 Android 오버레이 실기기 확인.
+- Ttsu/Komga EPUB 리더는 별점 프롬프트 없음.
 - 동시 머지 시 가운데 릴리스 실행이 취소될 수 있음(아래 자동 릴리스 항목).
 
 ## 다음 단계 (제안, 추정)
-- 러너 로그(특히 native-build-log artifact) 확인 후 실패 시 수정.
-- 첫 자동 릴리스 태그와 앱 내 업데이트 동작을 실기기로 확인.
-- 시계 PR 병합 후 이 문서에 항목 추가.
+- 러너 로그(특히 native-build-log artifact) 확인 후 실패 시 수정. 오늘 병합분(V16~V18, biometric 의존성)의 첫 컴파일 오류 가능성이 큼.
+- 첫 자동 릴리스 태그와 앱 내 업데이트, 19+ 재인증 흐름을 실기기로 확인.
+- #18 병합 후 이 문서에 OCR 자동 넘김 항목 추가.
 
 ## menkinds/komelia 포크 (Android 전용)
 - 추가: `.github/workflows/android-release.yml`(태그 v* → 서명 APK Release), `.github/workflows/upstream-sync.yml` + `.github/scripts/upstream-sync.sh`(월요일 Snd-R/Komelia 최신 릴리스 병합 PR, 충돌 시 이슈), README "포크 사용법".
@@ -72,7 +83,7 @@
 - 설정(톱니) 패널의 간격 항목은 만들지 않음(오버레이 행만).
 - 미검증: 컴파일 못 함(java 없음). CI android-release로 확인 필요.
 
-## 리더 시계 (2026-10-31)
+## 리더 시계 (2026-10-31, #9 병합됨)
 - 설정(톱니) 패널 "Show clock" 토글(기본 OFF, 저장). 켜면 `ReaderClockOverlay`(우하단, 반투명 검정 배경+흰 글씨, 터치 통과)가 모든 리더 모드(paged/continuous/panels)에서 표시. 탭 오버레이가 열려 있는 동안은 숨김(슬라이더 가림 방지).
 - 저장: 마이그레이션 `V15__fork_show_clock.sql`(`fork_show_clock`), V14 수정 없음. 포크 마이그레이션은 V15부터 `V<n>__fork_*.sql`.
 - 시간: `ClockPlatform`(expect/actual). Android만 구현(기기 12/24h, 분 경계 정렬 갱신, ON_STOP 동안 정지). jvm/wasm은 빈 문자열(미표시).
