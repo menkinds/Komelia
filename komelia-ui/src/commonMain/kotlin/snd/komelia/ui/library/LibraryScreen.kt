@@ -1,5 +1,6 @@
 package snd.komelia.ui.library
 
+import snd.komelia.ui.platform.AdultLockScreenTag
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -77,6 +78,7 @@ class LibraryScreen(
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val viewModelFactory = LocalViewModelFactory.current
+        AdultLockScreenTag(libraryId)
         if (libraryId != null && viewModelFactory.isLibraryHidden(libraryId)) {
             // direct navigation to a hidden library: show nothing
             Box(Modifier.fillMaxSize())

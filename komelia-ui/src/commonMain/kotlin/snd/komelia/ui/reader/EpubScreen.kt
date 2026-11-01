@@ -1,5 +1,6 @@
 package snd.komelia.ui.reader
 
+import snd.komelia.ui.platform.AdultLockScreenTag
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -60,6 +61,7 @@ class EpubScreen(
         }
 
         val state = vm.state.collectAsState().value
+        if (state is LoadState.Success) AdultLockScreenTag(state.value.book.collectAsState().value?.libraryId)
         Column {
             PlatformTitleBar(applyInsets = false) {
                 if (canIntegrateWithSystemBar()) {

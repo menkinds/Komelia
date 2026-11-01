@@ -1,5 +1,6 @@
 package snd.komelia.ui.reader
 
+import snd.komelia.ui.platform.AdultLockScreenTag
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -114,6 +115,7 @@ class ImageReaderScreen(
 
         val vmState = vm.readerState.state.collectAsState(Dispatchers.Main.immediate)
         val currentBook = vm.readerState.booksState.collectAsState().value?.currentBook
+        AdultLockScreenTag(currentBook?.libraryId)
 
         Column {
             PlatformTitleBar(Modifier.zIndex(10f), false) {

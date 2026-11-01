@@ -17,3 +17,10 @@ expect fun rememberAdultUnlockRequest(lockState: AdultLockState, onUnlocked: () 
 /** Locks [lockState] when the whole app goes to background. Does nothing on platforms without support. */
 @Composable
 expect fun AdultRelockEffect(lockState: AdultLockState)
+
+/**
+ * Opaque overlay with an auth prompt while [AdultLockState.resumePending]. Success removes it and keeps the
+ * screens below as they were, cancel/failure leaves the restricted screens. Does nothing without support.
+ */
+@Composable
+expect fun AdultResumeOverlay(lockState: AdultLockState)

@@ -1,5 +1,6 @@
 package snd.komelia.ui.oneshot
 
+import snd.komelia.ui.platform.AdultLockScreenTag
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -75,6 +76,7 @@ class OneshotScreen(
         val book = vm.book.collectAsState().value
         val library = vm.library.collectAsState().value
         val series = vm.series.collectAsState().value
+        AdultLockScreenTag(series?.libraryId)
         ScreenPullToRefreshBox(screenState = vm.state, onRefresh = vm::reload) {
             when {
                 state is LoadState.Error -> ErrorContent(

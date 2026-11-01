@@ -28,11 +28,76 @@ class AdultLockState(
 
     fun isHidden(libraryId: KomgaLibraryId): Boolean = libraryId.value in currentHiddenLibraryIds()
 
+    // --- resume overlay: screens of a restricted library stay in place while the app is locked ---
+
+    private val mutableResumePending = MutableStateFlow(false)
+
+    /** true while the auth overlay covers a restricted screen that was kept after the app went to background */
+    val resumePending: StateFlow<Boolean> = mutableResumePending.asStateFlow()
+
+    private var restoredWithoutReset = false
+
+    // screen token -> library id of the content it shows (only screens that are composed right now)
+    private val visibleLibraries = LinkedHashMap<Any, String>()
+
+    fun registerVisibleScreen(token: Any, libraryId: String?) {
+        if (libraryId == null) visibleLibraries.remove(token) else visibleLibraries[token] = libraryId
+    }
+
+    fun unregisterVisibleScreen(token: Any) {
+        visibleLibraries.remove(token)
+    }
+
+    /** true if a screen that shows content of a restricted library is open */
+    fun isViewingRestrictedContent(): Boolean {
+        val restricted = libraryIds.value
+        return visibleLibraries.values.any { it in restricted }
+    }
+
+    /**
+     * App went to background. If a restricted screen is open the screens are kept and [resumePending] is set,
+     * otherwise this is a plain [lock]. Never leaves a grace period: the API filter applies immediately.
+     */
+    fun lockOnBackground() {
+        if (!unlocked.value) return
+        if (isViewingRestrictedContent()) {
+            mutableResumePending.value = true
+            restoredWithoutReset = false
+        }
+        mutableUnlocked.value = false
+    }
+
+    /** auth succeeded for the overlay: unlock and keep the screens as they are */
+    fun unlockAfterResume() {
+        if (!mutableResumePending.value) {
+            unlock()
+            return
+        }
+        restoredWithoutReset = true
+        mutableUnlocked.value = true
+        mutableResumePending.value = false
+    }
+
+    /** auth cancelled or failed for the overlay: stay locked, the caller leaves the restricted screens */
+    fun cancelResume() {
+        mutableResumePending.value = false
+        restoredWithoutReset = false
+    }
+
+    /** true once if the last visibility change must not reset the screens */
+    fun consumeKeepScreens(): Boolean {
+        if (mutableResumePending.value) return true
+        val keep = restoredWithoutReset
+        restoredWithoutReset = false
+        return keep
+    }
+
     fun unlock() {
         mutableUnlocked.value = true
     }
 
     fun lock() {
+        mutableResumePending.value = false
         mutableUnlocked.value = false
     }
 
