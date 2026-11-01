@@ -56,6 +56,7 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.navbar_settings
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import snd.komelia.adult.AdultLockState
 import snd.komelia.ui.book.bookScreen
 import snd.komelia.ui.home.HomeScreen
 import snd.komelia.ui.library.LibraryScreen
@@ -65,6 +66,7 @@ import snd.komelia.ui.platform.PlatformType.WEB_KOMF
 import snd.komelia.ui.platform.WindowSizeClass
 import snd.komelia.ui.platform.WindowSizeClass.FULL
 import snd.komelia.ui.platform.cursorForHand
+import snd.komelia.ui.platform.rememberAdultUnlockRequest
 import snd.komelia.ui.search.SearchScreen
 import snd.komelia.ui.series.seriesScreen
 import snd.komelia.ui.settings.MobileSettingsScreen
@@ -309,6 +311,7 @@ class MainScreen(
                 navigator.replaceAll(LibraryScreen())
                 if (width != FULL) coroutineScope.launch { vm.navBarState.snapTo(Closed) }
             },
+            onLibrariesLongClick = rememberLibrariesLongClick(vm.adultLockState),
 
             onLibraryClick = {
                 navigator.replaceAll(LibraryScreen(it))
@@ -317,6 +320,15 @@ class MainScreen(
             onSettingsClick = { navigator.parent!!.push(SettingsScreen()) },
             taskQueueStatus = vm.komgaTaskQueueStatus.collectAsState().value
         )
+    }
+
+    /** Always non-null so that the button looks the same whether the feature is on or off. */
+    @Composable
+    private fun rememberLibrariesLongClick(lockState: AdultLockState): () -> Unit {
+        val unlockRequest = rememberAdultUnlockRequest(lockState)
+        val libraryId = lockState.libraryId.collectAsState().value
+        val unlocked = lockState.unlocked.collectAsState().value
+        return { if (libraryId != null && !unlocked) unlockRequest() }
     }
 
     @Composable
@@ -335,6 +347,7 @@ class MainScreen(
                 navigator.replaceAll(LibraryScreen())
                 coroutineScope.launch { vm.navBarState.snapTo(Closed) }
             },
+            onLibrariesLongClick = rememberLibrariesLongClick(vm.adultLockState),
 
             onLibraryClick = {
                 navigator.replaceAll(LibraryScreen(it))

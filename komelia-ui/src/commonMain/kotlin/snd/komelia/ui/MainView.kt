@@ -46,6 +46,7 @@ import snd.komelia.ui.dialogs.update.UpdateDialog
 import snd.komelia.ui.dialogs.update.UpdateProgressDialog
 import snd.komelia.ui.komf.KomfMainScreen
 import snd.komelia.ui.login.LoginScreen
+import snd.komelia.ui.platform.AdultRelockEffect
 import snd.komelia.ui.platform.BackPressHandler
 import snd.komelia.ui.platform.ConfigurePlatformTheme
 import snd.komelia.ui.platform.PlatformTitleBar
@@ -116,6 +117,8 @@ fun MainView(
                 LocalKomgaState provides dependencies.komgaSharedState,
                 LocalOfflineAvailable provides (dependencies.offlineDependencies != null)
             ) {
+                // composed for the whole session (also while the reader or settings are on top)
+                AdultRelockEffect(dependencies.adultLockState)
                 MainContent(platformType, dependencies.komgaSharedState)
 
                 AppNotifications(dependencies.appNotifications, theme)

@@ -32,6 +32,12 @@ class KomgaAuthenticationState(
         _libraries.value = libraries
     }
 
+    /** re-read the library list (the api hides the restricted library while locked) */
+    suspend fun reloadLibraries() {
+        if (currentUserFlow.value == null) return
+        runCatching { _libraries.value = libraryApi.value.getLibraries() }
+    }
+
     fun reset() {
         currentUserFlow.value = null
         _libraries.value = emptyList()

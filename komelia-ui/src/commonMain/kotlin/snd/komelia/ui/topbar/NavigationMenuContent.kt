@@ -5,6 +5,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -35,6 +36,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -42,6 +44,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipDefaults.rememberTooltipPositionProvider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,6 +52,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
@@ -82,6 +86,7 @@ fun NavBarContent(
     onLibraryClick: (KomgaLibraryId) -> Unit,
     onSettingsClick: () -> Unit,
     taskQueueStatus: TaskQueueStatus?,
+    onLibrariesLongClick: (() -> Unit)? = null,
 ) {
     Surface(Modifier.width(230.dp)) {
         NavMenu(
@@ -91,7 +96,8 @@ fun NavBarContent(
             onHomeClick = onHomeClick,
             onLibrariesClick = onLibrariesClick,
             onLibraryClick = onLibraryClick,
-            onSettingsClick = onSettingsClick
+            onSettingsClick = onSettingsClick,
+            onLibrariesLongClick = onLibrariesLongClick
         )
         if (taskQueueStatus != null && taskQueueStatus.count > 0) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
@@ -109,6 +115,7 @@ fun LibrariesNavBarContent(
     libraryActions: LibraryMenuActions,
     onLibrariesClick: () -> Unit,
     onLibraryClick: (KomgaLibraryId) -> Unit,
+    onLibrariesLongClick: (() -> Unit)? = null,
 ) {
     Surface(Modifier.width(230.dp)) {
         val scrollState: ScrollState = rememberScrollState()
@@ -123,7 +130,8 @@ fun LibrariesNavBarContent(
                 libraries = libraries,
                 libraryActions = libraryActions,
                 onLibrariesClick = onLibrariesClick,
-                onLibraryClick = onLibraryClick
+                onLibraryClick = onLibraryClick,
+                onLibrariesLongClick = onLibrariesLongClick
             )
             Spacer(Modifier.size(30.dp))
         }
@@ -138,6 +146,7 @@ fun ColumnScope.LibrariesNavBarContent(
     libraryActions: LibraryMenuActions,
     onLibrariesClick: () -> Unit,
     onLibraryClick: (KomgaLibraryId) -> Unit,
+    onLibrariesLongClick: (() -> Unit)? = null,
 ) {
     var showLibraryAddDialog by remember { mutableStateOf(false) }
     if (showLibraryAddDialog) {
@@ -151,6 +160,7 @@ fun ColumnScope.LibrariesNavBarContent(
     val isOffline = LocalOfflineMode.current.collectAsState().value
     NavButton(
         onClick = { onLibrariesClick() },
+        onLongClick = onLibrariesLongClick,
         icon = Icons.AutoMirrored.Filled.LibraryBooks,
         label = stringResource(Res.string.navbar_libraries),
         isSelected = false,
@@ -206,6 +216,7 @@ private fun NavMenu(
     onLibrariesClick: () -> Unit,
     onLibraryClick: (KomgaLibraryId) -> Unit,
     onSettingsClick: () -> Unit,
+    onLibrariesLongClick: (() -> Unit)?,
 ) {
     val scrollState: ScrollState = rememberScrollState()
     val navBarInteractionSource = remember { MutableInteractionSource() }
@@ -237,7 +248,8 @@ private fun NavMenu(
                 libraries = libraries,
                 libraryActions = libraryActions,
                 onLibrariesClick = onLibrariesClick,
-                onLibraryClick = onLibraryClick
+                onLibraryClick = onLibraryClick,
+                onLibrariesLongClick = onLibrariesLongClick
             )
 
             HorizontalDivider(Modifier.padding(0.dp, 20.dp))
@@ -255,6 +267,7 @@ private fun NavMenu(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun NavButton(
     onClick: () -> Unit,
@@ -263,49 +276,74 @@ private fun NavButton(
     errorLabel: String? = null,
     actionButton: (@Composable () -> Unit)? = null,
     isSelected: Boolean,
+    onLongClick: (() -> Unit)? = null,
 ) {
-    TextButton(
-        onClick = onClick,
-        contentPadding = PaddingValues(0.dp),
-        shape = RoundedCornerShape(10.dp)
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(40.dp)
-                .background(
-                    if (isSelected) MaterialTheme.colorScheme.surfaceVariant
-                    else MaterialTheme.colorScheme.surface
-                )
+    if (onLongClick == null) {
+        TextButton(
+            onClick = onClick,
+            contentPadding = PaddingValues(0.dp),
+            shape = RoundedCornerShape(10.dp)
         ) {
-
-            if (icon != null) {
-                Icon(
-                    icon,
-                    contentDescription = null,
-                    modifier = Modifier.padding(10.dp, 0.dp, 20.dp, 0.dp)
-                )
-            } else {
-                Box(Modifier.padding(30.dp, 0.dp)) {}
-            }
-
-            Column(modifier = Modifier.weight(1.0f)) {
-                Text(label, style = MaterialTheme.typography.labelLarge)
-                if (errorLabel != null) {
-                    Text(
-                        text = errorLabel,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-            if (actionButton != null) {
-                actionButton()
-            }
-
+            NavButtonRow(icon, label, errorLabel, actionButton, isSelected)
         }
+    } else {
+        // same look as TextButton, tap behaviour is the same, long press is extra
+        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.primary) {
+            Box(
+                Modifier
+                    .clip(RoundedCornerShape(10.dp))
+                    .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+            ) {
+                NavButtonRow(icon, label, errorLabel, actionButton, isSelected)
+            }
+        }
+    }
+}
+
+@Composable
+private fun NavButtonRow(
+    icon: ImageVector?,
+    label: String,
+    errorLabel: String?,
+    actionButton: (@Composable () -> Unit)?,
+    isSelected: Boolean,
+) {
+    Row(
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(40.dp)
+            .background(
+                if (isSelected) MaterialTheme.colorScheme.surfaceVariant
+                else MaterialTheme.colorScheme.surface
+            )
+    ) {
+
+        if (icon != null) {
+            Icon(
+                icon,
+                contentDescription = null,
+                modifier = Modifier.padding(10.dp, 0.dp, 20.dp, 0.dp)
+            )
+        } else {
+            Box(Modifier.padding(30.dp, 0.dp)) {}
+        }
+
+        Column(modifier = Modifier.weight(1.0f)) {
+            Text(label, style = MaterialTheme.typography.labelLarge)
+            if (errorLabel != null) {
+                Text(
+                    text = errorLabel,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+        if (actionButton != null) {
+            actionButton()
+        }
+
     }
 }
 

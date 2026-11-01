@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.Icons
@@ -76,6 +77,11 @@ class LibraryScreen(
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val viewModelFactory = LocalViewModelFactory.current
+        if (libraryId != null && viewModelFactory.isLibraryHidden(libraryId)) {
+            // direct navigation to a hidden library: show nothing
+            Box(Modifier.fillMaxSize())
+            return
+        }
         val vm = rememberScreenModel(libraryId?.value) { viewModelFactory.getLibraryViewModel(libraryId) }
         val reloadEvents = LocalReloadEvents.current
 

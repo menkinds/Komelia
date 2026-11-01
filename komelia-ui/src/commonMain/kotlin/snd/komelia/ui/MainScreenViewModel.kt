@@ -9,10 +9,12 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import snd.komelia.AppNotifications
+import snd.komelia.adult.AdultLockState
 import snd.komelia.komga.api.KomgaLibraryApi
 import snd.komelia.offline.settings.OfflineSettingsRepository
 import snd.komelia.offline.tasks.OfflineTaskEmitter
@@ -46,6 +48,7 @@ class MainScreenViewModel(
     val searchBarState: SearchBarState,
     val notificationsState: NotificationsState,
     val libraries: StateFlow<List<KomgaLibrary>>,
+    val adultLockState: AdultLockState,
 ) : ScreenModel {
 
     val isOffline = offlineSettingsRepository?.getOfflineMode()
@@ -61,6 +64,21 @@ class MainScreenViewModel(
 
     init {
         screenModelScope.launch { startEventListener() }
+        screenModelScope.launch {
+            // relock: reader and settings live in the parent navigator, above the main screen
+            adultLockState.unlocked.drop(1).collect { unlocked ->
+                if (!unlocked) navigatorFlow.value?.parent?.popUntil { it is MainScreen }
+            }
+        }
+        screenModelScope.launch {
+            // visibility of the restricted library changed: drop every screen that may show its content
+            adultLockState.hiddenLibraryId.drop(1).collect { resetScreens() }
+        }
+    }
+
+    private fun resetScreens() {
+        navigatorFlow.value?.replaceAll(HomeScreen())
+        screenReloadFlow.tryEmit(Unit)
     }
 
     val komgaTaskQueueStatus = MutableStateFlow<TaskQueueStatus?>(null)

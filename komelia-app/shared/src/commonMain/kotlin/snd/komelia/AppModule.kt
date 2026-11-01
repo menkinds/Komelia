@@ -19,11 +19,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.io.files.Path
 import kotlinx.serialization.json.Json
 import okio.Path.Companion.toPath
+import snd.komelia.adult.AdultLockState
+import snd.komelia.adult.RestrictedKomgaApi
 import snd.komelia.api.RemoteActuatorApi
 import snd.komelia.api.RemoteAnnouncementsApi
 import snd.komelia.api.RemoteApi
@@ -149,14 +153,20 @@ abstract class AppModule {
             )?.initDependencies()
         }
 
+        val adultLockState = AdultLockState(
+            appRepositories.settingsRepository.getRestrictedLibraryId().stateIn(initScope)
+        )
+
         val komgaApi = isOffline.map { offline ->
-            if (offline && offlineModule != null) offlineModule.komgaApi
-            else createRemoteApi(
-                komgaClientFactory = komgaClientFactory,
-                offlineRepositories = offlineRepositories,
-                offlineEvents = offlineModule?.komgaEvents,
-                komfMangaBaka = komfMangaBaka
-            )
+            val api: KomgaApi =
+                if (offline && offlineModule != null) offlineModule.komgaApi
+                else createRemoteApi(
+                    komgaClientFactory = komgaClientFactory,
+                    offlineRepositories = offlineRepositories,
+                    offlineEvents = offlineModule?.komgaEvents,
+                    komfMangaBaka = komfMangaBaka
+                )
+            RestrictedKomgaApi(api, adultLockState) as KomgaApi
         }.stateIn(initScope)
 
         val komgaNoRemoteCacheApi = isOffline.map { offline ->
@@ -175,6 +185,10 @@ abstract class AppModule {
             currentUserFlow = currentUserFlow,
             serverUrl = currentServerUrl
         )
+        initScope.launch {
+            // lock or setting change: library list has to be fetched again
+            adultLockState.hiddenLibraryId.drop(1).collect { komgaSharedState.reloadLibraries() }
+        }
 
 
         val colorCorrectionStep = ColorCorrectionStep(appRepositories.bookColorCorrectionRepository)
@@ -253,6 +267,7 @@ abstract class AppModule {
             upscaler = upscaler,
             panelDetector = panelDetector,
             offlineDependencies = offlineModule,
+            adultLockState = adultLockState,
         )
         afterInit(dependencies)
         return dependencies
