@@ -65,7 +65,10 @@ if (KOMELIA_SUPERBUILD)
     include("cmake/external/tiff.cmake")
 
     include("cmake/external/vips.cmake")
-    include("cmake/external/onnxruntime.cmake")
+    if (NOT ANDROID)
+        # PAGES: the ONNX upscaler is desktop-only, Android does not build ONNX Runtime
+        include("cmake/external/onnxruntime.cmake")
+    endif ()
 
     ExternalProject_Add(ep_komelia_vips
             DOWNLOAD_COMMAND ""
@@ -77,29 +80,31 @@ if (KOMELIA_SUPERBUILD)
             BUILD_ALWAYS true
             USES_TERMINAL_BUILD true
     )
-    if (WIN32)
-        set(KOMELIA_ONNXRUNTIME_DEPENDENCIES "ep_komelia_vips")
-    else ()
-        set(KOMELIA_ONNXRUNTIME_DEPENDENCIES ep_komelia_vips ep_onnxruntime)
-    endif ()
+    if (NOT ANDROID)
+        if (WIN32)
+            set(KOMELIA_ONNXRUNTIME_DEPENDENCIES "ep_komelia_vips")
+        else ()
+            set(KOMELIA_ONNXRUNTIME_DEPENDENCIES ep_komelia_vips ep_onnxruntime)
+        endif ()
 
-    ExternalProject_Add(ep_komelia_onnxruntime
-            DOWNLOAD_COMMAND ""
-            UPDATE_COMMAND ""
-            DEPENDS ${KOMELIA_ONNXRUNTIME_DEPENDENCIES}
-            SOURCE_DIR ${PROJECT_SOURCE_DIR}/komelia-infra/onnxruntime/native
-            CMAKE_ARGS
-            ${EP_CMAKE_ARGS}
-            -DCUDA_CUSTOM_PATH=${CUDA_CUSTOM_PATH}
-            -DROCM_CUSTOM_PATH=${ROCM_CUSTOM_PATH}
-            -DONNXRUNTIME_CUSTOM_PATH=${THIRD_PARTY_LIB_PATH}
-            -DCUDA_GPU_ENUMERATION=${CUDA_GPU_ENUMERATION}
-            -DROCM_GPU_ENUMERATION=${ROCM_GPU_ENUMERATION}
-            -DDXGI_GPU_ENUMERATION=${DXGI_GPU_ENUMERATION}
-            -DVULKAN_GPU_ENUMERATION=${VULKAN_GPU_ENUMERATION}
-            BUILD_ALWAYS true
-            USES_TERMINAL_BUILD true
-    )
+        ExternalProject_Add(ep_komelia_onnxruntime
+                DOWNLOAD_COMMAND ""
+                UPDATE_COMMAND ""
+                DEPENDS ${KOMELIA_ONNXRUNTIME_DEPENDENCIES}
+                SOURCE_DIR ${PROJECT_SOURCE_DIR}/komelia-infra/onnxruntime/native
+                CMAKE_ARGS
+                ${EP_CMAKE_ARGS}
+                -DCUDA_CUSTOM_PATH=${CUDA_CUSTOM_PATH}
+                -DROCM_CUSTOM_PATH=${ROCM_CUSTOM_PATH}
+                -DONNXRUNTIME_CUSTOM_PATH=${THIRD_PARTY_LIB_PATH}
+                -DCUDA_GPU_ENUMERATION=${CUDA_GPU_ENUMERATION}
+                -DROCM_GPU_ENUMERATION=${ROCM_GPU_ENUMERATION}
+                -DDXGI_GPU_ENUMERATION=${DXGI_GPU_ENUMERATION}
+                -DVULKAN_GPU_ENUMERATION=${VULKAN_GPU_ENUMERATION}
+                BUILD_ALWAYS true
+                USES_TERMINAL_BUILD true
+        )
+    endif ()
 
     if (NOT ANDROID)
         ExternalProject_Add(ep_komelia_webview

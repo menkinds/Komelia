@@ -63,9 +63,7 @@ import snd.komelia.image.processing.ImageProcessingPipeline
 import snd.komelia.offline.AndroidOfflineModule
 import snd.komelia.offline.OfflineModule
 import snd.komelia.offline.OfflineRepositories
-import snd.komelia.onnxruntime.JvmOnnxRuntime
 import snd.komelia.onnxruntime.OnnxRuntime
-import snd.komelia.onnxruntime.OnnxRuntimeSharedLibraries
 import snd.komelia.settings.AndroidSecretsRepository
 import snd.komelia.settings.ImageReaderSettingsRepository
 import snd.komelia.ui.home.edit.getDefaultFilters
@@ -77,7 +75,6 @@ import snd.komelia.updates.UpdateClient
 import snd.komga.client.KomgaClientFactory
 import snd.komga.client.user.KomgaUser
 import java.util.concurrent.TimeUnit
-import kotlin.io.path.createDirectories
 import kotlin.time.measureTime
 
 private val logger = KotlinLogging.logger { }
@@ -111,12 +108,6 @@ class AndroidAppModule(
                 logger.error(e) { "Couldn't load vips shared libraries. reader image loading will not work" }
             }
         }.also { logger.info { "completed vips libraries load in $it" } }
-
-        try {
-            OnnxRuntimeSharedLibraries.load()
-        } catch (e: UnsatisfiedLinkError) {
-            logger.error(e) { "Failed to load onnxruntime " }
-        }
     }
 
 
@@ -256,14 +247,8 @@ class AndroidAppModule(
 
     override fun createOnnxModelDownloader(updateClient: UpdateClient) = AndroidOnnxModelDownloader()
 
-    override fun createOnnxRuntime(): OnnxRuntime? {
-        if (!OnnxRuntimeSharedLibraries.isAvailable) {
-            logger.warn { "OnnxRuntime is not available" }
-            return null
-        }
-        val dataDir = context.dataDir.resolve("onnxruntime").toPath().createDirectories()
-        return JvmOnnxRuntime.create(dataDir.toString())
-    }
+    // PAGES: no ONNX runtime on Android, the upscaler is desktop-only
+    override fun createOnnxRuntime(): OnnxRuntime? = null
 
     override suspend fun createUpscaler(
         onnxRuntime: OnnxRuntime,

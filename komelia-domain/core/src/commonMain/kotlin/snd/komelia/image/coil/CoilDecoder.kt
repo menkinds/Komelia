@@ -39,7 +39,6 @@ class CoilDecoder(
     private suspend fun getBytes(): ByteArray {
         return try {
             source.source().use { it.readByteArray() }
-            // catch fetch api error thrown by ktor on WasmJs and rethrow as expected runtime exception
         } catch (e: Throwable) {
             currentCoroutineContext().ensureActive()
             throw RuntimeException(e)

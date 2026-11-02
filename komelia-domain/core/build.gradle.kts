@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 
@@ -21,10 +20,6 @@ kotlin {
     }
 
     jvm { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
-    }
     compilerOptions.freeCompilerArgs.add("-Xexpect-actual-classes")
 
     sourceSets {
@@ -33,7 +28,6 @@ kotlin {
             languageSettings.optIn("kotlin.ExperimentalUnsignedTypes")
             languageSettings.optIn("kotlin.time.ExperimentalTime")
             languageSettings.optIn("kotlin.uuid.ExperimentalUuidApi")
-            languageSettings.optIn("kotlin.js.ExperimentalWasmJsInterop")
         }
         commonMain.dependencies {
             api(projects.komeliaDomain.komgaApi)
@@ -76,7 +70,6 @@ kotlin {
             api(libs.okhttp.logging.interceptor)
             implementation(libs.slf4j.api)
             implementation(projects.komeliaInfra.imageDecoder.vips)
-            implementation(projects.komeliaInfra.onnxruntime.jvm)
         }
 
         jvmMain.dependencies {

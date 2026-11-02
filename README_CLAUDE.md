@@ -32,6 +32,13 @@
 - 안드로이드 ONNX 런타임 로딩/네이티브 빌드는 이제 쓰는 곳이 없음(업스케일러 null). 제거는 CI/네이티브 빌드를 건드려야 해서 이번에 안 함 → 후속 후보.
 - 미검증: java/Android SDK 없음. rg로 참조만 확인했고 컴파일/테스트는 Release 빌드(CI)에서 확인해야 함.
 
+## 2026-11-02 웹앱(wasm) 제거 + 안드로이드 ONNX 정리 (PR "PAGES: remove wasm web app and unused ONNX code")
+- 제거(wasm): 모듈 `komelia-app:webApp`, `komelia-infra:database:wasm`, `komelia-infra:image-decoder:wasm-image-worker`, 모든 모듈의 `wasmJs {}` 타깃과 `wasmJsMain` 소스셋(ui, core, offline, webview, database:transaction), `kotlin-js-store/`, 버전 카탈로그의 `kotlinx-browser`/`ktor-client-js`, commonMain의 wasm 전용 오류 처리(`ErrorMessage.kt`). 워크플로에는 wasm 단계가 없어 변경 없음.
+- 제거(ONNX, 안드로이드 전용): `OnnxRuntimeSharedLibraries`(android actual), `onnxruntime:jvm` 모듈의 android 타깃과 androidApp/ui/core android 의존성, AndroidAppModule의 ONNX 라이브러리 로딩과 `JvmOnnxRuntime` 생성(이제 `createOnnxRuntime()`=null), 안드로이드 네이티브 빌드의 onnxruntime(`ep_onnxruntime`, `ep_komelia_onnxruntime`)과 복사 목록의 `libonnxruntime*.so`, `libkomelia_onnxruntime.so`.
+- 유지: 데스크톱(JVM) ONNX 업스케일러 전부(`onnxruntime:api`, `onnxruntime:jvm`의 jvm 소스, native/, `cmake/external/onnxruntime.cmake`), 안드로이드의 `OnnxRuntime`/`KomeliaUpscaler` 인터페이스와 `AndroidOnnxModelDownloader`(AppModule/UI 시그니처), `libomp.so`(vips가 OpenMP 사용).
+- 중요: 안드로이드 업스케일러는 이 작업 전에도 `createUpscaler()`=null이라 동작하지 않았음. "안드로이드에서 업스케일러 유지" 요청은 현재 상태(없음)를 유지한 것. 안드로이드 업스케일러가 필요하면 별도 구현 필요.
+- 미검증: SDK 없음. rg로 참조만 확인. Release 빌드(CI)가 컴파일 확인.
+
 ## 열린 항목
 - android-release 실제 러너 실행 결과 확인(SDK 설치, 네이티브 Docker 빌드, 서명, 자동 릴리스) — 미확인.
 - `./gradlew :komelia-domain:core:jvmTest`, komelia-ui jvmTest 실행 필요 (AdultLockStateTest 포함).

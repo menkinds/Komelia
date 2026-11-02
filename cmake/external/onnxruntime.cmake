@@ -2,21 +2,13 @@ include(ExternalProject)
 if (WIN32)
     # Windows version can only be built with MSVC. Use prebuilt binaries instead
 else ()
-    if (ANDROID)
-        # CPU ONLY
-        # WebGPU seem to be slower than CPU inference
-        # and can hang the whole system UI until processing is done
-        set(ONNXRUNTIME_BUILD_PARAMS "")
-    else ()
-        # WebGPU with static Dawn
-        set(ONNXRUNTIME_BUILD_PARAMS
-                -Donnxruntime_USE_WEBGPU=ON
-                -Donnxruntime_BUILD_WEBGPU_EP_STATIC_LIB=ON
-                -Donnxruntime_WGSL_TEMPLATE=static
-                -Donnxruntime_BUILD_DAWN_SHARED_LIBRARY=OFF
-        )
-
-    endif ()
+    # WebGPU with static Dawn
+    set(ONNXRUNTIME_BUILD_PARAMS
+            -Donnxruntime_USE_WEBGPU=ON
+            -Donnxruntime_BUILD_WEBGPU_EP_STATIC_LIB=ON
+            -Donnxruntime_WGSL_TEMPLATE=static
+            -Donnxruntime_BUILD_DAWN_SHARED_LIBRARY=OFF
+    )
 
     ExternalProject_Add(ep_onnxruntime
             SOURCE_DIR ${THIRD_PARTY_SOURCE_PATH}/onnxruntime

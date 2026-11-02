@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -32,10 +31,6 @@ kotlin {
         compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
     }
 
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
-    }
 
     sourceSets {
         all {
@@ -107,7 +102,6 @@ kotlin {
             implementation(libs.okhttp.logging.interceptor)
             implementation(libs.slf4j.api)
             implementation(projects.komeliaInfra.imageDecoder.vips)
-            implementation(projects.komeliaInfra.onnxruntime.jvm)
             // PAGES: unbundled ML Kit text recognition (models are downloaded on demand by Play services)
             implementation(libs.play.services.base)
             implementation(libs.play.services.mlkit.text.recognition)
@@ -136,10 +130,6 @@ kotlin {
             implementation(projects.komeliaInfra.onnxruntime.jvm)
         }
 
-        wasmJsMain.dependencies {
-            api(libs.ktor.client.js)
-            implementation(projects.komeliaInfra.imageDecoder.wasmImageWorker)
-        }
     }
 
     targets.configureEach {
