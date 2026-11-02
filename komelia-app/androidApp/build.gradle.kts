@@ -20,7 +20,6 @@ dependencies {
     implementation(projects.komeliaInfra.database.transaction)
     implementation(projects.komeliaInfra.webview)
     implementation(projects.komeliaInfra.database.sqlite)
-    implementation(projects.komeliaInfra.onnxruntime.jvm)
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.appcompat)

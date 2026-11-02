@@ -1,13 +1,12 @@
 package snd.komelia.ui.settings.imagereader.onnxruntime
 
 import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider
-import snd.komelia.onnxruntime.OnnxRuntimeSharedLibraries
 
-actual fun isOnnxRuntimeSupported() = true
+actual fun isOnnxRuntimeSupported() = false
 actual fun supportedOnnxRuntimeExecutionProviders(): List<OnnxRuntimeExecutionProvider> {
     return emptyList()
 }
 
-actual fun isOnnxRuntimeInstalled() = OnnxRuntimeSharedLibraries.isAvailable
+actual fun isOnnxRuntimeInstalled() = false
 actual fun onnxRuntimeLoadError(): String? = null
-actual val ortExecutionProvider: OnnxRuntimeExecutionProvider? = OnnxRuntimeExecutionProvider.CPU
+actual val ortExecutionProvider: OnnxRuntimeExecutionProvider? = null
