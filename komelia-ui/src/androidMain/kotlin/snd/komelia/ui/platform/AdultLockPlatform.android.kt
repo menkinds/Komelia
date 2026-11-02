@@ -3,6 +3,7 @@ package snd.komelia.ui.platform
 import android.content.Context
 import android.content.ContextWrapper
 import android.os.Build
+import android.view.WindowManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
@@ -240,5 +241,31 @@ actual fun AdultResumeOverlay(lockState: AdultLockState) {
                 Text(stringResource(Res.string.adult_lock_unlock))
             }
         }
+    }
+}
+
+@Composable
+actual fun AdultRecentsPreviewEffect(lockState: AdultLockState) {
+    val context = LocalContext.current
+    val activity = remember(context) { context.findFragmentActivity() } ?: return
+    val hidden by lockState.viewingRestrictedContent.collectAsState(initial = lockState.isViewingRestrictedContent())
+
+    // set while the content is on screen (not on pause/stop): the recents snapshot is taken after that
+    DisposableEffect(activity, hidden) {
+        setRecentsPreviewHidden(activity, hidden)
+        // restore also on dispose; rotation recreates the activity and this effect sets the flag again
+        onDispose { setRecentsPreviewHidden(activity, false) }
+    }
+}
+
+private fun setRecentsPreviewHidden(activity: FragmentActivity, hidden: Boolean) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        // blank recents preview only, user screenshots still work
+        activity.setRecentsScreenshotEnabled(!hidden)
+    } else if (hidden) {
+        // also blocks screenshots on these versions
+        activity.window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+    } else {
+        activity.window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
     }
 }

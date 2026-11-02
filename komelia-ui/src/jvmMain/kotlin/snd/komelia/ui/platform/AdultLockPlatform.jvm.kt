@@ -13,3 +13,6 @@ actual fun AdultRelockEffect(lockState: AdultLockState) = Unit
 
 @Composable
 actual fun AdultResumeOverlay(lockState: AdultLockState) = Unit
+
+@Composable
+actual fun AdultRecentsPreviewEffect(lockState: AdultLockState) = Unit
