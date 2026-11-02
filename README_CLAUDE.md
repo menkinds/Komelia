@@ -181,3 +181,5 @@
 ## 2026-11-02 PR #25 후 빌드 수정 (PR "PAGES: fix build after wasm/ONNX removal")
 - 원인: PR #25가 `onnxruntime:jvm`의 android 타깃과 설정만 지우고 `androidMultiplatformLibrary` 플러그인은 남겨 Gradle 구성 단계에서 "compileSdk version is not set" 발생. 플러그인 제거(이제 JVM 전용). 데스크톱 의존(desktopApp, core/ui jvmMain)만 이 모듈을 씀.
 - 점검: android 플러그인을 쓰는 다른 모듈은 모두 `android {}` 설정이 있음. 워크플로 단계 `android-aarch64_copyJniLibs buildEpubReaders`는 ttsu/ONNX .so를 참조하지 않음(buildEpubReaders는 komga-webui만). 컴파일은 미검증(SDK 없음).
+
+- 2026-11-02 Android 컴파일 복구: #25가 androidApp의 `onnxruntime:jvm` 의존을 지웠는데, 그것이 `imageDecoder:vips`(VipsImageDecoder, VipsSharedLibrariesLoader)를 api로 전달하던 유일한 경로였다. androidApp에 vips를 직접 의존으로 추가. Android SDK 없어 컴파일 미검증, main 릴리스 빌드로 확인 필요.
