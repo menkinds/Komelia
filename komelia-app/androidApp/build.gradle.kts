@@ -113,6 +113,7 @@ android {
                     getDefaultProguardFile("proguard-android-optimize.txt"),
                     obfuscationRule,
                     "android.pro",
+                    "mlkit.pro",
                 )
             )
         }
