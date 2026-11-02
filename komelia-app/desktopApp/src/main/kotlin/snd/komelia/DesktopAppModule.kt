@@ -20,13 +20,11 @@ import snd.komelia.db.EpubReaderSettings
 import snd.komelia.db.ExposedTransactionTemplate
 import snd.komelia.db.ImageReaderSettings
 import snd.komelia.db.KomeliaDatabase
-import snd.komelia.db.KomfSettings
 import snd.komelia.db.OfflineSettings
 import snd.komelia.db.SettingsStateWrapper
 import snd.komelia.db.color.ExposedBookColorCorrectionRepository
 import snd.komelia.db.color.ExposedColorCurvesPresetRepository
 import snd.komelia.db.color.ExposedColorLevelsPresetRepository
-import snd.komelia.db.fonts.ExposedUserFontsRepository
 import snd.komelia.db.homescreen.ExposedHomeScreenFilterRepository
 import snd.komelia.db.offline.ExposedLogJournalRepository
 import snd.komelia.db.offline.ExposedMediaRepository
@@ -48,20 +46,16 @@ import snd.komelia.db.offline.dto.ExposedOfflineReferentialRepository
 import snd.komelia.db.offline.dto.ExposedSeriesDtoRepository
 import snd.komelia.db.repository.EpubReaderSettingsRepositoryWrapper
 import snd.komelia.db.repository.HomeScreenFilterRepositoryWrapper
-import snd.komelia.db.repository.KomfSettingsRepositoryWrapper
 import snd.komelia.db.repository.OfflineSettingsRepositoryWrapper
 import snd.komelia.db.repository.ReaderSettingsRepositoryWrapper
 import snd.komelia.db.repository.SettingsRepositoryWrapper
 import snd.komelia.db.settings.ExposedEpubReaderSettingsRepository
 import snd.komelia.db.settings.ExposedImageReaderSettingsRepository
-import snd.komelia.db.settings.ExposedKomfSettingsRepository
 import snd.komelia.db.settings.ExposedSettingsRepository
 import snd.komelia.http.komeliaUserAgent
 import snd.komelia.image.DesktopOnnxRuntimeUpscaler
-import snd.komelia.image.DesktopPanelDetector
 import snd.komelia.image.DesktopReaderImageFactory
 import snd.komelia.image.KomeliaImageDecoder
-import snd.komelia.image.KomeliaPanelDetector
 import snd.komelia.image.KomeliaUpscaler
 import snd.komelia.image.ReaderImageFactory
 import snd.komelia.image.SkiaBitmap
@@ -73,13 +67,8 @@ import snd.komelia.offline.DesktopOfflineModule
 import snd.komelia.offline.OfflineModule
 import snd.komelia.offline.OfflineRepositories
 import snd.komelia.onnxruntime.JvmOnnxRuntime
-import snd.komelia.onnxruntime.JvmOnnxRuntimeRfDetr
 import snd.komelia.onnxruntime.JvmOnnxRuntimeUpscaler
 import snd.komelia.onnxruntime.OnnxRuntime
-import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.CPU
-import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.CUDA
-import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.DirectML
-import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.TENSOR_RT
 import snd.komelia.onnxruntime.OnnxRuntimeSharedLibraries
 import snd.komelia.secrets.AppKeyring
 import snd.komelia.settings.ImageReaderSettingsRepository
@@ -173,19 +162,10 @@ class DesktopAppModule(
                     )
                 )
             },
-            fontsRepository = ExposedUserFontsRepository(databases.app),
             colorCurvesPresetsRepository = ExposedColorCurvesPresetRepository(databases.app),
             colorLevelsPresetRepository = ExposedColorLevelsPresetRepository(databases.app),
             bookColorCorrectionRepository = ExposedBookColorCorrectionRepository(databases.app),
             secretsRepository = KeyringSecretsRepository(AppKeyring()),
-            komfSettingsRepository = ExposedKomfSettingsRepository(databases.app).let { repository ->
-                KomfSettingsRepositoryWrapper(
-                    SettingsStateWrapper(
-                        settings = repository.get() ?: KomfSettings(),
-                        saveSettings = repository::save
-                    )
-                )
-            },
             homeScreenFilterRepository = ExposedHomeScreenFilterRepository(databases.app).let { repository ->
                 HomeScreenFilterRepositoryWrapper(
                     SettingsStateWrapper(
@@ -310,29 +290,6 @@ class DesktopAppModule(
             it.initialize()
             Runtime.getRuntime().addShutdownHook(thread(start = false) { it.clearCache() })
         }
-    }
-
-    override suspend fun createPanelDetector(
-        onnxRuntime: OnnxRuntime,
-        modelDownloader: OnnxModelDownloader,
-        settings: ImageReaderSettingsRepository,
-    ): KomeliaPanelDetector {
-        val rfDetr = JvmOnnxRuntimeRfDetr.create(onnxRuntime as JvmOnnxRuntime)
-        val provider = when (OnnxRuntimeSharedLibraries.executionProvider) {
-            TENSOR_RT -> CUDA // TRT is broken. fallback to cuda
-            DirectML -> CPU // DirectML is broken. fallback to cpu
-            else -> OnnxRuntimeSharedLibraries.executionProvider
-        }
-        val detector = DesktopPanelDetector(
-            rfDetr = rfDetr,
-            executionProvider = provider,
-            deviceId = settings.getOnnxRuntimeDeviceId().stateIn(initScope),
-            updateFlow = modelDownloader.downloadCompletionEvents.filterIsInstance()
-
-        )
-        detector.initialize()
-
-        return detector
     }
 
     override fun getCoilCacheDirectory(): Path {

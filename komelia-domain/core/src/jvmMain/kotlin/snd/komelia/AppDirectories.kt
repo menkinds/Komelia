@@ -29,9 +29,6 @@ object AppDirectories {
 
     val mangaJaNaiOldInstallPath: Path = Path(projectDirectories.dataDir).resolve("mangajanai")
     val mangaJaNaiInstallPath: Path = onnxModelsPath.resolve("mangajanai")
-    val panelDetectionInstallPath: Path = onnxModelsPath.resolve("panels")
-    val panelDetectionModelPath: Path = panelDetectionInstallPath.resolve("rf-detr-med.onnx")
-    val fontDirectory: Path = Path(projectDirectories.dataDir).resolve("fonts")
 
     val defaultOfflineLibraryPath: Path = Path(projectDirectories.dataDir).resolve("offline_libraries")
 

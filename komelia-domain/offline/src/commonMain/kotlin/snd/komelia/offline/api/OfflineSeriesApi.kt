@@ -51,7 +51,7 @@ class OfflineSeriesApi(
         get() = offlineUserId.value
 
     override suspend fun getOneSeries(seriesId: KomgaSeriesId): KomeliaSeries {
-        return KomeliaSeries(seriesDtoRepository.get(seriesId, userId), null)
+        return KomeliaSeries(seriesDtoRepository.get(seriesId, userId))
     }
 
     override suspend fun getSeriesList(
@@ -233,7 +233,7 @@ class OfflineSeriesApi(
 
     internal fun Page<KomgaSeries>.toKomeliaPage(): Page<KomeliaSeries> {
         return Page(
-            content = this.content.map { KomeliaSeries(it, null) },
+            content = this.content.map { KomeliaSeries(it) },
             pageable = this.pageable,
             totalElements = this.totalElements,
             totalPages = this.totalPages,

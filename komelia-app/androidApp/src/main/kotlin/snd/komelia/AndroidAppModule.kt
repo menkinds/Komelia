@@ -9,9 +9,7 @@ import io.github.vinceglb.filekit.PlatformFile
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.io.files.Path
 import okhttp3.Cache
@@ -21,13 +19,11 @@ import snd.komelia.db.EpubReaderSettings
 import snd.komelia.db.ExposedTransactionTemplate
 import snd.komelia.db.ImageReaderSettings
 import snd.komelia.db.KomeliaDatabase
-import snd.komelia.db.KomfSettings
 import snd.komelia.db.OfflineSettings
 import snd.komelia.db.SettingsStateWrapper
 import snd.komelia.db.color.ExposedBookColorCorrectionRepository
 import snd.komelia.db.color.ExposedColorCurvesPresetRepository
 import snd.komelia.db.color.ExposedColorLevelsPresetRepository
-import snd.komelia.db.fonts.ExposedUserFontsRepository
 import snd.komelia.db.homescreen.ExposedHomeScreenFilterRepository
 import snd.komelia.db.offline.ExposedLogJournalRepository
 import snd.komelia.db.offline.ExposedMediaRepository
@@ -49,20 +45,15 @@ import snd.komelia.db.offline.dto.ExposedOfflineReferentialRepository
 import snd.komelia.db.offline.dto.ExposedSeriesDtoRepository
 import snd.komelia.db.repository.EpubReaderSettingsRepositoryWrapper
 import snd.komelia.db.repository.HomeScreenFilterRepositoryWrapper
-import snd.komelia.db.repository.KomfSettingsRepositoryWrapper
 import snd.komelia.db.repository.OfflineSettingsRepositoryWrapper
 import snd.komelia.db.repository.ReaderSettingsRepositoryWrapper
 import snd.komelia.db.repository.SettingsRepositoryWrapper
 import snd.komelia.db.settings.ExposedEpubReaderSettingsRepository
 import snd.komelia.db.settings.ExposedImageReaderSettingsRepository
-import snd.komelia.db.settings.ExposedKomfSettingsRepository
 import snd.komelia.db.settings.ExposedSettingsRepository
-import snd.komelia.fonts.fontsDirectory
 import snd.komelia.http.komeliaUserAgent
-import snd.komelia.image.AndroidPanelDetector
 import snd.komelia.image.AndroidReaderImageFactory
 import snd.komelia.image.KomeliaImageDecoder
-import snd.komelia.image.KomeliaPanelDetector
 import snd.komelia.image.KomeliaUpscaler
 import snd.komelia.image.ReaderImageFactory
 import snd.komelia.image.UpsamplingMode
@@ -73,9 +64,7 @@ import snd.komelia.offline.AndroidOfflineModule
 import snd.komelia.offline.OfflineModule
 import snd.komelia.offline.OfflineRepositories
 import snd.komelia.onnxruntime.JvmOnnxRuntime
-import snd.komelia.onnxruntime.JvmOnnxRuntimeRfDetr
 import snd.komelia.onnxruntime.OnnxRuntime
-import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider
 import snd.komelia.onnxruntime.OnnxRuntimeSharedLibraries
 import snd.komelia.settings.AndroidSecretsRepository
 import snd.komelia.settings.ImageReaderSettingsRepository
@@ -128,8 +117,6 @@ class AndroidAppModule(
         } catch (e: UnsatisfiedLinkError) {
             logger.error(e) { "Failed to load onnxruntime " }
         }
-
-        fontsDirectory = Path(context.filesDir.resolve("fonts").absolutePath)
     }
 
 
@@ -164,19 +151,10 @@ class AndroidAppModule(
                     )
                 )
             },
-            fontsRepository = ExposedUserFontsRepository(databases.app),
             colorCurvesPresetsRepository = ExposedColorCurvesPresetRepository(databases.app),
             colorLevelsPresetRepository = ExposedColorLevelsPresetRepository(databases.app),
             bookColorCorrectionRepository = ExposedBookColorCorrectionRepository(databases.app),
             secretsRepository = AndroidSecretsRepository(sharedPreferences),
-            komfSettingsRepository = ExposedKomfSettingsRepository(databases.app).let { repository ->
-                KomfSettingsRepositoryWrapper(
-                    SettingsStateWrapper(
-                        settings = repository.get() ?: KomfSettings(),
-                        saveSettings = repository::save
-                    )
-                )
-            },
             homeScreenFilterRepository = ExposedHomeScreenFilterRepository(databases.app).let { repository ->
                 HomeScreenFilterRepositoryWrapper(
                     SettingsStateWrapper(
@@ -276,12 +254,7 @@ class AndroidAppModule(
 
     override fun createOnnxRuntimeInstaller(updateClient: UpdateClient) = null
 
-    override fun createOnnxModelDownloader(updateClient: UpdateClient) =
-        AndroidOnnxModelDownloader(
-            updateClient = updateClient,
-            appNotifications = appNotifications,
-            dataDir = context.filesDir.resolve("onnx").toPath().createDirectories()
-        )
+    override fun createOnnxModelDownloader(updateClient: UpdateClient) = AndroidOnnxModelDownloader()
 
     override fun createOnnxRuntime(): OnnxRuntime? {
         if (!OnnxRuntimeSharedLibraries.isAvailable) {
@@ -297,24 +270,6 @@ class AndroidAppModule(
         modelDownloader: OnnxModelDownloader,
         settings: ImageReaderSettingsRepository,
     ): KomeliaUpscaler? = null
-
-    override suspend fun createPanelDetector(
-        onnxRuntime: OnnxRuntime,
-        modelDownloader: OnnxModelDownloader,
-        settings: ImageReaderSettingsRepository,
-    ): KomeliaPanelDetector {
-        val rfDetr = JvmOnnxRuntimeRfDetr.create(onnxRuntime as JvmOnnxRuntime)
-        val modelsDir = context.filesDir.resolve("onnx").toPath().createDirectories()
-        val panelDetector = AndroidPanelDetector(
-            rfDetr = rfDetr,
-            executionProvider = OnnxRuntimeExecutionProvider.CPU,
-            deviceId = MutableStateFlow(0),
-            updateFlow = modelDownloader.downloadCompletionEvents.filterIsInstance(),
-            dataDir = modelsDir,
-        ).also { it.initialize() }
-
-        return panelDetector
-    }
 
     override fun getCoilCacheDirectory(): Path {
         return Path(context.cacheDir.resolve("coil3_disk_cache").toString())

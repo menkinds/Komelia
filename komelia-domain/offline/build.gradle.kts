@@ -47,7 +47,6 @@ kotlin {
             implementation(libs.kotlinx.serialization.core)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.komga.client)
-            implementation(libs.komf.client)
             implementation(libs.ktor.client.core)
         }
 

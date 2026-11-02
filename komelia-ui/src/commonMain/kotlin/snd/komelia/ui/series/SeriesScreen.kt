@@ -85,7 +85,6 @@ class SeriesScreen(
                 else -> {
                     SeriesContent(
                         series = vm.series.collectAsState().value,
-                        mangaBaka = vm.mangaBakaState.collectAsState().value,
                         library = vm.library.collectAsState().value,
                         onLibraryClick = { navigator.push(LibraryScreen(it.id)) },
                         seriesMenuActions = vm.seriesMenuActions(),

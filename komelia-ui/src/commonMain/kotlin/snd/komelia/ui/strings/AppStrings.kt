@@ -11,20 +11,6 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.filter_exclude_
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.filter_exclude_if_any_match
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.filter_include_If_any_match
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.filter_include_if_all_match
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_anilist
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_bangumi
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_bookwalker
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_comicvine
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_hentag
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_kodansha
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_mal
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_mangabaka
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_mangadex
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_mangaupdates
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_nautiljon
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_viz
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_webtoons
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komf_provider_yenpress
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1000
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1001
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.komga_error_code_1002
@@ -93,7 +79,6 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_paged_sc
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_paged_scale_screen
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_continuous
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_paged
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_panels
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_book_filter_read_status_inprogress
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_book_filter_read_status_read
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_book_filter_read_status_unread
@@ -126,16 +111,9 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_status_o
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_app_theme_dark
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_app_theme_darker
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_app_theme_light
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_epub_reader_type_komga
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_epub_reader_type_ttsu
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_mode_mangajanai
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_mode_none
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_mode_user_model
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_komf_connection
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_komf_jobs
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_komf_notifications
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_komf_processing
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_komf_providers
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_thumbnail_size_default
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_thumbnail_size_large
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_server_thumbnail_size_medium
@@ -158,7 +136,6 @@ import snd.komelia.image.UpsamplingMode
 import snd.komelia.image.UpscaleMode
 import snd.komelia.settings.model.AppTheme
 import snd.komelia.settings.model.ContinuousReadingDirection
-import snd.komelia.settings.model.EpubReaderType
 import snd.komelia.settings.model.LayoutScaleType
 import snd.komelia.settings.model.PageDisplayLayout
 import snd.komelia.settings.model.PagedReadingDirection
@@ -171,9 +148,6 @@ import snd.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.EXCLUD
 import snd.komelia.ui.dialogs.user.UserEditDialogViewModel.AgeRestriction.NONE
 import snd.komelia.ui.library.LibrarySeriesTabState
 import snd.komelia.ui.series.SeriesFilterState
-import snd.komf.api.KomfCoreProviders
-import snd.komf.api.KomfProviders
-import snd.komf.api.UnknownKomfProvider
 import snd.komga.client.book.KomgaReadStatus
 import snd.komga.client.book.KomgaReadStatus.IN_PROGRESS
 import snd.komga.client.book.KomgaReadStatus.READ
@@ -208,11 +182,6 @@ import snd.komga.client.settings.KomgaThumbnailSize.XLARGE
 
 data object AppStrings {
 
-    val komfConnection = Res.string.settings_navigation_komf_connection
-    val komfJobs = Res.string.settings_navigation_komf_jobs
-    val komfNotifications = Res.string.settings_navigation_komf_notifications
-    val komfProcessing = Res.string.settings_navigation_komf_processing
-    val komfProviders = Res.string.settings_navigation_komf_providers
     fun forReadStatus(status: KomgaReadStatus): StringResource {
         return when (status) {
             UNREAD -> Res.string.series_book_filter_read_status_unread
@@ -319,7 +288,6 @@ data object AppStrings {
     fun forReaderType(type: ReaderType): StringResource {
         return when (type) {
             ReaderType.PAGED -> Res.string.reader_type_paged
-            ReaderType.PANELS -> Res.string.reader_type_panels
             ReaderType.CONTINUOUS -> Res.string.reader_type_continuous
         }
     }
@@ -404,13 +372,6 @@ data object AppStrings {
         }
     }
 
-    fun forEpubReaderType(readerType: EpubReaderType): StringResource {
-        return when (readerType) {
-            EpubReaderType.KOMGA_EPUB -> Res.string.settings_epub_reader_type_komga
-            EpubReaderType.TTSU_EPUB -> Res.string.settings_epub_reader_type_ttsu
-        }
-    }
-
     @Composable
     fun forUserRole(roleString: String): String {
         return when (roleString) {
@@ -423,27 +384,6 @@ data object AppStrings {
             else -> roleString
         }
     }
-
-    @Composable
-    fun forProvider(provider: KomfProviders): String =
-        when (provider) {
-            KomfCoreProviders.ANILIST -> stringResource(Res.string.komf_provider_anilist)
-            KomfCoreProviders.BANGUMI -> stringResource(Res.string.komf_provider_bangumi)
-
-            KomfCoreProviders.BOOK_WALKER -> stringResource(Res.string.komf_provider_bookwalker)
-            KomfCoreProviders.COMIC_VINE -> stringResource(Res.string.komf_provider_comicvine)
-            KomfCoreProviders.HENTAG -> stringResource(Res.string.komf_provider_hentag)
-            KomfCoreProviders.KODANSHA -> stringResource(Res.string.komf_provider_kodansha)
-            KomfCoreProviders.MAL -> stringResource(Res.string.komf_provider_mal)
-            KomfCoreProviders.MANGA_UPDATES -> stringResource(Res.string.komf_provider_mangaupdates)
-            KomfCoreProviders.MANGADEX -> stringResource(Res.string.komf_provider_mangadex)
-            KomfCoreProviders.NAUTILJON -> stringResource(Res.string.komf_provider_nautiljon)
-            KomfCoreProviders.YEN_PRESS -> stringResource(Res.string.komf_provider_yenpress)
-            KomfCoreProviders.VIZ -> stringResource(Res.string.komf_provider_viz)
-            KomfCoreProviders.MANGA_BAKA -> stringResource(Res.string.komf_provider_mangabaka)
-            KomfCoreProviders.WEBTOONS -> stringResource(Res.string.komf_provider_webtoons)
-            is UnknownKomfProvider -> provider.name
-        }
 
     private val codeMap: Map<String, StringResource> = mapOf(
         "ERR_1000" to Res.string.komga_error_code_1000,

@@ -18,7 +18,6 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_title
 import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.LoadState.Error
@@ -31,18 +30,13 @@ import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.MainScreen
 import snd.komelia.ui.login.offline.OfflineLoginScreen
 import snd.komelia.ui.platform.PlatformTitleBar
-import snd.komelia.ui.platform.PlatformType.DESKTOP
-import snd.komelia.ui.platform.PlatformType.MOBILE
-import snd.komelia.ui.platform.PlatformType.WEB_KOMF
 import snd.komelia.ui.platform.hasLanPermission
-import snd.komelia.ui.settings.SettingsScreenContainer
 
 class LoginScreen : Screen {
 
     @Composable
     override fun Content() {
         val rootNavigator = LocalNavigator.currentOrThrow.parent ?: LocalNavigator.currentOrThrow
-        val platform = LocalPlatform.current
         val viewModelFactory = LocalViewModelFactory.current
         val isOffline = LocalOfflineMode.current
         val vm = rememberScreenModel(isOffline.value.toString()) { viewModelFactory.getLoginViewModel() }
@@ -51,17 +45,10 @@ class LoginScreen : Screen {
         LaunchedEffect(Unit) { vm.initialize(hasLanPermission) }
         Column {
             PlatformTitleBar { }
-            when (platform) {
-                MOBILE, DESKTOP ->
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) { ScreenContent(vm, rootNavigator) }
-
-                WEB_KOMF -> SettingsScreenContainer(title = stringResource(Res.string.login_title)) {
-                    ScreenContent(vm, rootNavigator)
-                }
-            }
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) { ScreenContent(vm, rootNavigator) }
             Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.systemBars))
         }
     }
@@ -72,41 +59,27 @@ class LoginScreen : Screen {
         rootNavigator: Navigator
     ) {
         val state = viewModel.state.collectAsState()
-        val platform = LocalPlatform.current
 
         when (state.value) {
             Uninitialized, Loading -> LoginLoadingContent(viewModel::cancel)
 
             is Error -> {
-                when (platform) {
-                    MOBILE, DESKTOP -> LoginContent(
-                        url = viewModel.url.collectAsState().value,
-                        onUrlChange = { viewModel.url.value = it },
-                        user = viewModel.user.collectAsState().value,
-                        onUserChange = { viewModel.user.value = it },
-                        password = viewModel.password.collectAsState().value,
-                        onPasswordChange = { viewModel.password.value = it },
-                        userLoginError = viewModel.userLoginError.collectAsState().value,
-                        autoLoginError = viewModel.autoLoginError.collectAsState().value,
-                        onAutoLoginRetry = viewModel::retryAutoLogin,
-                        onLogin = viewModel::loginWithCredentials,
-                        offlineIsAvailable = viewModel.offlineIsAvailable.collectAsState().value,
-                        onOfflineSelect = { rootNavigator.replaceAll(OfflineLoginScreen()) },
-                        canGoOfflineAsCurrentUser = viewModel.canGoOfflineAsCurrentUser.collectAsState(false).value,
-                        goOfflineAsCurrentUser = viewModel::offlineLogin
-                    )
-
-                    WEB_KOMF -> KomfLoginContent(
-                        url = viewModel.url.collectAsState().value,
-                        onUrlChange = { viewModel.url.value = it },
-                        apiKey = viewModel.apiKey.collectAsState().value,
-                        onApiKeyChange = { viewModel.apiKey.value = it },
-                        userLoginError = viewModel.userLoginError.collectAsState().value,
-                        autoLoginError = viewModel.autoLoginError.collectAsState().value,
-                        onAutoLoginRetry = viewModel::retryAutoLogin,
-                        onLogin = viewModel::loginWithApiKey,
-                    )
-                }
+                LoginContent(
+                    url = viewModel.url.collectAsState().value,
+                    onUrlChange = { viewModel.url.value = it },
+                    user = viewModel.user.collectAsState().value,
+                    onUserChange = { viewModel.user.value = it },
+                    password = viewModel.password.collectAsState().value,
+                    onPasswordChange = { viewModel.password.value = it },
+                    userLoginError = viewModel.userLoginError.collectAsState().value,
+                    autoLoginError = viewModel.autoLoginError.collectAsState().value,
+                    onAutoLoginRetry = viewModel::retryAutoLogin,
+                    onLogin = viewModel::loginWithCredentials,
+                    offlineIsAvailable = viewModel.offlineIsAvailable.collectAsState().value,
+                    onOfflineSelect = { rootNavigator.replaceAll(OfflineLoginScreen()) },
+                    canGoOfflineAsCurrentUser = viewModel.canGoOfflineAsCurrentUser.collectAsState(false).value,
+                    goOfflineAsCurrentUser = viewModel::offlineLogin
+                )
             }
 
             is Success -> {

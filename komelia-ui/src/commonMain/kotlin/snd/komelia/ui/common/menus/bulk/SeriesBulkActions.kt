@@ -7,7 +7,6 @@ import androidx.compose.material.icons.filled.BookmarkRemove
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -18,15 +17,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_add_to_collection
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_auto_identify
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_bulk_delete_confirm_body
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_bulk_download
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_delete_confirm_title
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_delete_downloaded
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_download
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_edit
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_komf_auto_identify_body
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_komf_auto_identify_title
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_mark_read
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_mark_unread
 import kotlinx.coroutines.CoroutineScope
@@ -37,7 +33,6 @@ import snd.komelia.AppNotifications
 import snd.komelia.komga.api.KomgaSeriesApi
 import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.offline.tasks.OfflineTaskEmitter
-import snd.komelia.ui.LocalKomfIntegration
 import snd.komelia.ui.LocalKomgaState
 import snd.komelia.ui.LocalOfflineAvailable
 import snd.komelia.ui.LocalOfflineMode
@@ -47,9 +42,6 @@ import snd.komelia.ui.dialogs.collectionadd.AddToCollectionDialog
 import snd.komelia.ui.dialogs.permissions.DownloadNotificationRequestDialog
 import snd.komelia.ui.dialogs.series.edit.SeriesEditDialog
 import snd.komelia.ui.dialogs.series.editbulk.SeriesBulkEditDialog
-import snd.komf.api.KomfServerLibraryId
-import snd.komf.api.KomfServerSeriesId
-import snd.komf.client.KomfMetadataClient
 
 @Composable
 fun SeriesBulkActionsContent(
@@ -96,22 +88,6 @@ fun SeriesBulkActionDialogs(
         )
     }
 
-    if (state.showKomfIdentifyDialog) {
-        ConfirmationDialog(
-            title = stringResource(Res.string.series_komf_auto_identify_title),
-            body = pluralStringResource(
-                Res.plurals.series_komf_auto_identify_body,
-                state.series.size,
-                state.series.size
-            ),
-            onDialogConfirm = {
-                coroutineScope.launch { state.actions.komfIdentify(state.series) }
-                state.showKomfIdentifyDialog = false
-            },
-            onDialogDismiss = { state.showKomfIdentifyDialog = false },
-        )
-    }
-
     if (state.showDownloadDialog) {
         var permissionRequested by remember { mutableStateOf(false) }
         DownloadNotificationRequestDialog { permissionRequested = true }
@@ -143,17 +119,15 @@ fun rememberSeriesBulkActionsState(
     val factory = LocalViewModelFactory.current
     val isOffline = LocalOfflineMode.current.collectAsState().value
     val isAdmin = LocalKomgaState.current.authenticatedUser.collectAsState().value?.roleAdmin() ?: true
-    val isKomfEnabled = LocalKomfIntegration.current.collectAsState(false).value
     val offlineAvailable = LocalOfflineAvailable.current
 
-    return remember(series, coroutineScope, isOffline, isAdmin, isKomfEnabled) {
+    return remember(series, coroutineScope, isOffline, isAdmin) {
         SeriesBulkActionsState(
             series = series,
             actions = factory.getSeriesBulkActions(),
             coroutineScope = coroutineScope,
             isOffline = isOffline,
             isAdmin = isAdmin,
-            isKomfEnabled = isKomfEnabled,
             offlineAvailable = offlineAvailable
         )
     }
@@ -164,7 +138,6 @@ data class SeriesBulkActionsState(
     val actions: SeriesBulkActions,
     private val coroutineScope: CoroutineScope,
     private val isOffline: Boolean,
-    private val isKomfEnabled: Boolean,
     private val isAdmin: Boolean,
     private val offlineAvailable: Boolean
 ) {
@@ -173,7 +146,6 @@ data class SeriesBulkActionsState(
 
     //    var showDeleteDialog by mutableStateOf(false)
     var showDeleteDownloadedDialog by mutableStateOf(false)
-    var showKomfIdentifyDialog by mutableStateOf(false)
     var showDownloadDialog by mutableStateOf(false)
 
     val buttons = buildList {
@@ -227,15 +199,6 @@ data class SeriesBulkActionsState(
                 )
             )
         }
-        if (isKomfEnabled) {
-            add(
-                BulkActionButtonData(
-                    description = Res.string.series_auto_identify,
-                    icon = Icons.Default.Extension,
-                    onClick = { showKomfIdentifyDialog = true }
-                )
-            )
-        }
     }
 }
 
@@ -245,12 +208,10 @@ data class SeriesBulkActions(
     val delete: suspend (List<KomeliaSeries>) -> Unit,
     val download: suspend (List<KomeliaSeries>) -> Unit,
     val deleteDownloaded: suspend (List<KomeliaSeries>) -> Unit,
-    val komfIdentify: suspend (List<KomeliaSeries>) -> Unit,
 ) {
 
     constructor(
         seriesApi: KomgaSeriesApi,
-        komfClient: KomfMetadataClient,
         taskEmitter: OfflineTaskEmitter?,
         notifications: AppNotifications,
     ) : this(
@@ -276,13 +237,5 @@ data class SeriesBulkActions(
         deleteDownloaded = { series ->
             series.forEach { checkNotNull(taskEmitter).deleteSeries(it.id) }
         },
-        komfIdentify = { series ->
-            series.forEach {
-                komfClient.matchSeries(
-                    KomfServerLibraryId(it.libraryId.value),
-                    KomfServerSeriesId(it.id.value),
-                )
-            }
-        }
     )
 }

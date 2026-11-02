@@ -35,7 +35,6 @@ import snd.komelia.ui.platform.BackPressHandler
 import snd.komelia.ui.platform.PlatformTitleBar
 import snd.komelia.ui.platform.PlatformType.DESKTOP
 import snd.komelia.ui.platform.PlatformType.MOBILE
-import snd.komelia.ui.platform.PlatformType.WEB_KOMF
 import snd.komelia.ui.platform.VerticalScrollbar
 
 @Composable
@@ -46,7 +45,7 @@ fun SettingsScreenContainer(
     val platform = LocalPlatform.current
     when (platform) {
         MOBILE -> MobileContainer(title, content)
-        DESKTOP, WEB_KOMF -> DesktopContainer(title, content)
+        DESKTOP -> DesktopContainer(title, content)
     }
 }
 

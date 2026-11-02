@@ -62,7 +62,5 @@
     <string name="library_delete_downloaded_confirm_body">Библиотека %1$s будет удалена только с этого устройства.</string>
     <string name="library_scan_files">Сканировать файлы библиотеки</string>
     <string name="library_scan_files_deep">Сканировать файлы библиотеки (тщательно)</string>
-    <string name="library_auto_identify">Автоопределение (Komf)</string>
-    <string name="library_reset_metadata">Сбросить метаданные (Komf)</string>
     <string name="library_all_libraries">Все библиотеки</string>
 </resources>

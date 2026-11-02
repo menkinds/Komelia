@@ -24,10 +24,8 @@ import snd.komelia.settings.model.ContinuousReadingDirection
 import snd.komelia.settings.model.ContinuousReadingDirection.LEFT_TO_RIGHT
 import snd.komelia.settings.model.ContinuousReadingDirection.RIGHT_TO_LEFT
 import snd.komelia.settings.model.ContinuousReadingDirection.TOP_TO_BOTTOM
-import snd.komelia.ui.LocalPlatform
 import snd.komelia.ui.LocalWindowWidth
 import snd.komelia.ui.dialogs.AppDialog
-import snd.komelia.ui.platform.PlatformType
 import snd.komelia.ui.platform.WindowSizeClass.COMPACT
 import snd.komelia.ui.platform.WindowSizeClass.EXPANDED
 import snd.komelia.ui.platform.WindowSizeClass.FULL
@@ -78,7 +76,6 @@ fun ContinuousReaderHelpDialog(
 private fun PagedDialogContent(
     elementsModifier: Modifier = Modifier,
 ) {
-    val platform = LocalPlatform.current
     KeyDescriptionColumn(
         "Reader Navigation",
         mapOf(
@@ -86,11 +83,7 @@ private fun PagedDialogContent(
             listOf("→") to "Next page",
             listOf("Home") to "First page",
             listOf("End") to "Last page",
-            if (platform == PlatformType.WEB_KOMF) {
-                listOf("Shift", "Scroll Wheel") to "Zoom"
-            } else {
-                listOf("Ctrl", "Scroll Wheel") to "Zoom"
-            }
+            listOf("Ctrl", "Scroll Wheel") to "Zoom"
         ),
         elementsModifier
     )
@@ -126,7 +119,6 @@ private fun ContinuousDialogContent(
     orientation: Orientation,
     elementsModifier: Modifier = Modifier,
 ) {
-    val platform = LocalPlatform.current
     val scrollDirection = when (orientation) {
         Vertical -> mapOf(
             listOf("↑") to "Scroll up",
@@ -143,11 +135,7 @@ private fun ContinuousDialogContent(
         scrollDirection + mapOf(
             listOf("Home") to "First page",
             listOf("End") to "Last page",
-            if (platform == PlatformType.WEB_KOMF) {
-                listOf("Shift", "Scroll Wheel") to "Zoom"
-            } else {
-                listOf("Ctrl", "Scroll Wheel") to "Zoom"
-            }
+            listOf("Ctrl", "Scroll Wheel") to "Zoom"
         ),
         elementsModifier
     )

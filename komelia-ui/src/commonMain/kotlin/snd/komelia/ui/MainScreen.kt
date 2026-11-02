@@ -65,7 +65,6 @@ import snd.komelia.ui.home.HomeScreen
 import snd.komelia.ui.library.LibraryScreen
 import snd.komelia.ui.platform.PlatformType.DESKTOP
 import snd.komelia.ui.platform.PlatformType.MOBILE
-import snd.komelia.ui.platform.PlatformType.WEB_KOMF
 import snd.komelia.ui.platform.WindowSizeClass
 import snd.komelia.ui.platform.WindowSizeClass.FULL
 import snd.komelia.ui.platform.cursorForHand
@@ -97,7 +96,7 @@ class MainScreen(
             val vm = rememberScreenModel { viewModelFactory.getNavigationViewModel() }
             when (platform) {
                 MOBILE -> MobileLayout(navigator, vm)
-                DESKTOP, WEB_KOMF -> DesktopLayout(navigator, vm)
+                DESKTOP -> DesktopLayout(navigator, vm)
             }
             LaunchedEffect(Unit) {
                 vm.initialize(navigator)

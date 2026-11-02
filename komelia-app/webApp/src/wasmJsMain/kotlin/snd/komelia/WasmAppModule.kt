@@ -15,13 +15,10 @@ import snd.komelia.db.color.IDBColorLevelsPresetRepository
 import snd.komelia.db.homescreen.LocalStorageHomeScreenFilterRepository
 import snd.komelia.db.repository.EpubReaderSettingsRepositoryWrapper
 import snd.komelia.db.repository.HomeScreenFilterRepositoryWrapper
-import snd.komelia.db.repository.KomfSettingsRepositoryWrapper
 import snd.komelia.db.repository.ReaderSettingsRepositoryWrapper
 import snd.komelia.db.repository.SettingsRepositoryWrapper
 import snd.komelia.db.settings.LocalStorageSettingsRepository
-import snd.komelia.db.settings.NoopFontsRepository
 import snd.komelia.image.KomeliaImageDecoder
-import snd.komelia.image.KomeliaPanelDetector
 import snd.komelia.image.KomeliaUpscaler
 import snd.komelia.image.ReaderImageFactory
 import snd.komelia.image.WasmReaderImageFactory
@@ -73,17 +70,10 @@ class WasmAppModule(
                     settingsRepository::saveImageReaderSettings
                 )
             ),
-            fontsRepository = NoopFontsRepository(),
             colorCurvesPresetsRepository = IDBColorCurvesPresetRepository(idb),
             colorLevelsPresetRepository = IDBColorLevelsPresetRepository(idb),
             bookColorCorrectionRepository = IDBBookColorCorrectionRepository(idb),
             secretsRepository = WasmJsSecretsRepository(),
-            komfSettingsRepository = KomfSettingsRepositoryWrapper(
-                SettingsStateWrapper(
-                    settingsRepository.getKomfSettings(),
-                    settingsRepository::saveKomfSettings
-                )
-            ),
             homeScreenFilterRepository = HomeScreenFilterRepositoryWrapper(
                 SettingsStateWrapper(
                     settings = homeFiltersRepository.getFilters() ?: getDefaultFilters(),
@@ -162,14 +152,6 @@ class WasmAppModule(
         modelDownloader: OnnxModelDownloader,
         settings: ImageReaderSettingsRepository
     ): KomeliaUpscaler? {
-        return null
-    }
-
-    override suspend fun createPanelDetector(
-        onnxRuntime: OnnxRuntime,
-        modelDownloader: OnnxModelDownloader,
-        settings: ImageReaderSettingsRepository
-    ): KomeliaPanelDetector? {
         return null
     }
 

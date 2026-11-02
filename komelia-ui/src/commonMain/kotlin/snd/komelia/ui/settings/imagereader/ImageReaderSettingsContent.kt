@@ -55,7 +55,8 @@ fun ImageReaderSettingsContent(
             onClick = onCacheClear,
         ) { Text(stringResource(Res.string.settings_image_clear_cache)) }
 
-        if (isOnnxRuntimeSupported()) {
+        // the upscaler is the only onnx feature left and it is desktop only
+        if (platform == PlatformType.DESKTOP && isOnnxRuntimeSupported()) {
             HorizontalDivider(Modifier.padding(vertical = 10.dp))
             OnnxRuntimeSettingsContent(
                 executionProvider = onnxRuntimeSettingsState.currentExecutionProvider,
@@ -71,9 +72,6 @@ fun ImageReaderSettingsContent(
                 onOrtInstall = onnxRuntimeSettingsState::onInstallRequest,
                 mangaJaNaiIsInstalled = onnxRuntimeSettingsState.mangaJaNaiIsInstalled.collectAsState().value,
                 onMangaJaNaiDownload = onnxRuntimeSettingsState::onMangaJaNaiDownloadRequest,
-                panelModelIsDownloaded = onnxRuntimeSettingsState.panelModelIsDownloaded.collectAsState().value,
-                onPanelDetectionModelDownloadRequest = onnxRuntimeSettingsState::onPanelDetectionModelDownloadRequest
-
             )
         }
     }

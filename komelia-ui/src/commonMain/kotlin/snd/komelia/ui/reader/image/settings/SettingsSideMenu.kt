@@ -37,7 +37,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -79,17 +78,13 @@ import snd.komelia.settings.model.ReaderFlashColor
 import snd.komelia.settings.model.ReaderType
 import snd.komelia.settings.model.ReaderType.CONTINUOUS
 import snd.komelia.settings.model.ReaderType.PAGED
-import snd.komelia.settings.model.ReaderType.PANELS
-import snd.komelia.ui.LocalPlatform
 import snd.komelia.ui.common.components.DropdownChoiceMenu
 import snd.komelia.ui.common.components.LabeledEntry
 import snd.komelia.ui.common.components.NumberFieldWithIncrements
 import snd.komelia.ui.common.components.SwitchWithLabel
-import snd.komelia.ui.platform.PlatformType
 import snd.komelia.ui.platform.cursorForHand
 import snd.komelia.ui.reader.image.continuous.ContinuousReaderState
 import snd.komelia.ui.reader.image.paged.PagedReaderState
-import snd.komelia.ui.reader.image.panels.PanelsReaderState
 import snd.komelia.ui.settings.imagereader.onnxruntime.DeviceSelector
 import snd.komelia.ui.settings.imagereader.onnxruntime.OnnxRuntimeSettingsState
 import snd.komelia.ui.settings.imagereader.onnxruntime.TileSizeSelector
@@ -135,7 +130,6 @@ fun SettingsSideMenuOverlay(
     onFlashDurationChange: (Long) -> Unit,
 
     pagedReaderState: PagedReaderState,
-    panelsReaderState: PanelsReaderState?,
     continuousReaderState: ContinuousReaderState,
     onnxRuntimeSettingsState: OnnxRuntimeSettingsState?,
 
@@ -186,7 +180,7 @@ fun SettingsSideMenuOverlay(
                         readerType,
                         stringResource(AppStrings.forReaderType(readerType))
                     ),
-                    options = derivedStateOf { if (panelsReaderState == null) readerTypes.filter { it.value != PANELS } else readerTypes }.value,
+                    options = readerTypes,
                     onOptionChange = { onReaderTypeChange(it.value) },
                     inputFieldModifier = Modifier.fillMaxWidth(),
                     label = { Text(stringResource(Res.string.reader_type)) },
@@ -194,15 +188,6 @@ fun SettingsSideMenuOverlay(
                 )
                 when (readerType) {
                     PAGED -> PagedReaderSettingsContent(pagedReaderState)
-                    PANELS -> {
-                        if (panelsReaderState != null) {
-                            PanelsReaderSettingsContent(
-                                readingDirection = panelsReaderState.readingDirection.collectAsState().value,
-                                onReadingDirectionChange = panelsReaderState::onReadingDirectionChange
-                            )
-                        }
-                    }
-
                     CONTINUOUS -> ContinuousReaderSettingsContent(continuousReaderState)
                 }
             }
@@ -305,17 +290,6 @@ fun SettingsSideMenuOverlay(
                         pages = pagedReaderState.currentSpread.collectAsState().value.pages,
                         modifier = Modifier.padding(start = 10.dp)
                     )
-                }
-
-                PANELS -> {
-                    if (panelsReaderState != null) {
-                        val panelsPage = panelsReaderState.currentPage.collectAsState().value
-                        val pages = remember(panelsPage) {
-                            panelsPage?.let { listOf(PagedReaderState.Page(it.metadata, it.imageResult)) }
-                                ?: emptyList()
-                        }
-                        PagedReaderPagesInfo(pages, modifier = Modifier.padding(start = 10.dp))
-                    }
                 }
 
                 CONTINUOUS -> {
@@ -465,27 +439,6 @@ private fun ColumnScope.PagedReaderSettingsContent(
 }
 
 @Composable
-private fun PanelsReaderSettingsContent(
-    readingDirection: PagedReadingDirection,
-    onReadingDirectionChange: (PagedReadingDirection) -> Unit,
-) {
-    Column {
-
-        DropdownChoiceMenu(
-            selectedOption = LabeledEntry(
-                readingDirection,
-                stringResource(AppStrings.forReadingDirection(readingDirection))
-            ),
-            options = stringLabels(PagedReadingDirection.entries) { AppStrings.forReadingDirection(it) },
-            onOptionChange = { onReadingDirectionChange(it.value) },
-            inputFieldModifier = Modifier.fillMaxWidth(),
-            label = { Text(stringResource(Res.string.reader_paged_reading_direction)) },
-            inputFieldColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    }
-}
-
-@Composable
 private fun BookTitles(book: KomeliaBook) {
     Column {
         if (!book.oneshot) {
@@ -560,20 +513,17 @@ private fun SamplingModeSettings(
         }
 
 
-        val platform = LocalPlatform.current
-        if (platform != PlatformType.WEB_KOMF) {
-            SwitchWithLabel(
-                checked = linearLightDownsampling,
-                onCheckedChange = onLinearLightDownsamplingChange,
-                label = { Text(stringResource(Res.string.reader_image_linear_light_downsampling)) },
-                supportingText = {
-                    Text(
-                        stringResource(Res.string.reader_image_linear_light_downsampling_desc),
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                },
-                contentPadding = PaddingValues(horizontal = 10.dp)
-            )
-        }
+        SwitchWithLabel(
+            checked = linearLightDownsampling,
+            onCheckedChange = onLinearLightDownsamplingChange,
+            label = { Text(stringResource(Res.string.reader_image_linear_light_downsampling)) },
+            supportingText = {
+                Text(
+                    stringResource(Res.string.reader_image_linear_light_downsampling_desc),
+                    style = MaterialTheme.typography.labelMedium
+                )
+            },
+            contentPadding = PaddingValues(horizontal = 10.dp)
+        )
     }
 }

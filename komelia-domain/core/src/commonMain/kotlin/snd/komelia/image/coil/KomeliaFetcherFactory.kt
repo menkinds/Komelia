@@ -5,8 +5,6 @@ import coil3.fetch.Fetcher
 import coil3.request.Options
 import kotlinx.coroutines.flow.StateFlow
 import snd.komelia.komga.api.KomgaApi
-import snd.komf.api.mangabaka.MangaBakaSeriesId
-import snd.komf.client.KomfMangaBakaClient
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.collection.KomgaCollectionId
 import snd.komga.client.common.KomgaThumbnailId
@@ -16,7 +14,6 @@ import kotlin.random.Random
 
 class KomeliaFetcherFactory(
     private val komgaApi: StateFlow<KomgaApi>,
-    private val komfMangaBaka: KomfMangaBakaClient,
     private val decoder: CoilAwareDecoder,
 ) : Fetcher.Factory<Any> {
 
@@ -94,20 +91,6 @@ class KomeliaFetcherFactory(
                 options = options
             )
 
-            is KomfFaviconRequest -> KomfFaviconFetcher(
-                komf = komfMangaBaka,
-                url = data.url,
-                decoder = decoder,
-                options = options
-            )
-
-            is KomfMangaBakaCoverRequest -> KomfMangaBakaSeriesFetcher(
-                komf = komfMangaBaka,
-                id = data.id,
-                decoder = decoder,
-                options = options
-            )
-
             else -> null
         }
     }
@@ -157,12 +140,4 @@ data class ReadListDefaultThumbnailRequest(
 data class ReadListThumbnailRequest(
     val readListId: KomgaReadListId,
     val thumbnailId: KomgaThumbnailId
-)
-
-data class KomfFaviconRequest(
-    val url: String
-)
-
-data class KomfMangaBakaCoverRequest(
-    val id: MangaBakaSeriesId
 )

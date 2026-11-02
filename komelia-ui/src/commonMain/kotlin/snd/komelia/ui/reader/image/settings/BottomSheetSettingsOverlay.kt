@@ -73,7 +73,6 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_settings
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_continuous
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_paged
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_panels
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_zoom
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.compose.resources.stringResource
@@ -88,7 +87,6 @@ import snd.komelia.settings.model.ReaderFlashColor
 import snd.komelia.settings.model.ReaderType
 import snd.komelia.settings.model.ReaderType.CONTINUOUS
 import snd.komelia.settings.model.ReaderType.PAGED
-import snd.komelia.settings.model.ReaderType.PANELS
 import snd.komelia.ui.LocalWindowWidth
 import snd.komelia.ui.common.components.AppSliderDefaults
 import snd.komelia.ui.common.components.SwitchWithLabel
@@ -96,7 +94,6 @@ import snd.komelia.ui.platform.WindowSizeClass.COMPACT
 import snd.komelia.ui.platform.cursorForHand
 import snd.komelia.ui.reader.image.continuous.ContinuousReaderState
 import snd.komelia.ui.reader.image.paged.PagedReaderState
-import snd.komelia.ui.reader.image.panels.PanelsReaderState
 import snd.komelia.ui.strings.AppStrings
 import kotlin.math.roundToInt
 
@@ -135,7 +132,6 @@ fun BottomSheetSettingsOverlay(
 
     pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
-    panelsReaderState: PanelsReaderState?,
     onBackPress: () -> Unit,
 ) {
 
@@ -248,7 +244,6 @@ fun BottomSheetSettingsOverlay(
                                 onReaderTypeChange = onReaderTypeChange,
                                 pagedReaderState = pagedReaderState,
                                 continuousReaderState = continuousReaderState,
-                                panelsReaderState = panelsReaderState,
                             )
                         }
 
@@ -256,7 +251,6 @@ fun BottomSheetSettingsOverlay(
                             readerType = readerType,
                             pagedReaderState = pagedReaderState,
                             continuousReaderState = continuousReaderState,
-                            panelsReaderState = panelsReaderState,
                             availableUpsamplingModes = availableUpsamplingModes,
                             upsamplingMode = upsamplingMode,
                             onUpsamplingModeChange = onUpsamplingModeChange,
@@ -296,7 +290,6 @@ private fun BottomSheetReadingModeSettings(
     onReaderTypeChange: (ReaderType) -> Unit,
     pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
-    panelsReaderState: PanelsReaderState?,
 ) {
     Column {
         Text(stringResource(Res.string.reader_type))
@@ -311,17 +304,10 @@ private fun BottomSheetReadingModeSettings(
                 onClick = { onReaderTypeChange(CONTINUOUS) },
                 label = { Text(stringResource(Res.string.reader_type_continuous)) }
             )
-            if (panelsReaderState != null)
-                InputChip(
-                    selected = readerType == PANELS,
-                    onClick = { onReaderTypeChange(PANELS) },
-                    label = { Text(stringResource(Res.string.reader_type_panels)) }
-                )
         }
 
         when (readerType) {
             PAGED -> PagedModeSettings(pageState = pagedReaderState)
-            PANELS -> if (panelsReaderState != null) PanelsModeSettings(state = panelsReaderState)
             CONTINUOUS -> ContinuousModeSettings(state = continuousReaderState)
         }
     }
@@ -445,32 +431,6 @@ private fun PagedModeSettings(
 }
 
 @Composable
-private fun PanelsModeSettings(
-    state: PanelsReaderState,
-) {
-    Column {
-
-        val readingDirection = state.readingDirection.collectAsState().value
-        Text(stringResource(Res.string.reader_paged_reading_direction))
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            InputChip(
-                selected = readingDirection == PagedReadingDirection.RIGHT_TO_LEFT,
-                onClick = { state.onReadingDirectionChange(PagedReadingDirection.RIGHT_TO_LEFT) },
-                label = { Text(stringResource(AppStrings.forReadingDirection(PagedReadingDirection.RIGHT_TO_LEFT))) }
-            )
-            InputChip(
-                selected = readingDirection == PagedReadingDirection.LEFT_TO_RIGHT,
-                onClick = { state.onReadingDirectionChange(PagedReadingDirection.LEFT_TO_RIGHT) },
-                label = { Text(stringResource(AppStrings.forReadingDirection(PagedReadingDirection.LEFT_TO_RIGHT))) }
-            )
-        }
-    }
-
-}
-
-@Composable
 private fun ContinuousModeSettings(
     state: ContinuousReaderState,
 ) {
@@ -554,7 +514,6 @@ private fun BottomSheetImageSettings(
     readerType: ReaderType,
     pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
-    panelsReaderState: PanelsReaderState?,
     availableUpsamplingModes: List<UpsamplingMode>,
     upsamplingMode: UpsamplingMode,
     onUpsamplingModeChange: (UpsamplingMode) -> Unit,
@@ -623,19 +582,6 @@ private fun BottomSheetImageSettings(
                     pages = pagedReaderState.currentSpread.collectAsState().value.pages,
                     modifier = Modifier.animateContentSize()
                 )
-
-            PANELS -> {
-                if (panelsReaderState != null) {
-                    val panelsPage = panelsReaderState.currentPage.collectAsState().value
-                    val pages = remember(panelsPage) {
-                        panelsPage?.let { listOf(PagedReaderState.Page(it.metadata, it.imageResult)) } ?: emptyList()
-                    }
-                    PagedReaderPagesInfo(
-                        pages = pages,
-                        modifier = Modifier.animateContentSize()
-                    )
-                }
-            }
 
             CONTINUOUS -> ContinuousReaderPagesInfo(
                 lazyListState = continuousReaderState.lazyListState,

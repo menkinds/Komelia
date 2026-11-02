@@ -84,14 +84,6 @@ Then choose app build option:
 - `./gradlew :androidDebug` output in `./komelia-app/androidApp/build/outputs/apk/debug`
 - `./gradlew :androidRelease` output in `./komelia-app/androidApp/build/outputs/apk/release`
 
-
-## Komf Wasm WebUI
-run `./gradlew :komfWebUI` output will be in `./build/komf-webui`
-
-## Komf Wasm Extension
-for chrome `./gradlew :komfExtensionChrome` \
-for firefox `./gradlew :komfExtensionFirefox` \
-output archive will be in `./komelia-komf-extension/app/build/distributions`
 ## 포크 사용법
 
 이 포크(menkinds/komelia)는 Android APK만 빌드합니다. GitHub Actions가 서명된 APK를 만들어 Releases에 올립니다.

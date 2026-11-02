@@ -6,14 +6,12 @@ import org.w3c.dom.set
 import snd.komelia.db.AppSettings
 import snd.komelia.db.EpubReaderSettings
 import snd.komelia.db.ImageReaderSettings
-import snd.komelia.db.KomfSettings
 import snd.komelia.db.LocalStorageJson
 import snd.komelia.image.UpsamplingMode
 
 const val appSettingsKey = "appSettings"
 const val imageReaderKey = "imageReader"
 const val epubReaderKey = "epubReader"
-const val komfSettingsKey = "komfSettings"
 
 class LocalStorageSettingsRepository {
     val json = LocalStorageJson.json
@@ -46,15 +44,5 @@ class LocalStorageSettingsRepository {
 
     fun saveEpubReaderSettings(settings: EpubReaderSettings) {
         localStorage[epubReaderKey] = json.encodeToString(settings)
-    }
-
-    fun getKomfSettings(): KomfSettings {
-        return localStorage.getItem(komfSettingsKey)
-            ?.let { json.decodeFromString<KomfSettings>(it) }
-            ?: KomfSettings(remoteUrl = window.location.href)
-    }
-
-    fun saveKomfSettings(settings: KomfSettings) {
-        localStorage[komfSettingsKey] = json.encodeToString(settings)
     }
 }

@@ -1,9 +1,6 @@
 package snd.komelia.ui.reader.epub
 
 import cafe.adriel.voyager.navigator.Navigator
-import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.nodes.Element
-import com.fleeksoft.ksoup.parser.Parser.Companion.xmlParser
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
 import kotlinx.coroutines.CoroutineScope
@@ -29,7 +26,6 @@ import snd.komelia.ui.MainScreen
 import snd.komelia.ui.book.BookScreen
 import snd.komelia.ui.book.bookScreen
 import snd.komelia.ui.platform.PlatformType
-import snd.komelia.ui.platform.PlatformType.WEB_KOMF
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.R2Progression
 import snd.komga.client.readlist.KomgaReadListId
@@ -214,26 +210,13 @@ class KomgaEpubReaderState(
 
     private suspend fun getD2Content(url: String): String? {
         return runCatching {
-            val textResponse = proxyResourceRequest(
+            proxyResourceRequest(
                 bookApi = bookApi,
                 urlString = url,
                 serverUrl = settingsRepository.getServerUrl()
             ).data.decodeToString()
-            if (platformType == WEB_KOMF) {
-                val document = Ksoup.parse(textResponse, xmlParser()) //strict xhtml rules
-                addCrossOriginToElements(document)
-                document.outerHtml()
-            } else textResponse
         }
             .onFailure { logger.catching(it) }
             .getOrNull()
-    }
-
-    private fun addCrossOriginToElements(body: Element) {
-        buildList {
-            addAll(body.getElementsByTag("link"))
-            addAll(body.getElementsByTag("img"))
-            addAll(body.getElementsByTag("image"))
-        }.forEach { it.attr("crossorigin", "use-credentials") }
     }
 }

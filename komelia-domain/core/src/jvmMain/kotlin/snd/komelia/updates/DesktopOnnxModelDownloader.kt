@@ -11,11 +11,9 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream
 import org.apache.commons.io.IOUtils
 import snd.komelia.AppDirectories.mangaJaNaiInstallPath
-import snd.komelia.AppDirectories.panelDetectionInstallPath
 import snd.komelia.AppNotifications
 import snd.komelia.updates.OnnxModelDownloader.CompletionEvent
 import snd.komelia.updates.OnnxModelDownloader.CompletionEvent.MangaJaNaiDownloaded
-import snd.komelia.updates.OnnxModelDownloader.CompletionEvent.PanelModelDownloaded
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
@@ -27,8 +25,6 @@ import kotlin.io.path.outputStream
 
 private const val mangaJaNaiDownloadLink =
     "https://github.com/Snd-R/mangajanai/releases/download/1.0.0/MangaJaNaiOnnxModels.zip"
-private const val panelDetectionModelLink =
-    "https://github.com/Snd-R/komelia-onnxruntime/releases/download/model/rf-detr-med.onnx.zip"
 
 class DesktopOnnxModelDownloader(
     private val updateClient: UpdateClient,
@@ -52,26 +48,6 @@ class DesktopOnnxModelDownloader(
                 extractZipArchive(from = archiveFile, to = mangaJaNaiInstallPath)
                 archiveFile.deleteIfExists()
                 downloadCompletionEvents.emit(MangaJaNaiDownloaded)
-            }.onFailure { archiveFile.deleteIfExists() }
-        }
-    }
-
-    override fun panelDownload(): Flow<UpdateProgress> {
-        return flow {
-            if (panelDetectionInstallPath.notExists()) {
-                panelDetectionInstallPath.createDirectories()
-            }
-
-            emit(UpdateProgress(0, 0, panelDetectionModelLink))
-            val archiveFile = createTempFile("rf-detr-med.onnx.zip")
-            archiveFile.toFile().deleteOnExit()
-
-            appNotifications.runCatchingToNotifications {
-                downloadFile(panelDetectionModelLink, archiveFile)
-                emit(UpdateProgress(0, 0))
-                extractZipArchive(archiveFile, panelDetectionInstallPath)
-                archiveFile.deleteIfExists()
-                downloadCompletionEvents.emit(PanelModelDownloaded)
             }.onFailure { archiveFile.deleteIfExists() }
         }
     }

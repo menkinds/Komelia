@@ -19,7 +19,6 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_analyze
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_analyze_confirm_body
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_analyze_confirm_title
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_auto_identify
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_delete
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_delete_confirm_body
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_delete_confirm_confirm
@@ -34,7 +33,6 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_empty_t
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_refresh_metadata
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_reresh_metada_confirm_body
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_reresh_metada_confirm_title
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_reset_metadata
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_scan_files
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.library_scan_files_deep
 import kotlinx.coroutines.CoroutineScope
@@ -44,12 +42,10 @@ import snd.komelia.AppNotification
 import snd.komelia.AppNotifications
 import snd.komelia.komga.api.KomgaLibraryApi
 import snd.komelia.offline.tasks.OfflineTaskEmitter
-import snd.komelia.ui.LocalKomfIntegration
 import snd.komelia.ui.LocalKomgaState
 import snd.komelia.ui.LocalOfflineMode
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.dialogs.ConfirmationDialog
-import snd.komelia.ui.dialogs.komf.reset.KomfResetLibraryMetadataDialog
 import snd.komelia.ui.dialogs.libraryedit.LibraryEditDialogs
 import snd.komga.client.library.KomgaLibrary
 
@@ -115,17 +111,6 @@ fun LibraryActionsMenu(
             buttonConfirmColor = MaterialTheme.colorScheme.errorContainer
         )
 
-    var showKomfResetDialog by remember { mutableStateOf(false) }
-    if (showKomfResetDialog) {
-        KomfResetLibraryMetadataDialog(
-            library = library,
-            onDismissRequest = {
-                showKomfResetDialog = false
-                onDismissRequest()
-            }
-        )
-    }
-
     val isAdmin = LocalKomgaState.current.authenticatedUser.collectAsState().value?.roleAdmin() ?: true
     val isOffline = LocalOfflineMode.current.collectAsState().value
     DropdownMenu(expanded = expanded, onDismissRequest = onDismissRequest) {
@@ -181,26 +166,6 @@ fun LibraryActionsMenu(
                     showLibraryEditDialog = true
                     onDismissRequest()
                 }
-            )
-        }
-
-        val komfIntegration = LocalKomfIntegration.current.collectAsState(false)
-        if (komfIntegration.value) {
-            val vmFactory = LocalViewModelFactory.current
-            val autoIdentifyVm = remember(library) {
-                vmFactory.getKomfLibraryIdentifyViewModel(library)
-            }
-            DropdownMenuItem(
-                text = { Text(stringResource(Res.string.library_auto_identify)) },
-                onClick = {
-                    autoIdentifyVm.autoIdentify()
-                    onDismissRequest()
-                },
-            )
-
-            DropdownMenuItem(
-                text = { Text(stringResource(Res.string.library_reset_metadata)) },
-                onClick = { showKomfResetDialog = true },
             )
         }
 

@@ -28,13 +28,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipAnchorPosition
@@ -49,7 +46,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
@@ -71,8 +67,6 @@ import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.settings.model.BooksLayout
 import snd.komelia.ui.LoadState
-import snd.komelia.ui.LocalKomfIntegration
-import snd.komelia.ui.LocalKomfMangaBakaIntegration
 import snd.komelia.ui.LocalKomgaState
 import snd.komelia.ui.LocalOfflineMode
 import snd.komelia.ui.LocalWindowWidth
@@ -88,15 +82,7 @@ import snd.komelia.ui.common.menus.SeriesActionsMenu
 import snd.komelia.ui.common.menus.SeriesMenuActions
 import snd.komelia.ui.common.menus.bulk.BooksBulkActionsContent
 import snd.komelia.ui.common.menus.bulk.BottomPopupBulkActionsPanel
-import snd.komelia.ui.dialogs.komf.identify.KomfIdentifyDialog
-import snd.komelia.ui.dialogs.komf.mangabaka.KomfMangaBakaLinkDialog
-import snd.komelia.ui.dialogs.komf.mangabaka.KomfMangaBakaUnlinkDialog
-import snd.komelia.ui.dialogs.komf.reset.KomfResetSeriesMetadataDialog
 import snd.komelia.ui.dialogs.series.edit.SeriesEditDialog
-import snd.komelia.ui.icons.AppIcons
-import snd.komelia.ui.icons.outlined.ChevronForward
-import snd.komelia.ui.icons.outlined.LinkedServices
-import snd.komelia.ui.icons.outlined.NewsStand
 import snd.komelia.ui.library.SeriesScreenFilter
 import snd.komelia.ui.pages.SeriesRating
 import snd.komelia.ui.pages.SeriesRatingStars
@@ -109,8 +95,6 @@ import snd.komelia.ui.platform.cursorForHand
 import snd.komelia.ui.series.SeriesBooksState
 import snd.komelia.ui.series.SeriesBooksState.BooksData
 import snd.komelia.ui.series.SeriesViewModel.SeriesTab
-import snd.komelia.ui.series.mangabaka.MangaBakaSeriesContent
-import snd.komelia.ui.series.mangabaka.state.MangaBakaMetadataState
 import snd.komga.client.collection.KomgaCollection
 import snd.komga.client.library.KomgaLibrary
 import kotlin.math.max
@@ -118,7 +102,6 @@ import kotlin.math.max
 @Composable
 fun SeriesContent(
     series: KomeliaSeries?,
-    mangaBaka: MangaBakaMetadataState?,
     library: KomgaLibrary?,
     onLibraryClick: (KomgaLibrary) -> Unit,
     seriesMenuActions: SeriesMenuActions,
@@ -152,23 +135,19 @@ fun SeriesContent(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        if (series?.mangaBakaMetadata == null || windowWidth == EXPANDED || windowWidth == FULL) {
-            if (booksData.selectionMode) {
-                BooksBulkActionsToolbar(
-                    onCancel = { booksState.setSelectionMode(false) },
-                    books = booksData.books,
-                    actions = booksState.bookBulkMenuActions(),
-                    selectedBooks = booksData.selectedBooks,
-                    onBookSelect = booksState::onBookSelect
-                )
-            } else SeriesToolBar(
-                series = series,
-                library = library,
-                onLibraryClick = onLibraryClick,
-                mangaBaka = mangaBaka,
-                seriesMenuActions = seriesMenuActions,
+        if (booksData.selectionMode) {
+            BooksBulkActionsToolbar(
+                onCancel = { booksState.setSelectionMode(false) },
+                books = booksData.books,
+                actions = booksState.bookBulkMenuActions(),
+                selectedBooks = booksData.selectedBooks,
+                onBookSelect = booksState::onBookSelect
             )
-        }
+        } else SeriesToolBar(
+            series = series,
+            library = library,
+            seriesMenuActions = seriesMenuActions,
+        )
 
         val scrollState = rememberLazyGridState()
 
@@ -190,22 +169,12 @@ fun SeriesContent(
                         )
                     }
                     item(span = { GridItemSpan(maxLineSpan) }) {
-                        if (mangaBaka != null) {
-                            MangaBakaSeriesContent(
-                                series = series,
-                                actions = seriesMenuActions,
-                                library = library,
-                                mangaBakaState = mangaBaka,
-                                onLibraryClick = onLibraryClick
-                            )
-                        } else {
-                            Series(
-                                series = series,
-                                library = library,
-                                onLibraryClick = onLibraryClick,
-                                onFilterClick = onFilterClick,
-                            )
-                        }
+                        Series(
+                            series = series,
+                            library = library,
+                            onLibraryClick = onLibraryClick,
+                            onFilterClick = onFilterClick,
+                        )
                     }
 
                     item(span = { GridItemSpan(maxLineSpan) }) {
@@ -281,8 +250,6 @@ fun SeriesContent(
 fun SeriesToolBar(
     series: KomeliaSeries?,
     library: KomgaLibrary?,
-    onLibraryClick: (KomgaLibrary) -> Unit,
-    mangaBaka: MangaBakaMetadataState?,
     seriesMenuActions: SeriesMenuActions,
 ) {
     if (series == null || library == null) return
@@ -290,57 +257,17 @@ fun SeriesToolBar(
         modifier = Modifier.padding(start = 10.dp),
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
-        val mangaBaka = mangaBaka?.titleState
-        if (mangaBaka != null) {
-            Row(
-                modifier = Modifier
-                    .clickable(onClick = { onLibraryClick(library) })
-                    .pointerHoverIcon(PointerIcon.Hand),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(5.dp)
-            ) {
-                val tintColor = MaterialTheme.colorScheme.primary.copy(alpha = .6f)
-                Icon(
-                    imageVector = AppIcons.Outlined.NewsStand,
-                    contentDescription = null,
-                    tint = tintColor
-                )
-                Text(
-                    library.name,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = tintColor
-                )
-                Icon(
-                    imageVector = AppIcons.Outlined.ChevronForward,
-                    contentDescription = null,
-                    tint = tintColor,
-                    modifier = Modifier.size(16.dp),
-                )
-            }
-            Spacer(Modifier.widthIn(5.dp))
-
-            SelectionContainer {
-                Text(
-                    mangaBaka.mainTitle.title,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, false)
-                )
-            }
-        } else {
-            SelectionContainer {
-                Text(
-                    series.metadata.title,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, false)
-                )
-            }
+        SelectionContainer {
+            Text(
+                series.metadata.title,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, false)
+            )
         }
 
         SeriesActionMenuButton(series, seriesMenuActions)
         SeriesEditDialogButton(series)
-        KomfSeriesActionsButton(series)
     }
 }
 
@@ -385,101 +312,6 @@ fun SeriesEditDialogButton(series: KomeliaSeries) {
     if (showEditDialog)
         SeriesEditDialog(series = series, onDismissRequest = { showEditDialog = false })
 
-}
-
-@Composable
-fun KomfSeriesActionsButton(series: KomeliaSeries) {
-    val komfIntegration = LocalKomfIntegration.current.collectAsState(false)
-    if (!komfIntegration.value) return
-
-    var showDropdown by remember { mutableStateOf(false) }
-    var showKomfDialog by remember { mutableStateOf(false) }
-    if (showKomfDialog) {
-        KomfIdentifyDialog(
-            series = series,
-            onDismissRequest = {
-                showKomfDialog = false
-                showDropdown = false
-            }
-        )
-    }
-
-    var showKomfResetDialog by remember { mutableStateOf(false) }
-    if (showKomfResetDialog) {
-        KomfResetSeriesMetadataDialog(
-            series = series,
-            onDismissRequest = {
-                showKomfResetDialog = false
-                showDropdown = false
-            }
-        )
-    }
-
-    var showMangaBakaLinkDialog by remember { mutableStateOf(false) }
-    if (showMangaBakaLinkDialog) {
-        KomfMangaBakaLinkDialog(
-            series = series,
-            onDismissRequest = {
-                showMangaBakaLinkDialog = false
-                showDropdown = false
-            }
-        )
-    }
-    var showMangaBakaUnlinkDialog by remember { mutableStateOf(false) }
-    if (showMangaBakaUnlinkDialog) {
-        KomfMangaBakaUnlinkDialog(
-            series = series,
-            onDismissRequest = {
-                showMangaBakaUnlinkDialog = false
-                showDropdown = false
-            }
-        )
-    }
-    TooltipBox(
-        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
-        state = rememberTooltipState(),
-        tooltip = { PlainTooltip { Text("Komf Actions") } }
-    ) {
-        IconButton(onClick = { showDropdown = true }) {
-            Icon(AppIcons.Outlined.LinkedServices, contentDescription = null)
-        }
-
-        DropdownMenu(
-            expanded = showDropdown,
-            onDismissRequest = { showDropdown = false }
-        ) {
-            val komfMangaBakaIntegration = LocalKomfMangaBakaIntegration.current.collectAsState(false).value
-
-            if (series.mangaBakaMetadata == null) {
-                DropdownMenuItem(
-                    text = { Text("Identify") },
-                    onClick = { showKomfDialog = true },
-                )
-
-                if (komfMangaBakaIntegration) {
-                    DropdownMenuItem(
-                        text = { Text("Link MangaBaka series") },
-                        onClick = { showMangaBakaLinkDialog = true },
-                    )
-                }
-
-                DropdownMenuItem(
-                    text = { Text("Reset Metadata") },
-                    onClick = { showKomfResetDialog = true },
-                )
-            } else if (komfMangaBakaIntegration) {
-                DropdownMenuItem(
-                    text = { Text("Link MangaBaka series") },
-                    onClick = { showMangaBakaLinkDialog = true },
-                )
-
-                DropdownMenuItem(
-                    text = { Text("Unlink MangaBaka Series") },
-                    onClick = { showMangaBakaUnlinkDialog = true },
-                )
-            }
-        }
-    }
 }
 
 @Composable

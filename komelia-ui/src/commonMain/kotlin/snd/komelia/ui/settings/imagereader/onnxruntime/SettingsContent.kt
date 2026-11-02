@@ -2,7 +2,6 @@ package snd.komelia.ui.settings.imagereader.onnxruntime
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -19,7 +18,6 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_download
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_load_failed
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_panel_detection
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_update
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_update_desc
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_image_onnxruntime_upscale_settings
@@ -57,8 +55,6 @@ fun OnnxRuntimeSettingsContent(
     onOrtInstall: (provider: OnnxRuntimeExecutionProvider) -> Flow<UpdateProgress>,
     mangaJaNaiIsInstalled: Boolean,
     onMangaJaNaiDownload: () -> Flow<UpdateProgress>,
-    panelModelIsDownloaded: Boolean,
-    onPanelDetectionModelDownloadRequest: () -> Flow<UpdateProgress>
 ) {
     val loadError = remember { onnxRuntimeLoadError() }
 
@@ -135,14 +131,6 @@ fun OnnxRuntimeSettingsContent(
             )
             HorizontalDivider()
         }
-        Text(
-            stringResource(Res.string.settings_image_onnxruntime_panel_detection),
-            style = MaterialTheme.typography.titleMedium
-        )
-        PanelDetectionSettings(
-            isDownloaded = panelModelIsDownloaded,
-            onDownloadRequest = onPanelDetectionModelDownloadRequest
-        )
     }
 }
 
