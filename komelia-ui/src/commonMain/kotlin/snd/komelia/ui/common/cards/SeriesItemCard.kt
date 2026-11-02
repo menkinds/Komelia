@@ -46,7 +46,6 @@ import snd.komelia.ui.common.images.SeriesThumbnail
 import snd.komelia.ui.common.menus.SeriesActionsMenu
 import snd.komelia.ui.common.menus.SeriesMenuActions
 import snd.komelia.ui.platform.cursorForHand
-import snd.komelia.ui.series.mangabaka.state.MangaBakaTitlesState
 
 @Composable
 fun SeriesImageCard(
@@ -212,13 +211,7 @@ private fun SeriesImageOverlay(
             verticalArrangement = Arrangement.Bottom
         ) {
             if (showTitle) {
-                val mangaBaka = series.mangaBakaMetadata
-                val title = if (mangaBaka != null) {
-                    remember(series) { MangaBakaTitlesState(mangaBaka).mainTitle.title }
-                } else {
-                    series.metadata.title
-                }
-                CardOutlinedText(text = title, maxLines = 4)
+                CardOutlinedText(text = series.metadata.title, maxLines = 4)
                 if (series.deleted || libraryIsDeleted) {
                     CardOutlinedText(
                         stringResource(Res.string.series_unavailable),

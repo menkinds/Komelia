@@ -24,6 +24,14 @@
 - 시리즈 별점 ★N 태그와 마지막 책 완독 프롬프트(#15).
 - DB 마이그레이션: V16, V17, V18 추가 (V15까지는 2026-10-31).
 
+## 2026-11-02 기능 4개 제거: ttsu 리더, 패널 감지, 공지, Komf (PR "PAGES: remove ttsu reader, panel detection, announcements, Komf")
+- 제거: (1) ttsu EPUB 리더 + "Epub Reader Settings" 화면 + `komelia-epub-reader/ttu-ebook-reader` + gradle ttsu 빌드 태스크. EPUB은 항상 Komga 리더. (2) 패널 감지(ONNX RF-DETR): "Panels" 리더 모드, 설정 섹션, 모델 다운로드, `OnnxRuntimeRfDetr`/JNI/CMake 항목. (3) 공지 화면과 `*AnnouncementsApi`. (4) Komf: 설정 화면, 식별/리셋/MangaBaka 다이얼로그, 메뉴 항목, `komf-client` 의존성, `komelia-komf-extension` 모듈, `komfWebUI`/`komfExtension*` 태스크, MangaBaka 시리즈 화면(Komf 데이터 기반).
+- 같이 제거: ttsu 전용이던 사용자 폰트 저장소(`fonts/*`, UserFontsRepository), Komf 전용 `WEB_KOMF` 플랫폼 타입과 API 키 로그인 화면. 웹앱(wasm) 진입점은 `PlatformType.DESKTOP`으로 컴파일만 유지.
+- 유지: `EpubReaderSettingsRepository`는 Komga 리더 설정(JSON)이 써서 남김(리더 종류/ttsu 설정 메서드만 제거). ONNX 업스케일러(데스크톱)와 ONNX 런타임 로딩은 그대로. 안드로이드는 업스케일러가 null이라 ONNX 설정 섹션은 데스크톱에서만 표시.
+- 저장값 호환(마이그레이션 없음): `ReaderType.fromStored`가 "PANELS" 등 모르는 값을 PAGED로 대체(sqlite), wasm localStorage JSON은 `coerceInputValues`. `EpubReaderSettings` 표의 `reader_type`/`ttsu_settings_json` 컬럼은 NOT NULL이라 남기고 저장 시 상수("KOMGA_EPUB", "{}")를 씀(읽지 않음). KomfSettings/UserFonts 표와 V10/V13 마이그레이션은 DB에 그대로 남음.
+- 안드로이드 ONNX 런타임 로딩/네이티브 빌드는 이제 쓰는 곳이 없음(업스케일러 null). 제거는 CI/네이티브 빌드를 건드려야 해서 이번에 안 함 → 후속 후보.
+- 미검증: java/Android SDK 없음. rg로 참조만 확인했고 컴파일/테스트는 Release 빌드(CI)에서 확인해야 함.
+
 ## 열린 항목
 - android-release 실제 러너 실행 결과 확인(SDK 설치, 네이티브 Docker 빌드, 서명, 자동 릴리스) — 미확인.
 - `./gradlew :komelia-domain:core:jvmTest`, komelia-ui jvmTest 실행 필요 (AdultLockStateTest 포함).

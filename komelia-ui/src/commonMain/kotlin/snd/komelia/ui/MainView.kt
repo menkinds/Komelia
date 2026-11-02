@@ -44,7 +44,6 @@ import snd.komelia.ui.Theme.ThemeType
 import snd.komelia.ui.common.components.LoadingMaxSizeIndicator
 import snd.komelia.ui.dialogs.update.UpdateDialog
 import snd.komelia.ui.dialogs.update.UpdateProgressDialog
-import snd.komelia.ui.komf.KomfMainScreen
 import snd.komelia.ui.login.LoginScreen
 import snd.komelia.ui.pages.SeriesRatingPromptHost
 import snd.komelia.ui.platform.AdultRecentsPreviewEffect
@@ -55,9 +54,6 @@ import snd.komelia.ui.platform.BackPressHandler
 import snd.komelia.ui.platform.ConfigurePlatformTheme
 import snd.komelia.ui.platform.PlatformTitleBar
 import snd.komelia.ui.platform.PlatformType
-import snd.komelia.ui.platform.PlatformType.DESKTOP
-import snd.komelia.ui.platform.PlatformType.MOBILE
-import snd.komelia.ui.platform.PlatformType.WEB_KOMF
 import snd.komelia.ui.platform.WindowSizeClass
 import snd.komelia.updates.AppRelease
 import snd.komelia.updates.StartupUpdateChecker
@@ -106,8 +102,6 @@ fun MainView(
                 LocalViewModelFactory provides viewModelFactory,
                 LocalNotifications provides dependencies.appNotifications,
                 LocalKomgaEvents provides dependencies.komgaEvents.events,
-                LocalKomfIntegration provides dependencies.appRepositories.komfSettingsRepository.getKomfEnabled(),
-                LocalKomfMangaBakaIntegration provides dependencies.appRepositories.komfSettingsRepository.getMangaBakaEnabled(),
                 LocalKeyEvents provides keyEvents,
                 LocalPlatform provides platformType,
                 LocalTheme provides theme,
@@ -126,7 +120,7 @@ fun MainView(
                 AdultRelockEffect(dependencies.adultLockState)
                 AdultRecentsPreviewEffect(dependencies.adultLockState)
                 SeriesRatingPromptHost()
-                MainContent(platformType, dependencies.komgaSharedState)
+                MainContent(dependencies.komgaSharedState)
                 AdultResumeOverlay(dependencies.adultLockState)
 
                 AppNotifications(dependencies.appNotifications, theme)
@@ -143,15 +137,9 @@ fun MainView(
 
 @Composable
 private fun MainContent(
-    platformType: PlatformType,
     komgaSharedState: KomgaAuthenticationState
 ) {
-    val loginScreen = remember(platformType) {
-        when (platformType) {
-            MOBILE, DESKTOP -> LoginScreen()
-            WEB_KOMF -> KomfMainScreen()
-        }
-    }
+    val loginScreen = remember { LoginScreen() }
 
     Navigator(
         screen = loginScreen,

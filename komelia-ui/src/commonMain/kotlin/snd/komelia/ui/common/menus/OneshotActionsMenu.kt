@@ -26,18 +26,13 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_mark_read
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_mark_unread
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.book_refresh_metadata
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_add_to_collection
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_identify
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_reset_metadata
 import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.komga.api.model.KomeliaSeries
-import snd.komelia.ui.LocalKomfIntegration
 import snd.komelia.ui.LocalKomgaState
 import snd.komelia.ui.LocalOfflineMode
 import snd.komelia.ui.dialogs.ConfirmationDialog
 import snd.komelia.ui.dialogs.collectionadd.AddToCollectionDialog
-import snd.komelia.ui.dialogs.komf.identify.KomfIdentifyDialog
-import snd.komelia.ui.dialogs.komf.reset.KomfResetSeriesMetadataDialog
 import snd.komelia.ui.dialogs.readlistadd.AddToReadListDialog
 
 @Composable
@@ -85,31 +80,9 @@ fun OneshotActionsMenu(
                 onDismissRequest()
             })
     }
-    var showKomfDialog by remember { mutableStateOf(false) }
-    if (showKomfDialog) {
-        KomfIdentifyDialog(
-            series = series,
-            onDismissRequest = {
-                showKomfDialog = false
-                onDismissRequest()
-            }
-        )
-    }
-    var showKomfResetDialog by remember { mutableStateOf(false) }
-    if (showKomfResetDialog) {
-        KomfResetSeriesMetadataDialog(
-            series = series,
-            onDismissRequest = {
-                showKomfResetDialog = false
-                onDismissRequest()
-            }
-        )
-    }
 
     val showDropdown = derivedStateOf {
         expanded &&
-                !showKomfDialog &&
-                !showKomfResetDialog &&
                 !showAddToCollectionDialog &&
                 !showAddToReadListDialog
     }
@@ -165,19 +138,6 @@ fun OneshotActionsMenu(
                     actions.markAsUnread(book)
                     onDismissRequest()
                 },
-            )
-        }
-
-        val komfIntegration = LocalKomfIntegration.current.collectAsState(false)
-        if (komfIntegration.value) {
-            DropdownMenuItem(
-                text = { Text(stringResource(Res.string.series_identify)) },
-                onClick = { showKomfDialog = true },
-            )
-
-            DropdownMenuItem(
-                text = { Text(stringResource(Res.string.series_reset_metadata)) },
-                onClick = { showKomfResetDialog = true },
             )
         }
 

@@ -4,7 +4,6 @@ import androidx.compose.ui.unit.IntSize
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import cafe.adriel.voyager.navigator.Navigator
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -19,7 +18,6 @@ import kotlinx.coroutines.flow.takeWhile
 import snd.komelia.AppNotifications
 import snd.komelia.color.repository.BookColorCorrectionRepository
 import snd.komelia.image.BookImageLoader
-import snd.komelia.image.KomeliaPanelDetector
 import snd.komelia.image.KomeliaUpscaler
 import snd.komelia.image.ReaderImageFactory
 import snd.komelia.komga.api.KomgaBookApi
@@ -29,17 +27,14 @@ import snd.komelia.onnxruntime.OnnxRuntime
 import snd.komelia.settings.ImageReaderSettingsRepository
 import snd.komelia.settings.model.ReaderType.CONTINUOUS
 import snd.komelia.settings.model.ReaderType.PAGED
-import snd.komelia.settings.model.ReaderType.PANELS
 import snd.komelia.ui.BookSiblingsContext
 import snd.komelia.ui.LoadState
 import snd.komelia.ui.reader.image.continuous.ContinuousReaderState
 import snd.komelia.ui.reader.image.paged.PagedReaderState
-import snd.komelia.ui.reader.image.panels.PanelsReaderState
 import snd.komelia.ui.settings.imagereader.onnxruntime.OnnxRuntimeSettingsState
 import snd.komga.client.book.KomgaBookId
 
 private val cleanupScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-private val logger = KotlinLogging.logger { }
 
 class ReaderViewModel(
     bookApi: KomgaBookApi,
@@ -55,7 +50,6 @@ class ReaderViewModel(
     bookSiblingsContext: BookSiblingsContext,
     colorCorrectionRepository: BookColorCorrectionRepository,
     private val onnxRuntime: OnnxRuntime?,
-    private val panelDetector: KomeliaPanelDetector?,
     private val upscaler: KomeliaUpscaler?,
     val colorCorrectionIsActive: Flow<Boolean>,
 ) : ScreenModel {
@@ -71,7 +65,6 @@ class ReaderViewModel(
             onnxModelDownloader = null,
             onnxRuntime = onnxRuntime,
             upscaler = upscaler,
-            panelDetector = panelDetector,
             settingsRepository = readerSettingsRepository,
             coroutineScope = screenModelScope,
         )
@@ -102,20 +95,6 @@ class ReaderViewModel(
         pageChangeFlow = pageChangeFlow,
         screenScaleState = screenScaleState,
     )
-    val panelsReaderState = panelDetector?.let { panelDetector ->
-        if (!panelDetector.isAvailable.value) null
-        else
-            PanelsReaderState(
-                cleanupScope = cleanupScope,
-                readerState = readerState,
-                appNotifications = appNotifications,
-                settingsRepository = readerSettingsRepository,
-                imageLoader = imageLoader,
-                pageChangeFlow = pageChangeFlow,
-                screenScaleState = screenScaleState,
-                onnxRuntimeRfDetr = panelDetector
-            )
-    }
     val continuousReaderState = ContinuousReaderState(
         cleanupScope = cleanupScope,
         readerState = readerState,
@@ -140,14 +119,6 @@ class ReaderViewModel(
             when (it) {
                 PAGED -> pagedReaderState.initialize()
                 CONTINUOUS -> continuousReaderState.initialize()
-                PANELS -> {
-                    if (panelsReaderState == null) {
-                        logger.warn { "onnx runtime was not provided. Falling back to paged reader" }
-                        readerState.onReaderTypeChange(PAGED)
-                    } else {
-                        panelsReaderState.initialize()
-                    }
-                }
             }
         }.launchIn(screenModelScope)
     }
@@ -155,14 +126,11 @@ class ReaderViewModel(
     private fun stopAllReaderModeStates() {
         pagedReaderState.stop()
         continuousReaderState.stop()
-        panelsReaderState?.stop()
-
     }
 
     override fun onDispose() {
         stopAllReaderModeStates()
         readerState.onDispose()
-        panelDetector?.closeCurrentSession()
         upscaler?.closeCurrentSession()
     }
 }

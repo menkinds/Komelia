@@ -22,7 +22,6 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import snd.komelia.AppNotifications
 import snd.komelia.KomgaAuthenticationState
-import snd.komelia.http.ApiKeyStore
 import snd.komelia.komga.api.KomgaLibraryApi
 import snd.komelia.komga.api.KomgaUserApi
 import snd.komelia.offline.api.OfflineLibraryApi
@@ -34,22 +33,16 @@ import snd.komelia.settings.CommonSettingsRepository
 import snd.komelia.settings.SecretsRepository
 import snd.komelia.ui.LoadState
 import snd.komelia.ui.LoadState.Uninitialized
-import snd.komelia.ui.platform.PlatformType
-import snd.komelia.ui.platform.PlatformType.DESKTOP
-import snd.komelia.ui.platform.PlatformType.MOBILE
-import snd.komelia.ui.platform.PlatformType.WEB_KOMF
 
 private val logger = KotlinLogging.logger { }
 
 class LoginViewModel(
     private val settingsRepository: CommonSettingsRepository,
     private val secretsRepository: SecretsRepository,
-    private val apiKeyStore: ApiKeyStore,
     private val komgaUserApi: Flow<KomgaUserApi>,
     private val komgaLibraryApi: Flow<KomgaLibraryApi>,
     private val komgaAuthState: KomgaAuthenticationState,
     private val notifications: AppNotifications,
-    private val platform: PlatformType,
 
     private val offlineUserRepository: OfflineUserRepository?,
     private val offlineServerRepository: OfflineMediaServerRepository?,
@@ -60,7 +53,6 @@ class LoginViewModel(
     var url = MutableStateFlow("")
     var user = MutableStateFlow("")
     var password = MutableStateFlow("")
-    var apiKey = MutableStateFlow("")
     var userLoginError = MutableStateFlow<String?>(null)
     var autoLoginError = MutableStateFlow<String?>(null)
     val offlineIsAvailable = MutableStateFlow(false)
@@ -89,24 +81,11 @@ class LoginViewModel(
             offlineUser.value = offlineServer?.let { server -> offlineUsers.firstOrNull { it.serverId == server.id } }
             val isOffline = offlineSettingsRepository?.getOfflineMode()?.first() ?: false
 
-            when (platform) {
-                MOBILE, DESKTOP -> {
-                    if (isOffline || cookie != null) {
-                        mutableState.value = LoadState.Loading
-                        tryAutologin()
-                    } else {
-                        mutableState.value = LoadState.Error(RuntimeException("Not logged in"))
-                    }
-                }
-
-                WEB_KOMF -> {
-                    if(apiKeyStore.apiKey!=null) {
-                        mutableState.value = LoadState.Loading
-                        tryAutologin()
-                    }else{
-                        mutableState.value = LoadState.Error(RuntimeException("Not logged in"))
-                    }
-                }
+            if (isOffline || cookie != null) {
+                mutableState.value = LoadState.Loading
+                tryAutologin()
+            } else {
+                mutableState.value = LoadState.Error(RuntimeException("Not logged in"))
             }
         }
     }
@@ -133,15 +112,6 @@ class LoginViewModel(
             settingsRepository.putServerUrl(url.value)
             settingsRepository.putCurrentUser(user.value)
             tryUserLogin(user.value, password.value)
-        }
-    }
-
-    fun loginWithApiKey() {
-        screenModelScope.launch {
-            userLoginError.value = null
-            settingsRepository.putServerUrl(url.value)
-            apiKeyStore.setApiKey(url.value, apiKey.value)
-            tryUserLogin(null, null)
         }
     }
 

@@ -1,12 +1,8 @@
 package snd.komelia.api
 
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import snd.komelia.komga.api.KomgaSeriesApi
 import snd.komelia.komga.api.model.KomeliaSeries
-import snd.komf.api.KomfServerSeriesId
-import snd.komf.api.mangabaka.KomfMangaBakaLinkedSeries
-import snd.komf.client.KomfMangaBakaClient
 import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.common.KomgaThumbnailId
 import snd.komga.client.common.Page
@@ -20,12 +16,10 @@ import snd.komga.client.series.KomgaSeriesSearch
 
 class RemoteSeriesApi(
     private val seriesClient: KomgaSeriesClient,
-    private val komfMangaBakaClient: Flow<KomfMangaBakaClient?>,
 ) : KomgaSeriesApi {
     override suspend fun getOneSeries(seriesId: KomgaSeriesId): KomeliaSeries {
         val series = seriesClient.getOneSeries(seriesId)
-        val mangaBaka = komfMangaBakaClient.first()?.getLinked(KomfServerSeriesId(series.id.value))
-        return KomeliaSeries(series, mangaBaka?.mangaBaka)
+        return KomeliaSeries(series)
     }
 
     override suspend fun getSeriesList(
@@ -122,18 +116,11 @@ class RemoteSeriesApi(
 
     override suspend fun getAllCollectionsBySeries(seriesId: KomgaSeriesId) =
         seriesClient.getAllCollectionsBySeries(seriesId)
-
-    internal suspend fun Page<KomgaSeries>.toKomeliaPage(): Page<KomeliaSeries> {
-        val komfIds = this.content.map { KomfServerSeriesId(it.id.value) }
-        val mangaBaka = komfMangaBakaClient.first()?.getAllLinked(komfIds).orEmpty()
-        return this.toKomeliaPage(mangaBaka)
-    }
 }
 
-internal fun Page<KomgaSeries>.toKomeliaPage(mangaBaka: List<KomfMangaBakaLinkedSeries>): Page<KomeliaSeries> {
-    val mangaBaka = mangaBaka.associateBy { it.komgaId.value }
+internal fun Page<KomgaSeries>.toKomeliaPage(): Page<KomeliaSeries> {
     return Page(
-        content = this.content.map { KomeliaSeries(it, mangaBaka[it.id.value]?.mangaBaka) },
+        content = this.content.map { KomeliaSeries(it) },
         pageable = this.pageable,
         totalElements = this.totalElements,
         totalPages = this.totalPages,

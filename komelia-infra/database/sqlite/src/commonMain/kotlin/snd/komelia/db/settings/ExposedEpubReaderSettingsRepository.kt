@@ -8,7 +8,6 @@ import snd.komelia.db.EpubReaderSettings
 import snd.komelia.db.ExposedRepository
 import snd.komelia.db.defaultBookId
 import snd.komelia.db.tables.EpubReaderSettingsTable
-import snd.komelia.settings.model.EpubReaderType
 
 class ExposedEpubReaderSettingsRepository(database: Database) : ExposedRepository(database) {
 
@@ -19,9 +18,7 @@ class ExposedEpubReaderSettingsRepository(database: Database) : ExposedRepositor
                 .firstOrNull()
                 ?.let {
                     EpubReaderSettings(
-                        readerType = EpubReaderType.valueOf(it[EpubReaderSettingsTable.readerType]),
                         komgaReaderSettings = it[EpubReaderSettingsTable.komgaSettingsJson],
-                        ttsuReaderSettings = it[EpubReaderSettingsTable.ttsuSettingsJson]
                     )
                 }
         }
@@ -31,10 +28,15 @@ class ExposedEpubReaderSettingsRepository(database: Database) : ExposedRepositor
         transaction {
             EpubReaderSettingsTable.upsert {
                 it[bookId] = defaultBookId
-                it[readerType] = settings.readerType.name
+                it[readerType] = LEGACY_READER_TYPE
                 it[komgaSettingsJson] = settings.komgaReaderSettings
-                it[ttsuSettingsJson] = settings.ttsuReaderSettings
+                it[ttsuSettingsJson] = LEGACY_TTSU_SETTINGS
             }
         }
+    }
+
+    private companion object {
+        const val LEGACY_READER_TYPE = "KOMGA_EPUB"
+        const val LEGACY_TTSU_SETTINGS = "{}"
     }
 }

@@ -32,7 +32,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_continuous
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_paged
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_panels
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -40,7 +39,6 @@ import org.jetbrains.compose.resources.rememberResourceEnvironment
 import snd.komelia.AppNotification
 import snd.komelia.settings.model.ReaderType.CONTINUOUS
 import snd.komelia.settings.model.ReaderType.PAGED
-import snd.komelia.settings.model.ReaderType.PANELS
 import snd.komelia.ui.LocalNotifications
 import snd.komelia.ui.LocalPlatform
 import snd.komelia.ui.LocalWindowState
@@ -55,8 +53,6 @@ import snd.komelia.ui.reader.image.continuous.ContinuousReaderContent
 import snd.komelia.ui.reader.image.continuous.ContinuousReaderState
 import snd.komelia.ui.reader.image.paged.PagedReaderContent
 import snd.komelia.ui.reader.image.paged.PagedReaderState
-import snd.komelia.ui.reader.image.panels.PanelsReaderContent
-import snd.komelia.ui.reader.image.panels.PanelsReaderState
 import snd.komelia.ui.reader.image.settings.SettingsOverlay
 import snd.komelia.ui.settings.imagereader.onnxruntime.OnnxRuntimeSettingsState
 import snd.komelia.ui.pages.rememberPageTextRecognizer
@@ -67,7 +63,6 @@ fun ReaderContent(
     commonReaderState: ReaderState,
     pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
-    panelsReaderState: PanelsReaderState?,
     onnxRuntimeSettingsState: OnnxRuntimeSettingsState?,
     screenScaleState: ScreenScaleState,
 
@@ -98,7 +93,7 @@ fun ReaderContent(
     LaunchedEffect(density) {
         commonReaderState.pixelDensity.value = density
     }
-    ReaderTypeNotification(commonReaderState, pagedReaderState, continuousReaderState, panelsReaderState)
+    ReaderTypeNotification(commonReaderState, pagedReaderState, continuousReaderState)
 
     val topLevelFocus = remember { FocusRequester() }
     val volumeKeysNavigation = commonReaderState.volumeKeysNavigation.collectAsState().value
@@ -194,20 +189,6 @@ fun ReaderContent(
                     volumeKeysNavigation = volumeKeysNavigation
                 )
             }
-
-            PANELS -> {
-                check(panelsReaderState != null)
-                PanelsReaderContent(
-                    showHelpDialog = showHelpDialog,
-                    onShowHelpDialogChange = { showHelpDialog = it },
-                    showSettingsMenu = showSettingsMenu,
-                    onShowSettingsMenuChange = { showSettingsMenu = it },
-                    screenScaleState = screenScaleState,
-                    panelsReaderState = panelsReaderState,
-                    volumeKeysNavigation = volumeKeysNavigation
-                )
-            }
-
         }
 
         SettingsOverlay(
@@ -215,7 +196,6 @@ fun ReaderContent(
             commonReaderState = commonReaderState,
             pagedReaderState = pagedReaderState,
             continuousReaderState = continuousReaderState,
-            panelsReaderState = panelsReaderState,
             onnxRuntimeSettingsState = onnxRuntimeSettingsState,
             screenScaleState = screenScaleState,
             isColorCorrectionsActive = isColorCorrectionActive,
@@ -294,7 +274,6 @@ private fun ReaderTypeNotification(
     commonReaderState: ReaderState,
     pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
-    panelsReaderState: PanelsReaderState?,
 ) {
     val notifications = LocalNotifications.current
     val environment = rememberResourceEnvironment()
@@ -308,17 +287,6 @@ private fun ReaderTypeNotification(
                     getString(
                         environment,
                         AppStrings.forReadingDirection(pagedReaderState.readingDirection.value)
-                    )
-                )
-            }
-
-            PANELS -> buildString {
-                append(getString(environment, Res.string.reader_type_panels))
-                append("\n")
-                append(
-                    getString(
-                        environment,
-                        AppStrings.forReadingDirection(panelsReaderState!!.readingDirection.value)
                     )
                 )
             }

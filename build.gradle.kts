@@ -1,8 +1,5 @@
-import org.apache.commons.io.IOUtils
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.file.DuplicatesStrategy.EXCLUDE
-import java.io.FileOutputStream
-import java.util.zip.GZIPOutputStream
 
 plugins {
     // this is necessary to avoid the plugins to be loaded multiple times
@@ -31,7 +28,6 @@ val composeCommonResources = "$projectDir/komelia-ui/src/commonMain/composeResou
 
 val epubReader = "$rootDir/komelia-epub-reader"
 val epubReaderKomga = "$epubReader/komga-webui"
-val epubReaderTtsu = "$epubReader/ttu-ebook-reader"
 
 val linuxCommonLibs = setOf(
     "libintl.so",
@@ -134,14 +130,6 @@ val windowsLibs = setOf(
     "libkomelia_enumerate_devices_cuda.dll",
     "libkomelia_webview.dll",
 )
-
-interface Injected {
-    @get:Inject
-    val objectFactory: ObjectFactory
-
-    @get:Inject
-    val fs: FileSystemOperations
-}
 
 tasks.register<Sync>("linux-x86_64_copyJniLibs") {
     group = "komelia-build"
@@ -277,45 +265,11 @@ tasks.register<Exec>("komgaNpmBuild") {
     )
 }
 
-tasks.register<Exec>("ttsuNpmInstall") {
-    group = "komelia-build"
-    workingDir(epubReaderTtsu)
-    inputs.file("$epubReaderTtsu/package.json")
-    outputs.dir("$epubReaderTtsu/node_modules")
-    commandLine(
-        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            "npm.cmd"
-        } else {
-            "npm"
-        },
-        "install",
-    )
-}
-
-tasks.register<Exec>("ttsuNpmBuild") {
-    group = "komelia-build"
-    dependsOn("ttsuNpmInstall")
-    workingDir(epubReaderTtsu)
-    inputs.dir(epubReaderTtsu)
-    outputs.dir("$epubReaderTtsu/dist")
-    commandLine(
-        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            "npm.cmd"
-        } else {
-            "npm"
-        },
-        "run",
-        "build",
-    )
-}
-
 tasks.register<Sync>("buildEpubReaders") {
     group = "komelia-build"
     dependsOn("komgaNpmBuild")
-    dependsOn("ttsuNpmBuild")
 
     from("$epubReaderKomga/dist/")
-    from("$epubReaderTtsu/dist/")
     into(composeCommonResources)
 }
 
@@ -405,102 +359,4 @@ tasks.register("androidRelease") {
     description = "build release apk"
     group = "komelia-package"
     dependsOn(projects.komeliaApp.androidApp.path + ":assembleRelease")
-}
-
-tasks.register("komfExtensionChrome") {
-    description = "build komf extension for chrome"
-    group = "komelia-package"
-    dependsOn(projects.komeliaKomfExtension.app.path + ":packageExtension_prod_chrome")
-}
-
-tasks.register("komfExtensionFirefox") {
-    description = "build komf extension for firefox"
-    group = "komelia-package"
-    dependsOn(projects.komeliaKomfExtension.app.path + ":packageExtension_prod_firefox")
-}
-
-tasks.register<DefaultTask>("komfWebUI") {
-    description = "build and package webapp"
-    group = "komelia-package"
-    dependsOn(projects.komeliaApp.webApp.path + ":wasmJsBrowserDistribution")
-    dependsOn(projects.komeliaInfra.imageDecoder.wasmImageWorker.path + ":wasmJsBrowserDistribution")
-
-    val appInput = "${project.layout.projectDirectory}/komelia-app/webApp/build/dist/wasmJs/productionExecutable/"
-    val appResourcesInput =
-        "${project.layout.projectDirectory}/komelia-app/webApp/build/dist/wasmJs/productionExecutable/composeResources/io.github.snd_r.komelia.ui.komelia_ui.generated.resources/"
-    val webWorkerInput =
-        "${project.layout.projectDirectory}/komelia-infra/image-decoder/wasm-image-worker/build/dist/wasmJs/productionExecutable/"
-
-    val output = "${project.layout.buildDirectory.get()}/komf-webui"
-    val outputResourcesFiles =
-        "${project.layout.buildDirectory.get()}/komf-webui/composeResources/io.github.snd_r.komelia.ui.komelia_ui.generated.resources/files"
-    val outputResourcesValues =
-        "${project.layout.buildDirectory.get()}/komf-webui/composeResources/io.github.snd_r.komelia.ui.komelia_ui.generated.resources/values"
-    val outputResourcesDrawables =
-        "${project.layout.buildDirectory.get()}/komf-webui/composeResources/io.github.snd_r.komelia.ui.komelia_ui.generated.resources/drawable"
-    delete(output)
-    mkdir(output)
-    mkdir(outputResourcesFiles)
-    mkdir(outputResourcesValues)
-    mkdir(outputResourcesDrawables)
-    inputs.dir(appInput)
-    inputs.dir(appResourcesInput)
-    inputs.dir(webWorkerInput)
-    outputs.dir(output)
-    outputs.dir(outputResourcesFiles)
-    outputs.dir(outputResourcesValues)
-    outputs.dir(outputResourcesDrawables)
-    val injected = project.objects.newInstance<Injected>()
-
-    doLast {
-        fun gzipFiles(files: FileCollection, outputDir: String) {
-            files.forEach { file ->
-                val input = file.inputStream()
-                val output = FileOutputStream("$outputDir/${file.name}.gz")
-                val gzip = GZIPOutputStream(output)
-                IOUtils.copyLarge(input, gzip)
-                gzip.close()
-                output.close()
-                input.close()
-            }
-        }
-
-        gzipFiles(
-            injected.objectFactory.fileTree().from(appInput).matching {
-                include("*.wasm")
-                include("*.js")
-                include("*.css")
-            },
-            output
-        )
-        injected.fs.copy {
-            from(appInput)
-            into(output)
-            include("index.html")
-        }
-        gzipFiles(
-            injected.objectFactory.fileTree().from(webWorkerInput).matching {
-                include("*.wasm")
-                include("*.js")
-            },
-            output
-        )
-
-        gzipFiles(
-            injected.objectFactory.fileTree().from("$appResourcesInput/files").matching {
-                include("*.html")
-            },
-            "$output/composeResources/io.github.snd_r.komelia.ui.komelia_ui.generated.resources/files"
-        )
-        gzipFiles(
-            injected.objectFactory.fileTree().from("$appResourcesInput/values").matching {
-                include("*.cvr")
-            },
-            "$output/composeResources/io.github.snd_r.komelia.ui.komelia_ui.generated.resources/values"
-        )
-        gzipFiles(
-            injected.objectFactory.fileTree().from("$appResourcesInput/drawable"),
-            "$output/composeResources/io.github.snd_r.komelia.ui.komelia_ui.generated.resources/drawable"
-        )
-    }
 }

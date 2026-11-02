@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import snd.komelia.AppNotification
 import snd.komelia.AppNotifications
-import snd.komelia.image.KomeliaPanelDetector
 import snd.komelia.image.KomeliaUpscaler
 import snd.komelia.image.ReduceKernel
 import snd.komelia.image.UpsamplingMode
@@ -27,7 +26,6 @@ class ImageReaderSettingsViewModel(
     private val onnxRuntimeInstaller: OnnxRuntimeInstaller?,
     private val onnxRuntime: OnnxRuntime?,
     private val upscaler: KomeliaUpscaler?,
-    private val panelDetector: KomeliaPanelDetector?,
     private val onnxModelDownloader: OnnxModelDownloader?,
     private val coilMemoryCache: MemoryCache?,
     private val coilDiskCache: DiskCache?,
@@ -39,7 +37,6 @@ class ImageReaderSettingsViewModel(
         onnxModelDownloader = onnxModelDownloader,
 
         onnxRuntime = onnxRuntime,
-        panelDetector = panelDetector,
         upscaler = upscaler,
 
         settingsRepository = settingsRepository,

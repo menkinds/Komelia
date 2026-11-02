@@ -1,7 +1,6 @@
 package snd.komelia.komga.api.model
 
 import kotlinx.serialization.Serializable
-import snd.komf.api.mangabaka.KomfMangaBakaSeries
 import snd.komga.client.library.KomgaLibraryId
 import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesBookMetadata
@@ -26,10 +25,8 @@ data class KomeliaSeries(
     val created: Instant,
     val lastModified: Instant,
     val fileLastModified: Instant,
-
-    val mangaBakaMetadata: KomfMangaBakaSeries?,
 ) {
-    constructor(series: KomgaSeries, mangaBakaMetadata: KomfMangaBakaSeries?) :
+    constructor(series: KomgaSeries) :
             this(
                 id = series.id,
                 libraryId = series.libraryId,
@@ -46,7 +43,5 @@ data class KomeliaSeries(
                 created = series.created,
                 lastModified = series.lastModified,
                 fileLastModified = series.fileLastModified,
-
-                mangaBakaMetadata = mangaBakaMetadata,
             )
 }

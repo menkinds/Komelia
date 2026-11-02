@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import snd.komelia.image.KomeliaPanelDetector
 import snd.komelia.image.KomeliaUpscaler
 import snd.komelia.image.UpscaleMode
 import snd.komelia.onnxruntime.OnnxRuntime
@@ -28,7 +27,6 @@ class OnnxRuntimeSettingsState(
 
     private val onnxRuntime: OnnxRuntime?,
     private val upscaler: KomeliaUpscaler?,
-    private val panelDetector: KomeliaPanelDetector?,
 
     private val settingsRepository: ImageReaderSettingsRepository,
     private val coroutineScope: CoroutineScope,
@@ -48,8 +46,6 @@ class OnnxRuntimeSettingsState(
     val mangaJaNaiIsInstalled = upscaler?.mangaJaNaiIsAvailable
         ?.stateIn(coroutineScope, SharingStarted.Eagerly, false)
         ?: MutableStateFlow(false)
-    val panelModelIsDownloaded = panelDetector?.isAvailable ?: MutableStateFlow(false)
-
 
     suspend fun initialize() {
         upscalerTileSize.value = settingsRepository.getOnnxRuntimeTileSize().first()
@@ -65,11 +61,6 @@ class OnnxRuntimeSettingsState(
     fun onMangaJaNaiDownloadRequest(): Flow<UpdateProgress> {
         checkNotNull(onnxModelDownloader) { "onnx model downloader is not initialized" }
         return onnxModelDownloader.mangaJaNaiDownload()
-    }
-
-    fun onPanelDetectionModelDownloadRequest(): Flow<UpdateProgress> {
-        checkNotNull(onnxModelDownloader) { "onnx model downloader is not initialized" }
-        return onnxModelDownloader.panelDownload()
     }
 
     fun onTileSizeChange(tileSize: Int) {

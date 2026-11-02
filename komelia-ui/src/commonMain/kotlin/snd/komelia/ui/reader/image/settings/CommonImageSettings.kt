@@ -83,14 +83,12 @@ fun CommonImageSettings(
             contentPadding = PaddingValues(horizontal = 10.dp)
         )
 
-        if (LocalPlatform.current != PlatformType.WEB_KOMF) {
-            SwitchWithLabel(
-                checked = cropBorders,
-                onCheckedChange = onCropBordersChange,
-                label = { Text(stringResource(Res.string.reader_image_crop_borders)) },
-                contentPadding = PaddingValues(horizontal = 10.dp)
-            )
-        }
+        SwitchWithLabel(
+            checked = cropBorders,
+            onCheckedChange = onCropBordersChange,
+            label = { Text(stringResource(Res.string.reader_image_crop_borders)) },
+            contentPadding = PaddingValues(horizontal = 10.dp)
+        )
 
         Row(
             modifier = Modifier

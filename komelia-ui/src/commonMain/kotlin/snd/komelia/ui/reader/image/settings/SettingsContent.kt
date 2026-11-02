@@ -32,7 +32,6 @@ import snd.komelia.settings.model.ContinuousReadingDirection
 import snd.komelia.settings.model.PagedReadingDirection
 import snd.komelia.settings.model.ReaderType.CONTINUOUS
 import snd.komelia.settings.model.ReaderType.PAGED
-import snd.komelia.settings.model.ReaderType.PANELS
 import snd.komelia.ui.LocalPlatform
 import snd.komelia.ui.LocalWindowWidth
 import snd.komelia.ui.platform.PlatformType.DESKTOP
@@ -48,7 +47,6 @@ import snd.komelia.ui.reader.image.common.PageSpreadProgressSlider
 import snd.komelia.ui.reader.image.common.ProgressSlider
 import snd.komelia.ui.reader.image.continuous.ContinuousReaderState
 import snd.komelia.ui.reader.image.paged.PagedReaderState
-import snd.komelia.ui.reader.image.panels.PanelsReaderState
 import snd.komelia.ui.settings.imagereader.onnxruntime.OnnxRuntimeSettingsState
 
 @Composable
@@ -57,7 +55,6 @@ fun BoxScope.SettingsOverlay(
     commonReaderState: ReaderState,
     pagedReaderState: PagedReaderState,
     continuousReaderState: ContinuousReaderState,
-    panelsReaderState: PanelsReaderState?,
     onnxRuntimeSettingsState: OnnxRuntimeSettingsState?,
     screenScaleState: ScreenScaleState,
     isColorCorrectionsActive: Boolean,
@@ -110,7 +107,6 @@ fun BoxScope.SettingsOverlay(
             zoom = zoom,
             pagedReaderState = pagedReaderState,
             continuousReaderState = continuousReaderState,
-            panelsReaderState = panelsReaderState,
 
             flashEnabled = flashEnabled,
             onFlashEnabledChange = commonReaderState::onFlashEnabledChange,
@@ -161,7 +157,6 @@ fun BoxScope.SettingsOverlay(
 
             pagedReaderState = pagedReaderState,
             continuousReaderState = continuousReaderState,
-            panelsReaderState = panelsReaderState,
             onnxRuntimeSettingsState = onnxRuntimeSettingsState,
 
             onBackPress = onBackPress,
@@ -204,28 +199,6 @@ fun BoxScope.SettingsOverlay(
                     )
                 }
             )
-        }
-
-        PANELS -> {
-            check(panelsReaderState != null) { "panels reader is not initialized" }
-            val readingDirection = panelsReaderState.readingDirection.collectAsState().value
-            val layoutDirection = remember(readingDirection) {
-                when (readingDirection) {
-                    PagedReadingDirection.LEFT_TO_RIGHT -> Ltr
-                    PagedReadingDirection.RIGHT_TO_LEFT -> Rtl
-                }
-            }
-            val pages = panelsReaderState.pageMetadata.collectAsState().value
-            val currentIndex = panelsReaderState.currentPageIndex.collectAsState().value
-            PageSpreadProgressSlider(
-                pageSpreads = pages.map { listOf(it) },
-                currentSpreadIndex = currentIndex.page,
-                onPageNumberChange = panelsReaderState::onPageChange,
-                show = show,
-                layoutDirection = layoutDirection,
-                modifier = Modifier.align(Alignment.BottomStart)
-            )
-
         }
 
         CONTINUOUS -> {

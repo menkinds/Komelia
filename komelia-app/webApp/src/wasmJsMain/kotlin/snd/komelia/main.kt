@@ -47,7 +47,7 @@ fun main() {
             dependencies = dependencies.collectAsState().value,
             windowWidth = windowWidth.collectAsState().value,
             windowHeight = windowHeight.collectAsState().value,
-            platformType = PlatformType.WEB_KOMF,
+            platformType = PlatformType.DESKTOP,
             keyEvents = keyEvents
         )
     }

@@ -50,7 +50,6 @@ add_library(komelia_onnxruntime SHARED
         src/onnxruntime/jni/komelia_onnxruntime_common_jni.h
         src/onnxruntime/jni/komelia_onnxruntime_jni.c
         src/onnxruntime/jni/komelia_upscaler_jni.c
-        src/onnxruntime/jni/komelia_rf_detr_jni.c
         src/onnxruntime/komelia_matrix_ops.h
         src/onnxruntime/win32_strings.h
         src/onnxruntime/komelia_ort_upscaler.h
@@ -59,8 +58,6 @@ add_library(komelia_onnxruntime SHARED
         src/onnxruntime/komelia_onnxruntime.c
         src/onnxruntime/komelia_error.h
         src/onnxruntime/komelia_error.c
-        src/onnxruntime/komelia_ort_rf_detr.h
-        src/onnxruntime/komelia_ort_rf_detr.c
 )
 
 target_include_directories(komelia_onnxruntime PRIVATE
@@ -86,7 +83,6 @@ if (WIN32)
             src/onnxruntime/jni/komelia_onnxruntime_common_jni.h
             src/onnxruntime/jni/komelia_onnxruntime_jni.c
             src/onnxruntime/jni/komelia_upscaler_jni.c
-            src/onnxruntime/jni/komelia_rf_detr_jni.c
             src/onnxruntime/komelia_matrix_ops.h
             src/onnxruntime/win32_strings.h
             src/onnxruntime/komelia_ort_upscaler.h
@@ -95,8 +91,6 @@ if (WIN32)
             src/onnxruntime/komelia_onnxruntime.c
             src/onnxruntime/komelia_error.h
             src/onnxruntime/komelia_error.c
-            src/onnxruntime/komelia_ort_rf_detr.h
-            src/onnxruntime/komelia_ort_rf_detr.c
     )
     target_compile_definitions(komelia_onnxruntime_dml PUBLIC USE_DML)
 

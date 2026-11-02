@@ -36,7 +36,6 @@ import snd.komelia.DefaultDateTimeFormats.localDateFormat
 import snd.komelia.ui.LocalPlatform
 import snd.komelia.ui.common.components.SwitchWithLabel
 import snd.komelia.ui.dialogs.update.UpdateProgressDialog
-import snd.komelia.ui.platform.PlatformType
 import snd.komelia.updates.AppRelease
 import snd.komelia.updates.AppVersion
 import snd.komelia.updates.UpdateProgress
@@ -79,9 +78,7 @@ fun AppUpdatesContent(
                 onClick = { onCheckForUpdates() },
             ) { Text(stringResource(Res.string.settings_updates_check)) }
 
-            if (LocalPlatform.current != PlatformType.WEB_KOMF &&
-                latestVersion != null && currentVersion < latestVersion
-            ) {
+            if (latestVersion != null && currentVersion < latestVersion) {
                 FilledTonalButton(
                     onClick = { onUpdate() },
                 ) { Text(stringResource(Res.string.settings_updates_update)) }

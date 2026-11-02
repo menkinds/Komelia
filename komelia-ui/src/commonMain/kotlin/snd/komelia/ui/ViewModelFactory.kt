@@ -24,11 +24,6 @@ import snd.komelia.ui.dialogs.book.editbulk.BookBulkEditDialogViewModel
 import snd.komelia.ui.dialogs.collectionadd.AddToCollectionDialogViewModel
 import snd.komelia.ui.dialogs.collectionedit.CollectionEditDialogViewModel
 import snd.komelia.ui.dialogs.filebrowser.FileBrowserDialogViewModel
-import snd.komelia.ui.dialogs.komf.identify.KomfIdentifyDialogViewModel
-import snd.komelia.ui.dialogs.komf.identify.KomfLibraryIdentifyViewmodel
-import snd.komelia.ui.dialogs.komf.mangabaka.KomfMangaBakaLinkViewModel
-import snd.komelia.ui.dialogs.komf.mangabaka.KomfMangaBakaUnlinkViewModel
-import snd.komelia.ui.dialogs.komf.reset.KomfResetMetadataDialogViewModel
 import snd.komelia.ui.dialogs.libraryedit.LibraryEditDialogViewModel
 import snd.komelia.ui.dialogs.oneshot.OneshotEditDialogViewModel
 import snd.komelia.ui.dialogs.readlistadd.AddToReadListDialogViewModel
@@ -54,18 +49,9 @@ import snd.komelia.ui.series.SeriesViewModel
 import snd.komelia.ui.series.SeriesViewModel.SeriesTab
 import snd.komelia.ui.settings.account.AccountSettingsViewModel
 import snd.komelia.ui.settings.analysis.MediaAnalysisViewModel
-import snd.komelia.ui.settings.announcements.AnnouncementsViewModel
 import snd.komelia.ui.settings.appearance.AppSettingsViewModel
 import snd.komelia.ui.settings.authactivity.AuthenticationActivityViewModel
-import snd.komelia.ui.settings.epub.EpubReaderSettingsViewModel
 import snd.komelia.ui.settings.imagereader.ImageReaderSettingsViewModel
-import snd.komelia.ui.settings.komf.KomfSharedState
-import snd.komelia.ui.settings.komf.general.KomfSettingsViewModel
-import snd.komelia.ui.settings.komf.jobs.KomfJobsViewModel
-import snd.komelia.ui.settings.komf.mangabaka.KomfMangaBakaSettingsViewModel
-import snd.komelia.ui.settings.komf.notifications.KomfNotificationSettingsViewModel
-import snd.komelia.ui.settings.komf.processing.KomfProcessingSettingsViewModel
-import snd.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel
 import snd.komelia.ui.settings.navigation.SettingsNavigationViewModel
 import snd.komelia.ui.settings.offline.OfflineSettingsViewModel
 import snd.komelia.ui.settings.server.ServerSettingsViewModel
@@ -75,11 +61,6 @@ import snd.komelia.ui.topbar.NotificationsState
 import snd.komelia.ui.topbar.SearchBarState
 import snd.komelia.updates.AppRelease
 import snd.komelia.updates.StartupUpdateChecker
-import snd.komf.api.KomfServerLibraryId
-import snd.komf.api.KomfServerSeriesId
-import snd.komf.api.MediaServer
-import snd.komf.api.MediaServer.KAVITA
-import snd.komf.api.MediaServer.KOMGA
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.collection.KomgaCollection
 import snd.komga.client.collection.KomgaCollectionId
@@ -101,13 +82,6 @@ class ViewModelFactory(
     private val releases = MutableStateFlow<List<AppRelease>>(emptyList())
     private val imageReaderCurrentBook = MutableStateFlow<KomgaBookId?>(null)
         .also { dependencies.colorCorrectionStep.setBookFlow(it) }
-
-    private val komfSharedState = KomfSharedState(
-        komfConfigClient = dependencies.komfClientFactory.configClient(),
-        komgaServerClient = dependencies.komfClientFactory.mediaServerClient(KOMGA),
-        kavitaServerClient = dependencies.komfClientFactory.mediaServerClient(KAVITA),
-        notifications = dependencies.appNotifications,
-    )
 
     private val startupUpdateChecker = dependencies.appUpdater?.let { updater ->
         StartupUpdateChecker(
@@ -197,8 +171,6 @@ class ViewModelFactory(
         libraries = dependencies.komgaSharedState.libraries,
         seriesApi = komgaApi.seriesApi,
         taskEmitter = dependencies.offlineDependencies?.taskEmitter,
-        komfMangaBakaClient = dependencies.komfClientFactory.mangaBaka(),
-        komfSettingsRepository = dependencies.appRepositories.komfSettingsRepository,
         bookApi = komgaApi.bookApi,
         collectionApi = komgaApi.collectionsApi,
         notifications = dependencies.appNotifications,
@@ -259,7 +231,6 @@ class ViewModelFactory(
             colorCorrectionRepository = appRepositories.bookColorCorrectionRepository,
             colorCorrectionIsActive = dependencies.colorCorrectionStep.isActive,
             onnxRuntime = dependencies.onnxRuntime,
-            panelDetector = dependencies.panelDetector,
             upscaler = dependencies.upscaler,
             bookSiblingsContext = bookSiblingsContext,
             markReadProgress = markReadProgress,
@@ -270,12 +241,10 @@ class ViewModelFactory(
         return LoginViewModel(
             settingsRepository = appRepositories.settingsRepository,
             secretsRepository = appRepositories.secretsRepository,
-            apiKeyStore = dependencies.apiKeyStore,
             komgaUserApi = dependencies.komgaApi.map { it.userApi },
             komgaLibraryApi = dependencies.komgaApi.map { it.libraryApi },
             komgaAuthState = dependencies.komgaSharedState,
             notifications = dependencies.appNotifications,
-            platform = platformType,
             offlineUserRepository = dependencies.offlineDependencies?.repositories?.userRepository,
             offlineServerRepository = dependencies.offlineDependencies?.repositories?.mediaServerRepository,
             offlineSettingsRepository = dependencies.offlineDependencies?.repositories?.offlineSettingsRepository,
@@ -447,10 +416,6 @@ class ViewModelFactory(
         )
     }
 
-    fun getAnnouncementsViewModel(): AnnouncementsViewModel {
-        return AnnouncementsViewModel(dependencies.appNotifications, komgaApi.announcementsApi)
-    }
-
     fun getSettingsNavigationViewModel(rootNavigator: Navigator): SettingsNavigationViewModel {
         return SettingsNavigationViewModel(
             rootNavigator = rootNavigator,
@@ -464,8 +429,6 @@ class ViewModelFactory(
             currentServerUrl = appRepositories.settingsRepository.getServerUrl(),
             bookApi = komgaApi.bookApi,
             latestVersion = appRepositories.settingsRepository.getLastCheckedReleaseVersion(),
-            komfEnabled = appRepositories.komfSettingsRepository.getKomfEnabled(),
-            platformType = platformType,
             updatesEnabled = dependencies.appUpdater != null,
             user = dependencies.komgaSharedState.authenticatedUser,
         )
@@ -517,126 +480,6 @@ class ViewModelFactory(
         )
     }
 
-    fun getKomfSettingsViewModel(
-        enableKavita: Boolean,
-        integrationToggleEnabled: Boolean,
-    ): KomfSettingsViewModel {
-        return KomfSettingsViewModel(
-            komfConfigClient = dependencies.komfClientFactory.configClient(),
-            komgaMediaServerClient = dependencies.komfClientFactory.mediaServerClient(KOMGA),
-            kavitaMediaServerClient = if (enableKavita) dependencies.komfClientFactory.mediaServerClient(KAVITA) else null,
-            appNotifications = dependencies.appNotifications,
-            settingsRepository = appRepositories.komfSettingsRepository,
-            integrationToggleEnabled = integrationToggleEnabled,
-            komfSharedState = komfSharedState,
-        )
-    }
-
-    fun getKomfNotificationViewModel(): KomfNotificationSettingsViewModel {
-        return KomfNotificationSettingsViewModel(
-            komfConfigClient = dependencies.komfClientFactory.configClient(),
-            komfNotificationClient = dependencies.komfClientFactory.notificationClient(),
-            appNotifications = dependencies.appNotifications,
-            komfConfig = komfSharedState
-        )
-    }
-
-    fun getKomfProcessingViewModel(serverType: MediaServer): KomfProcessingSettingsViewModel {
-        return KomfProcessingSettingsViewModel(
-            komfConfigClient = dependencies.komfClientFactory.configClient(),
-            appNotifications = dependencies.appNotifications,
-            serverType = serverType,
-            komfSharedState = komfSharedState
-        )
-    }
-
-    fun getKomfProvidersViewModel(): KomfProvidersSettingsViewModel {
-        return KomfProvidersSettingsViewModel(
-            komfConfigClient = dependencies.komfClientFactory.configClient(),
-            appNotifications = dependencies.appNotifications,
-            komfSharedState = komfSharedState
-        )
-    }
-
-    fun getKomfJobsViewModel(): KomfJobsViewModel {
-        return KomfJobsViewModel(
-            jobClient = dependencies.komfClientFactory.jobClient(),
-            seriesApi = komgaApi.seriesApi,
-            appNotifications = dependencies.appNotifications
-        )
-    }
-
-    fun getKomfMangaBakaSettingsViewModel(): KomfMangaBakaSettingsViewModel {
-        return KomfMangaBakaSettingsViewModel(
-            settingsRepository = dependencies.appRepositories.komfSettingsRepository,
-            configClient = dependencies.komfClientFactory.configClient(),
-            appNotifications = dependencies.appNotifications,
-            komfSharedState = komfSharedState
-        )
-    }
-
-    fun getKomfIdentifyDialogViewModel(
-        series: KomeliaSeries,
-        onDismissRequest: () -> Unit
-    ): KomfIdentifyDialogViewModel {
-        return KomfIdentifyDialogViewModel(
-            seriesId = KomfServerSeriesId(series.id.value),
-            libraryId = KomfServerLibraryId(series.libraryId.value),
-            seriesName = series.metadata.title,
-            komfConfig = komfSharedState,
-            komfMetadataClient = dependencies.komfClientFactory.metadataClient(KOMGA),
-            komfJobClient = dependencies.komfClientFactory.jobClient(),
-            appNotifications = dependencies.appNotifications,
-            onDismiss = onDismissRequest,
-        )
-    }
-
-    fun getKomfResetMetadataDialogViewModel(
-        onDismissRequest: () -> Unit
-    ): KomfResetMetadataDialogViewModel {
-        return KomfResetMetadataDialogViewModel(
-            komfMetadataClient = dependencies.komfClientFactory.metadataClient(KOMGA),
-            appNotifications = dependencies.appNotifications,
-            onDismiss = onDismissRequest,
-        )
-    }
-
-    fun getKomfLibraryIdentifyViewModel(
-        library: KomgaLibrary
-    ): KomfLibraryIdentifyViewmodel {
-        return KomfLibraryIdentifyViewmodel(
-            libraryId = KomfServerLibraryId(library.id.value),
-            komfMetadataClient = dependencies.komfClientFactory.metadataClient(KOMGA),
-            appNotifications = dependencies.appNotifications,
-        )
-    }
-
-    fun getKomfMangaBakaLinkDialogViewModel(
-        series: KomeliaSeries,
-        onDismissRequest: () -> Unit
-    ): KomfMangaBakaLinkViewModel {
-        return KomfMangaBakaLinkViewModel(
-            series = series,
-            mangaBakaClient = dependencies.komfClientFactory.mangaBaka(),
-            appNotifications = dependencies.appNotifications,
-            appEvents = dependencies.komgaEvents,
-            onDismiss = onDismissRequest
-        )
-    }
-
-    fun getKomfMangaBakaUnlinkDialogViewModel(
-        series: KomeliaSeries,
-        onDismissRequest: () -> Unit
-    ): KomfMangaBakaUnlinkViewModel {
-        return KomfMangaBakaUnlinkViewModel(
-            series = series,
-            mangaBakaClient = dependencies.komfClientFactory.mangaBaka(),
-            appNotifications = dependencies.appNotifications,
-            appEvents = dependencies.komgaEvents,
-            onDismiss = onDismissRequest
-        )
-    }
-
     fun getEpubReaderViewModel(
         bookId: KomgaBookId,
         bookSiblingsContext: BookSiblingsContext,
@@ -652,16 +495,11 @@ class ViewModelFactory(
             readListApi = komgaApi.readListApi,
             settingsRepository = appRepositories.settingsRepository,
             epubSettingsRepository = appRepositories.epubReaderSettingsRepository,
-            fontsRepository = appRepositories.fontsRepository,
             notifications = dependencies.appNotifications,
             windowState = dependencies.windowState,
             platformType = platformType,
             bookSiblingsContext = bookSiblingsContext,
         )
-    }
-
-    fun getEpubReaderSettingsViewModel(): EpubReaderSettingsViewModel {
-        return EpubReaderSettingsViewModel(appRepositories.epubReaderSettingsRepository)
     }
 
     fun getCurvesViewModel(
@@ -681,7 +519,6 @@ class ViewModelFactory(
 
     fun getSeriesBulkActions() = SeriesBulkActions(
         seriesApi = komgaApi.seriesApi,
-        komfClient = dependencies.komfClientFactory.metadataClient(KOMGA),
         taskEmitter = dependencies.offlineDependencies?.taskEmitter,
         notifications = dependencies.appNotifications,
     )
@@ -709,7 +546,6 @@ class ViewModelFactory(
 
             onnxRuntime = dependencies.onnxRuntime,
             upscaler = dependencies.upscaler,
-            panelDetector = dependencies.panelDetector,
             onnxRuntimeInstaller = dependencies.onnxRuntimeInstaller,
             onnxModelDownloader = dependencies.onnxModelDownloader,
 

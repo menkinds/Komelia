@@ -35,8 +35,6 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import snd.komelia.ui.LocalKeyEvents
-import snd.komelia.ui.LocalPlatform
-import snd.komelia.ui.platform.PlatformType.WEB_KOMF
 import snd.komelia.ui.reader.image.ScreenScaleState
 import kotlin.math.abs
 
@@ -45,14 +43,11 @@ fun ScalableContainer(
     scaleState: ScreenScaleState,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    val platform = LocalPlatform.current
     var isCtrlPressed by remember { mutableStateOf(false) }
     val keyEvents: SharedFlow<KeyEvent> = LocalKeyEvents.current
     LaunchedEffect(Unit) {
         keyEvents.collect { event ->
-            isCtrlPressed =
-                if (platform == WEB_KOMF) event.isShiftPressed
-                else event.isCtrlPressed
+            isCtrlPressed = event.isCtrlPressed
         }
     }
 

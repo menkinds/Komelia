@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.stateIn
 import snd.komelia.db.TransactionTemplate
 import snd.komelia.offline.action.OfflineActions
 import snd.komelia.offline.api.OfflineActuatorApi
-import snd.komelia.offline.api.OfflineAnnouncementsApi
 import snd.komelia.offline.api.OfflineBookApi
 import snd.komelia.offline.api.OfflineCollectionsApi
 import snd.komelia.offline.api.OfflineFileSystemApi
@@ -192,7 +191,6 @@ abstract class OfflineModule(
 
         val komgaApi = OfflineKomgaApi(
             actuatorApi = OfflineActuatorApi(),
-            announcementsApi = OfflineAnnouncementsApi(),
             bookApi = OfflineBookApi(
                 mediaRepository = repositories.mediaRepository,
                 komeliaBookRepository = repositories.bookDtoRepository,

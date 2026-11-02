@@ -31,14 +31,11 @@ import snd.komelia.AppNotifications
 import snd.komelia.komga.api.KomgaSeriesApi
 import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.offline.tasks.OfflineTaskEmitter
-import snd.komelia.ui.LocalKomfIntegration
 import snd.komelia.ui.LocalKomgaState
 import snd.komelia.ui.LocalOfflineAvailable
 import snd.komelia.ui.LocalOfflineMode
 import snd.komelia.ui.dialogs.ConfirmationDialog
 import snd.komelia.ui.dialogs.collectionadd.AddToCollectionDialog
-import snd.komelia.ui.dialogs.komf.identify.KomfIdentifyDialog
-import snd.komelia.ui.dialogs.komf.reset.KomfResetSeriesMetadataDialog
 import snd.komelia.ui.dialogs.permissions.DownloadNotificationRequestDialog
 import snd.komelia.ui.dialogs.series.edit.SeriesEditDialog
 

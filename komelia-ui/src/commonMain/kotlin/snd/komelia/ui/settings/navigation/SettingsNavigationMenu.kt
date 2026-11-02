@@ -1,6 +1,5 @@
 package snd.komelia.ui.settings.navigation
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,17 +29,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_announcements
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_app_settings
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_appearance
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_epub_reader
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_image_reader
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_komf_connection
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_komf_jobs
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_komf_notifications
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_komf_processing
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_komf_providers
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_komf_settings
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_log_out
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_log_out_confirm
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_my_account
@@ -60,33 +51,22 @@ import snd.komelia.ui.LocalPlatform
 import snd.komelia.ui.dialogs.ConfirmationDialog
 import snd.komelia.ui.platform.PlatformType.DESKTOP
 import snd.komelia.ui.platform.PlatformType.MOBILE
-import snd.komelia.ui.platform.PlatformType.WEB_KOMF
 import snd.komelia.ui.platform.cursorForHand
 import snd.komelia.ui.settings.account.AccountSettingsScreen
 import snd.komelia.ui.settings.analysis.MediaAnalysisScreen
-import snd.komelia.ui.settings.announcements.AnnouncementsScreen
 import snd.komelia.ui.settings.appearance.AppSettingsScreen
 import snd.komelia.ui.settings.authactivity.AuthenticationActivityScreen
-import snd.komelia.ui.settings.epub.EpubReaderSettingsScreen
 import snd.komelia.ui.settings.imagereader.ImageReaderSettingsScreen
-import snd.komelia.ui.settings.komf.general.KomfSettingsScreen
-import snd.komelia.ui.settings.komf.jobs.KomfJobsScreen
-import snd.komelia.ui.settings.komf.mangabaka.KomfMangaBakaSettingsScreen
-import snd.komelia.ui.settings.komf.notifications.KomfNotificationSettingsScreen
-import snd.komelia.ui.settings.komf.processing.KomfProcessingSettingsScreen
-import snd.komelia.ui.settings.komf.providers.KomfProvidersSettingsScreen
 import snd.komelia.ui.settings.offline.OfflineSettingsScreen
 import snd.komelia.ui.settings.server.ServerSettingsScreen
 import snd.komelia.ui.settings.updates.AppUpdatesScreen
 import snd.komelia.ui.settings.users.UsersScreen
-import snd.komf.api.MediaServer.KOMGA
 import snd.komga.client.user.KomgaUser
 import snd.webview.webviewIsAvailable
 
 @Composable
 fun SettingsNavigationMenu(
     hasMediaErrors: Boolean,
-    komfEnabled: Boolean,
     updatesEnabled: Boolean,
     newVersionIsAvailable: Boolean,
     currentScreen: Screen,
@@ -118,14 +98,6 @@ fun SettingsNavigationMenu(
             isSelected = currentScreen is ImageReaderSettingsScreen,
             color = contentColor,
         )
-        if (webviewIsAvailable()) {
-            NavigationButton(
-                label = stringResource(Res.string.settings_navigation_epub_reader),
-                onClick = { onNavigation(EpubReaderSettingsScreen()) },
-                isSelected = currentScreen is EpubReaderSettingsScreen,
-                color = contentColor,
-            )
-        }
         if (updatesEnabled) {
             NavigationButton(
                 label = stringResource(Res.string.settings_navigation_updates),
@@ -198,61 +170,6 @@ fun SettingsNavigationMenu(
                     error = hasMediaErrors,
                     color = contentColor,
                 )
-
-                NavigationButton(
-                    label = stringResource(Res.string.settings_navigation_announcements),
-                    onClick = { onNavigation(AnnouncementsScreen()) },
-                    isSelected = currentScreen is AnnouncementsScreen,
-                    color = contentColor,
-                )
-                HorizontalDivider(Modifier.padding(vertical = 10.dp))
-            }
-
-            if (isAdmin) {
-                Text(
-                    stringResource(Res.string.settings_navigation_komf_settings),
-                    style = MaterialTheme.typography.titleSmall
-                )
-                NavigationButton(
-                    label = stringResource(Res.string.settings_navigation_komf_connection),
-                    onClick = { onNavigation(KomfSettingsScreen()) },
-                    isSelected = currentScreen is KomfSettingsScreen,
-                    color = contentColor,
-                )
-                AnimatedVisibility(komfEnabled) {
-                    Column {
-                        NavigationButton(
-                            label = "MangaBaka (Beta)",
-                            onClick = { onNavigation(KomfMangaBakaSettingsScreen()) },
-                            isSelected = currentScreen is KomfMangaBakaSettingsScreen,
-                            color = contentColor,
-                        )
-                        NavigationButton(
-                            label = stringResource(Res.string.settings_navigation_komf_processing),
-                            onClick = { onNavigation(KomfProcessingSettingsScreen(KOMGA)) },
-                            isSelected = currentScreen is KomfProcessingSettingsScreen,
-                            color = contentColor,
-                        )
-                        NavigationButton(
-                            label = stringResource(Res.string.settings_navigation_komf_providers),
-                            onClick = { onNavigation(KomfProvidersSettingsScreen()) },
-                            isSelected = currentScreen is KomfProvidersSettingsScreen,
-                            color = contentColor,
-                        )
-                        NavigationButton(
-                            label = stringResource(Res.string.settings_navigation_komf_notifications),
-                            onClick = { onNavigation(KomfNotificationSettingsScreen()) },
-                            isSelected = currentScreen is KomfNotificationSettingsScreen,
-                            color = contentColor,
-                        )
-                        NavigationButton(
-                            label = stringResource(Res.string.settings_navigation_komf_jobs),
-                            onClick = { onNavigation(KomfJobsScreen()) },
-                            isSelected = currentScreen is KomfJobsScreen,
-                            color = contentColor,
-                        )
-                    }
-                }
                 HorizontalDivider(Modifier.padding(vertical = 10.dp))
             }
         }
@@ -291,7 +208,7 @@ fun NavigationButton(
 
     val height = when (LocalPlatform.current) {
         MOBILE -> 50.dp
-        DESKTOP, WEB_KOMF -> 40.dp
+        DESKTOP -> 40.dp
     }
 
     Surface(

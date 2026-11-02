@@ -32,7 +32,7 @@ class ExposedImageReaderSettingsRepository(database: Database) : ExposedReposito
                 ?.let {
 
                     ImageReaderSettings(
-                        readerType = ReaderType.valueOf(it[ImageReaderSettingsTable.readerType]),
+                        readerType = ReaderType.fromStored(it[ImageReaderSettingsTable.readerType]),
                         stretchToFit = it[ImageReaderSettingsTable.stretchToFit],
                         pagedScaleType = LayoutScaleType.valueOf(it[ImageReaderSettingsTable.pagedScaleType]),
                         pagedReadingDirection = PagedReadingDirection.valueOf(it[ImageReaderSettingsTable.pagedReadingDirection]),
