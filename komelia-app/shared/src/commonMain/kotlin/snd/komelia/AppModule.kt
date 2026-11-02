@@ -29,7 +29,6 @@ import okio.Path.Companion.toPath
 import snd.komelia.adult.AdultLockState
 import snd.komelia.adult.RestrictedKomgaApi
 import snd.komelia.api.RemoteActuatorApi
-import snd.komelia.api.RemoteAnnouncementsApi
 import snd.komelia.api.RemoteApi
 import snd.komelia.api.RemoteBookApi
 import snd.komelia.api.RemoteCollectionsApi
@@ -283,7 +282,6 @@ abstract class AppModule {
         komfMangaBaka: Flow<KomfMangaBakaClient?>,
     ) = RemoteApi(
         actuatorApi = RemoteActuatorApi(komgaClientFactory.actuatorClient()),
-        announcementsApi = RemoteAnnouncementsApi(komgaClientFactory.announcementClient()),
         bookApi = RemoteBookApi(
             bookClient = komgaClientFactory.bookClient(),
             offlineBookRepository = offlineRepositories?.bookRepository

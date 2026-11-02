@@ -4,7 +4,6 @@ import snd.komga.client.sse.KomgaSSESession
 
 interface KomgaApi {
     val actuatorApi: KomgaActuatorApi
-    val announcementsApi: KomgaAnnouncementsApi
     val bookApi: KomgaBookApi
     val collectionsApi: KomgaCollectionsApi
     val fileSystemApi: KomgaFileSystemApi

@@ -30,7 +30,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_announcements
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_app_settings
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_appearance
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.settings_navigation_epub_reader
@@ -64,7 +63,6 @@ import snd.komelia.ui.platform.PlatformType.WEB_KOMF
 import snd.komelia.ui.platform.cursorForHand
 import snd.komelia.ui.settings.account.AccountSettingsScreen
 import snd.komelia.ui.settings.analysis.MediaAnalysisScreen
-import snd.komelia.ui.settings.announcements.AnnouncementsScreen
 import snd.komelia.ui.settings.appearance.AppSettingsScreen
 import snd.komelia.ui.settings.authactivity.AuthenticationActivityScreen
 import snd.komelia.ui.settings.epub.EpubReaderSettingsScreen
@@ -196,13 +194,6 @@ fun SettingsNavigationMenu(
                     onClick = { onNavigation(MediaAnalysisScreen()) },
                     isSelected = currentScreen is MediaAnalysisScreen,
                     error = hasMediaErrors,
-                    color = contentColor,
-                )
-
-                NavigationButton(
-                    label = stringResource(Res.string.settings_navigation_announcements),
-                    onClick = { onNavigation(AnnouncementsScreen()) },
-                    isSelected = currentScreen is AnnouncementsScreen,
                     color = contentColor,
                 )
                 HorizontalDivider(Modifier.padding(vertical = 10.dp))

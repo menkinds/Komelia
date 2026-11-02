@@ -474,7 +474,6 @@
     <string name="settings_navigation_server_users">用户</string>
     <string name="settings_navigation_server_auth_activity">身份验证活动</string>
     <string name="settings_navigation_server_media_management">媒体管理</string>
-    <string name="settings_navigation_announcements">公告</string>
     <string name="settings_navigation_komf_settings">Komf 设置</string>
     <string name="settings_navigation_komf_connection">联系</string>
     <string name="settings_navigation_komf_processing">处理</string>
@@ -489,7 +488,6 @@
     <string name="settings_account_change_password">更改密码</string>
     <string name="settings_media_analysis_title">媒体分析</string>
     <string name="settings_media_analysis_nothing_to_show">没有可显示的内容</string>
-    <string name="settings_announcements_title">公告</string>
     <string name="settings_appearance_title">外观</string>
     <string name="settings_app_theme">应用主题</string>
     <string name="settings_app_theme_dark">深色</string>

@@ -523,7 +523,6 @@
     <string name="settings_navigation_server_users">Users</string>
     <string name="settings_navigation_server_auth_activity">Authentication Activity</string>
     <string name="settings_navigation_server_media_management">Media Management</string>
-    <string name="settings_navigation_announcements">Announcements</string>
     <string name="settings_navigation_komf_settings">Komf Settings</string>
     <string name="settings_navigation_komf_connection">Connections</string>
     <string name="settings_navigation_komf_processing">Processing</string>
@@ -539,7 +538,6 @@
     <string name="settings_account_change_password">Change password</string>
     <string name="settings_media_analysis_title">Media Analysis</string>
     <string name="settings_media_analysis_nothing_to_show">Nothing to show</string>
-    <string name="settings_announcements_title">Announcements</string>
     <string name="settings_appearance_title">Appearance</string>
     <string name="settings_app_theme">App Theme</string>
     <string name="settings_restricted_library">19+ libraries</string>

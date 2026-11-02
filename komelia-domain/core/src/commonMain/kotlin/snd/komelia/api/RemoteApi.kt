@@ -22,7 +22,6 @@ import snd.komga.client.sse.KomgaSSESession
 
 data class RemoteApi(
     override val actuatorApi: RemoteActuatorApi,
-    override val announcementsApi: RemoteAnnouncementsApi,
     override val bookApi: RemoteBookApi,
     override val collectionsApi: RemoteCollectionsApi,
     override val fileSystemApi: RemoteFileSystemApi,

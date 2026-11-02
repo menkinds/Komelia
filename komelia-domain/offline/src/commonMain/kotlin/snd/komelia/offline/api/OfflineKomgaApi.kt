@@ -8,7 +8,6 @@ import snd.komga.client.sse.KomgaSSESession
 
 data class OfflineKomgaApi(
     override val actuatorApi: OfflineActuatorApi,
-    override val announcementsApi: OfflineAnnouncementsApi,
     override val bookApi: OfflineBookApi,
     override val collectionsApi: OfflineCollectionsApi,
     override val fileSystemApi: OfflineFileSystemApi,

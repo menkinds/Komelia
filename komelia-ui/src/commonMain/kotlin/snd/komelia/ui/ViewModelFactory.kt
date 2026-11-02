@@ -54,7 +54,6 @@ import snd.komelia.ui.series.SeriesViewModel
 import snd.komelia.ui.series.SeriesViewModel.SeriesTab
 import snd.komelia.ui.settings.account.AccountSettingsViewModel
 import snd.komelia.ui.settings.analysis.MediaAnalysisViewModel
-import snd.komelia.ui.settings.announcements.AnnouncementsViewModel
 import snd.komelia.ui.settings.appearance.AppSettingsViewModel
 import snd.komelia.ui.settings.authactivity.AuthenticationActivityViewModel
 import snd.komelia.ui.settings.epub.EpubReaderSettingsViewModel
@@ -445,10 +444,6 @@ class ViewModelFactory(
             taskApi = komgaApi.tasksApi,
             actuatorApi = komgaApi.actuatorApi
         )
-    }
-
-    fun getAnnouncementsViewModel(): AnnouncementsViewModel {
-        return AnnouncementsViewModel(dependencies.appNotifications, komgaApi.announcementsApi)
     }
 
     fun getSettingsNavigationViewModel(rootNavigator: Navigator): SettingsNavigationViewModel {
