@@ -106,10 +106,11 @@ object SeriesRatingPrompts {
                     val tags = seriesApi.getOneSeries(book.seriesId).metadata.tags
                     SeriesRating.save(seriesApi, book.seriesId, tags, rating)
                 }.onFailure {
+                    if (it is kotlin.coroutines.cancellation.CancellationException) throw it
                     notifications.add(AppNotification.Error(it.message ?: "별점을 저장하지 못했어요"))
                 }
             })
-        }
+        }.onFailure { if (it is kotlin.coroutines.cancellation.CancellationException) throw it }
     }
 }
 
@@ -140,10 +141,11 @@ fun SeriesRatingStars(
 @Composable
 fun SeriesRatingPromptHost() {
     var request by remember { mutableStateOf<SeriesRatingPromptRequest?>(null) }
+    // declared before the early return so the scope outlives the dialog
+    val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) { SeriesRatingPrompts.requests.collect { request = it } }
 
     val current = request ?: return
-    val scope = rememberCoroutineScope()
     AlertDialog(
         onDismissRequest = { request = null },
         title = { Text("이 시리즈 어땠어요?") },
