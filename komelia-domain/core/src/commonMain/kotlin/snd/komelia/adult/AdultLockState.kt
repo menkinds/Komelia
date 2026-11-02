@@ -40,16 +40,25 @@ class AdultLockState(
     // screen token -> library ids of the content it shows (only screens that are composed right now)
     private val visibleLibraries = LinkedHashMap<Any, Set<String>>()
 
+    private val visibleSnapshot = MutableStateFlow<List<Set<String>>>(emptyList())
+
+    /** same rule as [isViewingRestrictedContent], observable (used to hide the app switcher preview) */
+    val viewingRestrictedContent: Flow<Boolean> = combine(libraryIds, visibleSnapshot) { restricted, screens ->
+        screens.any { ids -> ids.any { it in restricted } }
+    }.distinctUntilChanged()
+
     fun registerVisibleScreen(token: Any, libraryId: String?) =
         registerVisibleScreen(token, listOfNotNull(libraryId))
 
     /** a screen can show content of several libraries (collection, read list); empty = nothing known yet */
     fun registerVisibleScreen(token: Any, libraryIds: Collection<String>) {
         if (libraryIds.isEmpty()) visibleLibraries.remove(token) else visibleLibraries[token] = libraryIds.toSet()
+        visibleSnapshot.value = visibleLibraries.values.toList()
     }
 
     fun unregisterVisibleScreen(token: Any) {
         visibleLibraries.remove(token)
+        visibleSnapshot.value = visibleLibraries.values.toList()
     }
 
     /** true if a screen that shows content of a restricted library is open */

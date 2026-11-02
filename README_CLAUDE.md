@@ -157,3 +157,8 @@
 
 ## 2026-11-02 별점 프롬프트 수정
 - 완독 별점 다이얼로그에서 별을 누르면 "rememberCoroutineScope left the composition"이 뜨고 저장이 안 되던 문제. `SeriesRatingPromptHost`의 scope를 early return 앞으로 옮겨 다이얼로그가 닫혀도 유지되게 함. `onBookProgress`는 CancellationException을 다시 던져 오류 알림을 띄우지 않음. 빌드·실기기 미확인.
+
+## 19+ 최근 앱 미리보기 숨김 (2026-11-02, #2026-11)
+- 판단 출처: `AdultLockState.viewingRestrictedContent` (기존 `isViewingRestrictedContent()`와 같은 규칙, 화면 태그 `AdultLockScreenTag` 등록 기준을 Flow로 노출). 새 규칙 없음.
+- `AdultRecentsPreviewEffect`(common expect, MainView에서 세션 내내 합성). Android: API 33+ `setRecentsScreenshotEnabled(false)`, 그 미만 `FLAG_SECURE`(스크린샷도 막힘). 숨김 해제/dispose 시 복원. ON_PAUSE가 아니라 콘텐츠 표시 시점에 설정. jvm/wasmJs는 no-op.
+- 컴파일·실기기 확인 안 함(java/SDK 없음). 잠금 타이밍, 생체 인증, 오버레이는 변경 없음.

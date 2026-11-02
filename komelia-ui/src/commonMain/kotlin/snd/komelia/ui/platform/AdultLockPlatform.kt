@@ -24,3 +24,10 @@ expect fun AdultRelockEffect(lockState: AdultLockState)
  */
 @Composable
 expect fun AdultResumeOverlay(lockState: AdultLockState)
+
+/**
+ * While a screen with restricted content is open ([AdultLockState.viewingRestrictedContent]) the app switcher
+ * (recents) preview must be blank. Restores the normal preview otherwise. Does nothing without support.
+ */
+@Composable
+expect fun AdultRecentsPreviewEffect(lockState: AdultLockState)
