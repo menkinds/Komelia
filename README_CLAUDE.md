@@ -1,28 +1,30 @@
 # README_CLAUDE.md (인계)
 
-## 현재 상태 (2026-11-01 일일 정리, KST)
-- 저장소: menkinds/Komelia (Snd-R/Komelia 포크, 앱 이름 PAGES, Android 전용). 기본 브랜치 main.
-- PR 상태 (main의 git log 기준. gh는 이 세션에서 거부되어 미사용):
-  - #1~#8 (CI, SDK, 네이티브 빌드, 수동 Release, PAGES 이름/Unread first, 앱 내 업데이트, 자동 릴리스, 자동 넘김): 병합됨
-  - #9 리더 시계: 병합됨 (main에 커밋 a2dd6af3, 병합 ba33594e)
-  - #10 2026-10-31 일일 정리: 병합됨
-  - #11 19+ 잠금: 병합됨
-  - #12 19+ 잠금 v2(여러 라이브러리): 병합됨
-  - #13 런처 아이콘(사이버펑크 네온 P): 병합됨
-  - #14 라이브러리 필터 기억 + 태그 탭 전체 검색: 병합됨
-  - #15 시리즈 별점 ★N 태그: 병합됨
-  - #16 19+ 잠금 재인증 후 화면 유지: 병합됨
-  - #17 19+ 잠금 컬렉션/읽기 목록: 병합됨
-  - #18 텍스트 인식 자동 넘김(온디바이스 OCR): main 로그에 없음. 병합 여부 미확인 (이 문서에 내용 없음)
-- PR 없는 작업: 2026-10-31 job 022017(실패: git clone), job 075855(v0.1.0 태그 푸시). 2026-11-01 job 093056(새 런처 아이콘, PR 없음). 아이콘은 job 114822 재시도가 #13으로 병합됨. job 093056의 결과는 미확인.
-- 이 세션들에서 빌드·테스트를 실제로 돌린 기록은 없음(java/Android SDK 없음). 모든 기능은 CI 확인 전까지 미검증.
 
-## 2026-11-01 변경 요약
-- 19+ 잠금 신설(#11) → 여러 라이브러리(#12) → 재인증 후 화면 유지(#16) → 컬렉션/읽기 목록 확장(#17). 아래 상세 절 참고.
-- 런처 아이콘 교체(#13): mipmap PNG, adaptive icon XML, 배경 #01010D. 아래 상세 없음. 파일 목록은 커밋 b0683f84 참고.
-- 라이브러리 정렬/필터 기억(V18)과 태그 탭 전체 검색(#14).
-- 시리즈 별점 ★N 태그와 마지막 책 완독 프롬프트(#15).
-- DB 마이그레이션: V16, V17, V18 추가 (V15까지는 2026-10-31).
+## 현재 상태 (2026-11-02 일일 정리, KST)
+- 저장소: menkinds/Komelia (Snd-R/Komelia 포크, 앱 이름 PAGES, Android 전용). 기본 브랜치 main. main 최신: PR #27 병합(2026-11-02 21:15 KST, 커밋 1ff9deea).
+- PR 상태 (main의 git log 기준. gh는 이 세션에 없어 미사용. PR 본문·CI 결과는 미확인):
+  - #1~#17: 병합됨 (2026-11-01 이전. 상세는 AI_CASE_LOG.md와 아래 절).
+  - #18 텍스트 인식 자동 넘김(OCR): 병합됨 (2026-11-02 07:59 KST). job 135204는 11-01 시작.
+  - #19 2026-11-01 일일 정리: 병합됨 (11-02 08:10 KST).
+  - #20 19+ 잠금 오버레이 개선: 병합됨 (08:48).
+  - #21 별점 프롬프트 코루틴 수정: 병합됨 (09:26).
+  - #22 최근 앱 미리보기 숨김: 병합됨 (11:36).
+  - #23 ML Kit 릴리스 크래시 수정: 병합됨 (16:18).
+  - #24 기능 4개 제거(ttsu, 패널 감지, 공지, Komf): 병합됨 (18:26).
+  - #25 웹앱(wasm)·안드로이드 ONNX 제거: 병합됨 (19:48).
+  - #26 onnxruntime:jvm android 플러그인 제거: 병합됨 (20:32).
+  - #27 androidApp에 vips 직접 의존 추가: 병합됨 (21:15).
+- PR 없는 작업: 2026-10-31 job 022017(실패: git clone), job 075855(v0.1.0 태그 푸시). 2026-11-01 job 093056(새 런처 아이콘, PR 없음, 결과 미확인).
+- 빌드·테스트를 실제로 돌린 기록은 없음(이 세션들에 java/Android SDK 없음). 11-02에 #25 후 빌드 오류가 두 번(#26, #27) 나왔다는 것은 릴리스 빌드(CI)가 컴파일을 확인했다는 뜻으로 추정. CI 로그는 미확인. #27 후 빌드 성공 여부는 미확인.
+
+## 2026-11-02 변경 요약
+- 기능 추가: OCR 글자 양 기반 자동 넘김(#18, V19). 19+ 잠금 오버레이 개선(#20), 최근 앱 미리보기 숨김(#22).
+- 수정: 별점 프롬프트 코루틴(#21), ML Kit R8 크래시(#23).
+- 제거: ttsu 리더, 패널 감지, 공지, Komf(#24). 웹앱(wasm)과 안드로이드 ONNX 런타임(#25).
+- 빌드 복구: #26(android 플러그인), #27(vips 직접 의존). 둘 다 #25의 후속 오류.
+- DB 마이그레이션: V19 추가(#18). 이번 날 다른 마이그레이션 없음. 제거 작업은 마이그레이션 없이 저장값을 무시·대체함.
+- 2026-11-01 변경(요약): 19+ 잠금 V16~V17, 런처 아이콘, 라이브러리 필터 V18, 별점 ★N. 상세는 아래 절.
 
 ## 2026-11-02 기능 4개 제거: ttsu 리더, 패널 감지, 공지, Komf (PR "PAGES: remove ttsu reader, panel detection, announcements, Komf")
 - 제거: (1) ttsu EPUB 리더 + "Epub Reader Settings" 화면 + `komelia-epub-reader/ttu-ebook-reader` + gradle ttsu 빌드 태스크. EPUB은 항상 Komga 리더. (2) 패널 감지(ONNX RF-DETR): "Panels" 리더 모드, 설정 섹션, 모델 다운로드, `OnnxRuntimeRfDetr`/JNI/CMake 항목. (3) 공지 화면과 `*AnnouncementsApi`. (4) Komf: 설정 화면, 식별/리셋/MangaBaka 다이얼로그, 메뉴 항목, `komf-client` 의존성, `komelia-komf-extension` 모듈, `komfWebUI`/`komfExtension*` 태스크, MangaBaka 시리즈 화면(Komf 데이터 기반).
@@ -40,17 +42,20 @@
 - 미검증: SDK 없음. rg로 참조만 확인. Release 빌드(CI)가 컴파일 확인.
 
 ## 열린 항목
-- android-release 실제 러너 실행 결과 확인(SDK 설치, 네이티브 Docker 빌드, 서명, 자동 릴리스) — 미확인.
-- `./gradlew :komelia-domain:core:jvmTest`, komelia-ui jvmTest 실행 필요 (AdultLockStateTest 포함).
-- #18(OCR 자동 넘김) 병합 여부와 내용 확인.
-- 19+ 잠금의 남은 누출 가능성(저자 자동완성, 태그 목록, 컬렉션 카드 개수 등)과 Android 오버레이 실기기 확인.
-- Ttsu/Komga EPUB 리더는 별점 프롬프트 없음.
+- main 최신(#27 이후) 릴리스 빌드(android-release) 결과 확인 — 미확인.
+- android-release 실제 러너 실행 결과(SDK 설치, 네이티브 Docker 빌드, 서명, 자동 릴리스) — 미확인.
+- `./gradlew :komelia-domain:core:jvmTest`, komelia-ui jvmTest 실행 필요 (AdultLockStateTest, TextAwareAutoTurnTest 포함).
+- 19+ 잠금의 남은 누출 가능성(저자 자동완성, 태그 목록, 컬렉션 카드 개수 등)과 Android 오버레이·최근 앱 미리보기 실기기 확인.
+- OCR 자동 넘김: ML Kit 일본어 세로쓰기 인식률, 모델 다운로드, R8 keep 규칙(#23) 실기기 확인.
+- 제거된 기능의 저장값(ttsu/PANELS, Komf 표 등)이 기기에 남은 경우의 동작 실기기 확인.
+- 안드로이드 업스케일러는 이전부터 없음(`createUpscaler()`=null). 필요하면 별도 구현.
+- Komga EPUB 리더는 별점 프롬프트 없음.
 - 동시 머지 시 가운데 릴리스 실행이 취소될 수 있음(아래 자동 릴리스 항목).
 
 ## 다음 단계 (제안, 추정)
-- 러너 로그(특히 native-build-log artifact) 확인 후 실패 시 수정. 오늘 병합분(V16~V18, biometric 의존성)의 첫 컴파일 오류 가능성이 큼.
-- 첫 자동 릴리스 태그와 앱 내 업데이트, 19+ 재인증 흐름을 실기기로 확인.
-- #18 병합 후 이 문서에 OCR 자동 넘김 항목 추가.
+- #27 이후 릴리스 빌드 로그를 확인하고 실패 시 수정. 11-01~11-02 병합분(V16~V19, biometric, ML Kit)의 컴파일 오류 가능성.
+- 첫 자동 릴리스 태그와 앱 내 업데이트, 19+ 재인증 흐름, OCR 자동 넘김을 실기기로 확인.
+
 
 ## menkinds/komelia 포크 (Android 전용)
 - 추가: `.github/workflows/android-release.yml`(태그 v* → 서명 APK Release), `.github/workflows/upstream-sync.yml` + `.github/scripts/upstream-sync.sh`(월요일 Snd-R/Komelia 최신 릴리스 병합 PR, 충돌 시 이슈), README "포크 사용법".
@@ -170,16 +175,17 @@
 - 업스트림 파일 수정: ReaderState(ctor에 imageLoader, `textAwareAutoTurn`), ReaderViewModel, ReaderContent, SettingsContent, ImageReaderSettings/Repository/Wrapper/Exposed/Table, AppMigrations, strings(values, values-ko), libs.versions.toml, komelia-ui/build.gradle.kts.
 - 한계/미검증: java/Android SDK 없어 컴파일·테스트 못 함. ML Kit 일본어 인식기는 세로쓰기 인식률이 낮을 수 있음(실기기 확인 필요). `play-services-base:18.5.0`, ML Kit 버전, `TextRecognizer`가 `OptionalModuleApi`인 점, `Line.confidence` API는 CI에서 확인.
 
-## 2026-11-02 별점 프롬프트 수정
-- 완독 별점 다이얼로그에서 별을 누르면 "rememberCoroutineScope left the composition"이 뜨고 저장이 안 되던 문제. `SeriesRatingPromptHost`의 scope를 early return 앞으로 옮겨 다이얼로그가 닫혀도 유지되게 함. `onBookProgress`는 CancellationException을 다시 던져 오류 알림을 띄우지 않음. 빌드·실기기 미확인.
+## 2026-11-02 PR #20~#23 수정 요약
+- #20 19+ 잠금 오버레이: 오버레이에 잠금 아이콘·문구·해제 버튼 추가. 인증 프롬프트를 즉시 표시하고 재시도 가능하게 변경. 액티비티 정지 때 일찍 잠금. 파일 `AdultLockPlatform.android.kt`, strings(values, values-ko), `AdultLockStateTest`(+25줄). 상세 동작은 코드 참고(이 문서에 더 자세한 기록 없음).
+- #21 별점 프롬프트: 별을 누르면 "rememberCoroutineScope left the composition"이 뜨고 저장이 안 되던 문제. `SeriesRatingPromptHost`의 scope를 early return 앞으로 옮겨 다이얼로그가 닫혀도 유지. `onBookProgress`는 CancellationException을 다시 던져 오류 알림을 띄우지 않음.
+- #23 ML Kit: 릴리스 빌드 초기화 NPE. R8 keep 규칙 `komelia-app/androidApp/mlkit.pro` 추가(`build.gradle.kts`에 연결), `PageTextRecognizer.android.kt`의 OCR 호출을 예외 안전하게 변경. 원인은 커밋 메시지 기준(R8 규칙 부재). 실기기 미확인.
 
-## 19+ 최근 앱 미리보기 숨김 (2026-11-02, #2026-11)
+## 19+ 최근 앱 미리보기 숨김 (2026-11-02, #22)
 - 판단 출처: `AdultLockState.viewingRestrictedContent` (기존 `isViewingRestrictedContent()`와 같은 규칙, 화면 태그 `AdultLockScreenTag` 등록 기준을 Flow로 노출). 새 규칙 없음.
 - `AdultRecentsPreviewEffect`(common expect, MainView에서 세션 내내 합성). Android: API 33+ `setRecentsScreenshotEnabled(false)`, 그 미만 `FLAG_SECURE`(스크린샷도 막힘). 숨김 해제/dispose 시 복원. ON_PAUSE가 아니라 콘텐츠 표시 시점에 설정. jvm/wasmJs는 no-op.
-- 컴파일·실기기 확인 안 함(java/SDK 없음). 잠금 타이밍, 생체 인증, 오버레이는 변경 없음.
+- 컴파일·실기기 확인 안 함. 잠금 타이밍, 생체 인증, 오버레이는 변경 없음.
 
-## 2026-11-02 PR #25 후 빌드 수정 (PR "PAGES: fix build after wasm/ONNX removal")
-- 원인: PR #25가 `onnxruntime:jvm`의 android 타깃과 설정만 지우고 `androidMultiplatformLibrary` 플러그인은 남겨 Gradle 구성 단계에서 "compileSdk version is not set" 발생. 플러그인 제거(이제 JVM 전용). 데스크톱 의존(desktopApp, core/ui jvmMain)만 이 모듈을 씀.
-- 점검: android 플러그인을 쓰는 다른 모듈은 모두 `android {}` 설정이 있음. 워크플로 단계 `android-aarch64_copyJniLibs buildEpubReaders`는 ttsu/ONNX .so를 참조하지 않음(buildEpubReaders는 komga-webui만). 컴파일은 미검증(SDK 없음).
-
-- 2026-11-02 Android 컴파일 복구: #25가 androidApp의 `onnxruntime:jvm` 의존을 지웠는데, 그것이 `imageDecoder:vips`(VipsImageDecoder, VipsSharedLibrariesLoader)를 api로 전달하던 유일한 경로였다. androidApp에 vips를 직접 의존으로 추가. Android SDK 없어 컴파일 미검증, main 릴리스 빌드로 확인 필요.
+## 2026-11-02 PR #25 후 빌드 수정 (#26, #27)
+- #26 원인: #25가 `onnxruntime:jvm`의 android 타깃과 설정만 지우고 `androidMultiplatformLibrary` 플러그인은 남겨 Gradle 구성 단계에서 "compileSdk version is not set" 발생. 플러그인 제거(이제 JVM 전용). 데스크톱 의존(desktopApp, core/ui jvmMain)만 이 모듈을 씀. android 플러그인을 쓰는 다른 모듈은 모두 `android {}` 설정이 있음. 워크플로 단계 `android-aarch64_copyJniLibs buildEpubReaders`는 ttsu/ONNX .so를 참조하지 않음.
+- #27 원인: #25가 androidApp의 `onnxruntime:jvm` 의존을 지웠는데, 그것이 `imageDecoder:vips`(VipsImageDecoder, VipsSharedLibrariesLoader)를 api로 전달하던 유일한 경로였다. androidApp에 vips를 직접 의존으로 추가.
+- 두 수정 모두 Android SDK 없어 컴파일 미검증. main 릴리스 빌드로 확인 필요.
