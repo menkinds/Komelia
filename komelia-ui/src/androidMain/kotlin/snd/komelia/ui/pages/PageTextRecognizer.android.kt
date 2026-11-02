@@ -21,6 +21,7 @@ import com.google.mlkit.vision.text.japanese.JapaneseTextRecognizerOptions
 import com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -60,12 +61,21 @@ class AndroidPageTextRecognizer private constructor(context: Context) : PageText
         GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(appContext) == ConnectionResult.SUCCESS
     }.getOrDefault(false)
 
-    private fun recognizer(language: OcrLanguage): TextRecognizer = recognizers.getOrPut(language) {
-        when (language) {
-            OcrLanguage.JAPANESE -> TextRecognition.getClient(JapaneseTextRecognizerOptions.Builder().build())
-            OcrLanguage.KOREAN -> TextRecognition.getClient(KoreanTextRecognizerOptions.Builder().build())
-            OcrLanguage.CHINESE -> TextRecognition.getClient(ChineseTextRecognizerOptions.Builder().build())
-            OcrLanguage.LATIN -> TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    /** null if ML Kit / Play services failed to create the recognizer (the language is then marked UNAVAILABLE) */
+    private fun recognizer(language: OcrLanguage): TextRecognizer? {
+        recognizers[language]?.let { return it }
+        return try {
+            val created = when (language) {
+                OcrLanguage.JAPANESE -> TextRecognition.getClient(JapaneseTextRecognizerOptions.Builder().build())
+                OcrLanguage.KOREAN -> TextRecognition.getClient(KoreanTextRecognizerOptions.Builder().build())
+                OcrLanguage.CHINESE -> TextRecognition.getClient(ChineseTextRecognizerOptions.Builder().build())
+                OcrLanguage.LATIN -> TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+            }
+            recognizers.putIfAbsent(language, created) ?: created
+        } catch (e: Throwable) {
+            logger.warn(e) { "OCR recognizer creation failed for $language" }
+            setStatus(language, OcrModelStatus(OcrModelState.UNAVAILABLE))
+            null
         }
     }
 
@@ -73,17 +83,31 @@ class AndroidPageTextRecognizer private constructor(context: Context) : PageText
         modelStates.update { it + (language to status) }
     }
 
+    private fun setAllUnavailable() {
+        OcrLanguage.entries.forEach { setStatus(it, OcrModelStatus(OcrModelState.UNAVAILABLE)) }
+    }
+
     override fun refresh() {
+        try {
+            refreshInternal()
+        } catch (e: Throwable) {
+            logger.warn(e) { "OCR refresh failed" }
+            setAllUnavailable()
+        }
+    }
+
+    private fun refreshInternal() {
         servicesAvailable.value = checkServices()
         if (!servicesAvailable.value) {
-            OcrLanguage.entries.forEach { setStatus(it, OcrModelStatus(OcrModelState.UNAVAILABLE)) }
+            setAllUnavailable()
             return
         }
         val client = ModuleInstall.getClient(appContext)
         OcrLanguage.entries.forEach { language ->
             // keep an ongoing download state
             if (modelStates.value[language]?.state == OcrModelState.DOWNLOADING) return@forEach
-            client.areModulesAvailable(recognizer(language))
+            val recognizer = recognizer(language) ?: return@forEach
+            client.areModulesAvailable(recognizer)
                 .addOnSuccessListener {
                     if (modelStates.value[language]?.state != OcrModelState.DOWNLOADING) {
                         setStatus(
@@ -100,11 +124,21 @@ class AndroidPageTextRecognizer private constructor(context: Context) : PageText
     }
 
     override fun download(language: OcrLanguage) {
+        try {
+            downloadInternal(language)
+        } catch (e: Throwable) {
+            logger.warn(e) { "OCR model download failed to start for $language" }
+            setStatus(language, OcrModelStatus(OcrModelState.UNAVAILABLE))
+        }
+    }
+
+    private fun downloadInternal(language: OcrLanguage) {
         if (!checkServices()) {
             refresh()
             return
         }
         if (modelStates.value[language]?.state == OcrModelState.DOWNLOADING) return
+        val recognizer = recognizer(language) ?: return
         setStatus(language, OcrModelStatus(OcrModelState.DOWNLOADING, 0))
         val client = ModuleInstall.getClient(appContext)
         val listener = object : InstallStatusListener {
@@ -130,7 +164,7 @@ class AndroidPageTextRecognizer private constructor(context: Context) : PageText
             }
         }
         val request = ModuleInstallRequest.newBuilder()
-            .addApi(recognizer(language))
+            .addApi(recognizer)
             .setListener(listener)
             .build()
         client.installModules(request)
@@ -145,13 +179,22 @@ class AndroidPageTextRecognizer private constructor(context: Context) : PageText
 
     override suspend fun countChars(language: OcrLanguage, image: KomeliaImage): Int? {
         if (!isReady(language)) return null
-        val bitmap = withContext(Dispatchers.Default) { toSoftwareBitmap(image) }
-        try {
-            val text = recognize(recognizer(language), bitmap)
-            val blocks = text.textBlocks.map { block -> block.lines.map { OcrLine(it.text, it.confidence) } }
-            return OcrTextCounter.count(blocks)
-        } finally {
-            bitmap.recycle()
+        return try {
+            val recognizer = recognizer(language) ?: return null
+            val bitmap = withContext(Dispatchers.Default) { toSoftwareBitmap(image) }
+            try {
+                val text = recognize(recognizer, bitmap)
+                val blocks = text.textBlocks.map { block -> block.lines.map { OcrLine(it.text, it.confidence) } }
+                OcrTextCounter.count(blocks)
+            } finally {
+                bitmap.recycle()
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            logger.warn(e) { "OCR failed for $language, using base delay" }
+            setStatus(language, OcrModelStatus(OcrModelState.UNAVAILABLE))
+            null
         }
     }
 
