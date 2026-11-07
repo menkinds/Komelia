@@ -17,7 +17,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -25,6 +27,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.MenuBook
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.MoreVert
@@ -33,6 +36,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
@@ -46,6 +50,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
@@ -73,6 +78,7 @@ import snd.komelia.ui.LocalWindowWidth
 import snd.komelia.ui.collection.SeriesCollectionsContent
 import snd.komelia.ui.collection.SeriesCollectionsState
 import snd.komelia.ui.common.TagList
+import snd.komelia.ui.common.readIsSupported
 import snd.komelia.ui.common.components.AppFilterChipDefaults
 import snd.komelia.ui.common.components.DescriptionChips
 import snd.komelia.ui.common.components.LabeledEntry
@@ -113,6 +119,7 @@ fun SeriesContent(
     booksState: SeriesBooksState,
     onBookClick: (KomeliaBook) -> Unit,
     onBookReadClick: (KomeliaBook, Boolean) -> Unit,
+    nextBook: KomeliaBook?,
 
     collectionsState: SeriesCollectionsState,
     onCollectionClick: (KomgaCollection) -> Unit,
@@ -174,6 +181,9 @@ fun SeriesContent(
                             library = library,
                             onLibraryClick = onLibraryClick,
                             onFilterClick = onFilterClick,
+                            onCoverReadClick = nextBook
+                                ?.takeIf { readIsSupported(it) && !library.unavailable }
+                                ?.let { book -> { onBookReadClick(book, true) } },
                         )
                     }
 
@@ -320,6 +330,7 @@ fun Series(
     library: KomgaLibrary,
     onLibraryClick: (KomgaLibrary) -> Unit,
     onFilterClick: (SeriesScreenFilter) -> Unit,
+    onCoverReadClick: (() -> Unit)? = null,
 ) {
     val width = LocalWindowWidth.current
     val animation: FiniteAnimationSpec<IntSize> = remember(series) {
@@ -334,14 +345,35 @@ fun Series(
     ) {
         Layout(
             content = {
-                SeriesThumbnail(
-                    seriesId = series.id,
+                // cover: tap or the red button opens the book in progress / next to read
+                Box(
                     modifier = Modifier
                         .animateContentSize(animationSpec = animation)
                         .heightIn(min = 100.dp, max = 400.dp)
-                        .widthIn(min = 300.dp, max = 500.dp),
-                    contentScale = ContentScale.Fit
-                )
+                        .widthIn(min = 300.dp, max = 500.dp)
+                        .then(if (onCoverReadClick != null) Modifier.clickable { onCoverReadClick() } else Modifier),
+                    propagateMinConstraints = true,
+                ) {
+                    SeriesThumbnail(
+                        seriesId = series.id,
+                        modifier = Modifier,
+                        contentScale = ContentScale.Fit
+                    )
+                    if (onCoverReadClick != null) {
+                        Surface(
+                            onClick = onCoverReadClick,
+                            shape = CircleShape,
+                            color = Color(0xFFFF0335),
+                            contentColor = Color.White,
+                            shadowElevation = 4.dp,
+                            modifier = Modifier.align(Alignment.Center).requiredSize(64.dp),
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(Icons.AutoMirrored.Rounded.MenuBook, contentDescription = null, modifier = Modifier.size(32.dp))
+                            }
+                        }
+                    }
+                }
 
                 Column(modifier = Modifier.fillMaxWidth()) {
                     SeriesDescriptionRow(

@@ -18,6 +18,12 @@
 - PR 없는 작업: 2026-10-31 job 022017(실패: git clone), job 075855(v0.1.0 태그 푸시). 2026-11-01 job 093056(새 런처 아이콘, PR 없음, 결과 미확인).
 - 빌드·테스트를 실제로 돌린 기록은 없음(이 세션들에 java/Android SDK 없음). 11-02에 #25 후 빌드 오류가 두 번(#26, #27) 나왔다는 것은 릴리스 빌드(CI)가 컴파일을 확인했다는 뜻으로 추정. CI 로그는 미확인. #27 후 빌드 성공 여부는 미확인.
 
+## 2026-11-07 시리즈 커버 읽기 버튼 (브랜치 claude/friendly-babbage-2yplaz)
+- 시리즈 화면 커버 가운데 빨간 원형 버튼(#FF0335, MenuBook 아이콘). 커버를 탭해도 같은 동작. Komga 웹 UI의 같은 기능과 맞춤.
+- 대상: `SeriesViewModel.nextBook` = 진행 중 책(번호순 첫 권) → 없으면 첫 안 읽은 책 → 없으면 첫 권. READY·삭제 안 된 책만. 초기화, reload, 이 시리즈의 BookEvent/ReadProgressSeriesEvent 때 다시 계산.
+- 열기: 기존 `onBookReadClick(book, true)`(진행 저장). EPUB는 `readIsSupported` 검사, 라이브러리 unavailable이면 버튼 없음. 19+ 숨김은 기존 RestrictedKomgaApi가 그대로 적용.
+- 미검증: 실기기 확인 안 함.
+
 ## 2026-11-02 변경 요약
 - 기능 추가: OCR 글자 양 기반 자동 넘김(#18, V19). 19+ 잠금 오버레이 개선(#20), 최근 앱 미리보기 숨김(#22).
 - 수정: 별점 프롬프트 코루틴(#21), ML Kit R8 크래시(#23).
