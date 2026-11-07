@@ -74,3 +74,13 @@
 
 ## 2026-11-02 일일 정리 #2026-11
 - 2026-11-02 KST에 PR 9건(#18, #20~#27) 병합 확인. README_CLAUDE.md를 main과 맞춰 다시 씀. gh가 없어 PR 본문·CI 결과는 미확인.
+
+## 2026-11-07 Komelia 시리즈 커버 읽기 버튼 #2026-11
+- 시리즈 커버 가운데 빨간 원형 버튼, 커버 탭으로 진행 중/다음 책 바로 읽기. PR #29 병합, 머지 전 빌드 전용 실행으로 컴파일 확인, 자동 릴리스 v0.2.18. 실기기 미확인.
+- 실제 프로젝트/제안서/납품물에 적용되었는가: 예 (menkinds/Komelia)
+- 적용됐다면 프로젝트명 또는 맥락: menkinds/Komelia
+- 결과물: 최근 커밋: 60f0aa0 Merge pull request #29 from menkinds/claude/friendly-babbage-2yplaz; e4f09c2 Series cover: tap or red button opens the book in progress, else next unread, else the first; 6e703e0 Merge pull request #28 from menkinds/claude/hook-20261102-151123-05311a; b7708ac 2026-11-02 일일 정리: README_CLAUDE를 main(#27)에 맞추고 AI_CASE_LOG에 11-02 기록 추가; 1ff9dee Merge pull request #27 from menkinds/claude/hook-20261102-121345-87c941; af4a755 androidApp에 imageDecoder:vips 직접 의존 추가: onnxruntime:jvm 제거로 전이 의존이 끊겨 Vips 클래스 해석 실패; aeb6b6a Merge pull request #26 from menkinds/claude/hook-20261102-112754-7d4484; 7b2cf27 onnxruntime:jvm에서 android 플러그인 제거: android 설정 없이 남아 구성 단계에서 compileSdk 오류 발생 / 변경 파일: README_CLAUDE.md
+
+## 세션 기록
+
+- [[Komelia-2026-11-07-1-case]] — 시리즈 커버 읽기 버튼, PR #29 머지, v0.2.18 릴리스 #2026-11

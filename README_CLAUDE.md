@@ -1,6 +1,11 @@
 # README_CLAUDE.md (인계)
 
 
+## 현재 상태 (2026-11-07 /save, KST)
+- main 최신: PR #29 병합(커밋 60f0aa0c, 시리즈 커버 읽기 버튼). main push 자동 릴리스 성공 → v0.2.18 (`komelia-v0.2.18-arm64.apk`, 2026-11-07 14:04 KST 게시).
+- 머지 전 같은 브랜치로 android-release workflow_dispatch(태그 없음, 빌드만) 성공(run 42338688253) → 컴파일 확인됨. 로컬 gradle은 Maven Central 429로 실패.
+- 실기기 확인 안 함.
+
 ## 현재 상태 (2026-11-02 일일 정리, KST)
 - 저장소: menkinds/Komelia (Snd-R/Komelia 포크, 앱 이름 PAGES, Android 전용). 기본 브랜치 main. main 최신: PR #27 병합(2026-11-02 21:15 KST, 커밋 1ff9deea).
 - PR 상태 (main의 git log 기준. gh는 이 세션에 없어 미사용. PR 본문·CI 결과는 미확인):
@@ -195,3 +200,7 @@
 - #26 원인: #25가 `onnxruntime:jvm`의 android 타깃과 설정만 지우고 `androidMultiplatformLibrary` 플러그인은 남겨 Gradle 구성 단계에서 "compileSdk version is not set" 발생. 플러그인 제거(이제 JVM 전용). 데스크톱 의존(desktopApp, core/ui jvmMain)만 이 모듈을 씀. android 플러그인을 쓰는 다른 모듈은 모두 `android {}` 설정이 있음. 워크플로 단계 `android-aarch64_copyJniLibs buildEpubReaders`는 ttsu/ONNX .so를 참조하지 않음.
 - #27 원인: #25가 androidApp의 `onnxruntime:jvm` 의존을 지웠는데, 그것이 `imageDecoder:vips`(VipsImageDecoder, VipsSharedLibrariesLoader)를 api로 전달하던 유일한 경로였다. androidApp에 vips를 직접 의존으로 추가.
 - 두 수정 모두 Android SDK 없어 컴파일 미검증. main 릴리스 빌드로 확인 필요.
+
+## 세션 기록
+
+- [[Komelia-2026-11-07-1-handoff]] — 시리즈 커버 읽기 버튼, PR #29 머지, v0.2.18 릴리스 #2026-11
