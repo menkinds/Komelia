@@ -102,6 +102,7 @@ class SeriesScreen(
                         onBookReadClick = { book, markProgress ->
                             navigator.parent?.push(readerScreen(book, markProgress))
                         },
+                        nextBook = vm.nextBook.collectAsState().value,
 
                         collectionsState = vm.collectionsState,
                         onCollectionClick = { collection -> navigator.push(CollectionScreen(collection.id)) },

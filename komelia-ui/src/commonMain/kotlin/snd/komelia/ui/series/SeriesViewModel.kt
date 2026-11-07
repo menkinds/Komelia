@@ -30,7 +30,13 @@ import snd.komelia.komga.api.KomgaBookApi
 import snd.komelia.komga.api.KomgaCollectionsApi
 import snd.komelia.komga.api.KomgaReferentialApi
 import snd.komelia.komga.api.KomgaSeriesApi
+import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.komga.api.model.KomeliaSeries
+import snd.komga.client.book.KomgaMediaStatus
+import snd.komga.client.book.KomgaReadStatus
+import snd.komga.client.common.KomgaPageRequest
+import snd.komga.client.common.KomgaSort.KomgaBooksSort
+import snd.komga.client.search.allOfBooks
 import snd.komelia.offline.tasks.OfflineTaskEmitter
 import snd.komelia.settings.CommonSettingsRepository
 import snd.komelia.ui.LoadState
@@ -53,7 +59,7 @@ class SeriesViewModel(
     private val events: SharedFlow<KomgaEvent>,
     private val seriesApi: KomgaSeriesApi,
     private val taskEmitter: OfflineTaskEmitter?,
-    bookApi: KomgaBookApi,
+    private val bookApi: KomgaBookApi,
     collectionApi: KomgaCollectionsApi,
     referentialApi: KomgaReferentialApi,
     settingsRepository: CommonSettingsRepository,
@@ -66,6 +72,9 @@ class SeriesViewModel(
     val series = MutableStateFlow(series?.withSortedTags())
 
     val library = MutableStateFlow<KomgaLibrary?>(null)
+
+    /** book opened from the series cover: in progress, else first unread, else the first book (re-read) */
+    val nextBook = MutableStateFlow<KomeliaBook?>(null)
     var currentTab by mutableStateOf(defaultTab)
     val cardWidth = settingsRepository.getCardWidth().map { it.dp }
         .stateIn(screenModelScope, Eagerly, defaultCardWidth.dp)
@@ -111,6 +120,7 @@ class SeriesViewModel(
 
         booksState.initialize()
         collectionsState.initialize()
+        screenModelScope.launch { loadNextBook() }
         startKomgaEventListener()
 
         reloadJobsFlow.onEach {
@@ -124,7 +134,24 @@ class SeriesViewModel(
             mutableState.value = Loading
             loadSeries()
             booksState.reload()
+            loadNextBook()
         }
+    }
+
+    private suspend fun loadNextBook() {
+        suspend fun first(status: KomgaReadStatus?): KomeliaBook? = bookApi.getBookList(
+            conditionBuilder = allOfBooks {
+                seriesId { isEqualTo(seriesId) }
+                mediaStatus { isEqualTo(KomgaMediaStatus.READY) }
+                if (status != null) readStatus { isEqualTo(status) }
+            },
+            fullTextSearch = null,
+            pageRequest = KomgaPageRequest(pageIndex = 0, size = 20, sort = KomgaBooksSort.byNumberAsc())
+        ).content.firstOrNull { !it.deleted }
+
+        runCatching {
+            nextBook.value = first(KomgaReadStatus.IN_PROGRESS) ?: first(KomgaReadStatus.UNREAD) ?: first(null)
+        }.onFailure { nextBook.value = null }
     }
 
     private val ratingMutex = Mutex()
@@ -192,6 +219,8 @@ class SeriesViewModel(
         events.onEach { event ->
             when (event) {
                 is KomgaEvent.SeriesChanged -> if (event.seriesId == seriesId) reloadJobsFlow.tryEmit(Unit)
+                is KomgaEvent.BookEvent -> if (event.seriesId == seriesId) screenModelScope.launch { loadNextBook() }
+                is KomgaEvent.ReadProgressSeriesEvent -> if (event.seriesId == seriesId) screenModelScope.launch { loadNextBook() }
                 else -> {}
             }
         }.launchIn(screenModelScope)
