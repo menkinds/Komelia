@@ -762,7 +762,8 @@
     <string name="auto_turn_text_aware_per_ink">Per 1% drawing (lines): %1$d ms</string>
     <string name="auto_turn_show_measurements">Show measurements on screen</string>
     <string name="auto_turn_measuring">Measuring…</string>
-    <string name="auto_turn_measurement">Lines %1$s · dark %2$s · chars %3$s → %4$s s</string>
+    <string name="auto_turn_measurement">Lines %1$s · dark %2$s · chars %3$s → %4$s s (%5$s s)</string>
+    <string name="reader_show_progress_bar">Show book progress bar</string>
     <string name="auto_turn_ocr_language">OCR language</string>
     <string name="auto_turn_ocr_japanese">Japanese</string>
     <string name="auto_turn_ocr_korean">Korean</string>

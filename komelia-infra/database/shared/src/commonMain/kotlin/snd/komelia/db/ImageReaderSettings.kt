@@ -37,6 +37,7 @@ data class ImageReaderSettings(
     val volumeKeysNavigation: Boolean = false,
     val autoTurnIntervalSeconds: Int = 10,
     val showClock: Boolean = false,
+    val showProgressBar: Boolean = false,
     val textAwareAutoTurn: TextAwareAutoTurnSettings = TextAwareAutoTurnSettings(),
 
     val ortUpscalerMode: UpscaleMode = UpscaleMode.NONE,

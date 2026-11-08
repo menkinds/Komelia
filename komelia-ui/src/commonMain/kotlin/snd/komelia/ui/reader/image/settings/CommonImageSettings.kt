@@ -27,6 +27,7 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_show_progress_bar
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_image_color_correction
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_image_color_correction_active
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_image_crop_borders
@@ -65,6 +66,8 @@ fun CommonImageSettings(
     onFlashEnabledChange: (Boolean) -> Unit,
     showClock: Boolean,
     onShowClockChange: (Boolean) -> Unit,
+    showProgressBar: Boolean,
+    onShowProgressBarChange: (Boolean) -> Unit,
     flashEveryNPages: Int,
     onFlashEveryNPagesChange: (Int) -> Unit,
     flashWith: ReaderFlashColor,
@@ -119,6 +122,13 @@ fun CommonImageSettings(
             checked = showClock,
             onCheckedChange = onShowClockChange,
             label = { Text("Show clock") },
+            contentPadding = PaddingValues(horizontal = 10.dp)
+        )
+
+        SwitchWithLabel(
+            checked = showProgressBar,
+            onCheckedChange = onShowProgressBarChange,
+            label = { Text(stringResource(Res.string.reader_show_progress_bar)) },
             contentPadding = PaddingValues(horizontal = 10.dp)
         )
 

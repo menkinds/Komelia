@@ -78,6 +78,7 @@ fun BoxScope.SettingsOverlay(
     val cropBorders = commonReaderState.cropBorders.collectAsState().value
     val flashEnabled = commonReaderState.flashOnPageChange.collectAsState().value
     val showClock = commonReaderState.showClock.collectAsState().value
+    val showProgressBar = commonReaderState.showProgressBar.collectAsState().value
     val flashDuration = commonReaderState.flashDuration.collectAsState().value
     val flashEveryNPages = commonReaderState.flashEveryNPages.collectAsState().value
     val flashWith = commonReaderState.flashWith.collectAsState().value
@@ -111,7 +112,9 @@ fun BoxScope.SettingsOverlay(
             flashEnabled = flashEnabled,
             onFlashEnabledChange = commonReaderState::onFlashEnabledChange,
             showClock = showClock,
+            showProgressBar = showProgressBar,
             onShowClockChange = commonReaderState::onShowClockChange,
+            onShowProgressBarChange = commonReaderState::onShowProgressBarChange,
             flashDuration = flashDuration,
             onFlashDurationChange = commonReaderState::onFlashDurationChange,
             flashEveryNPages = flashEveryNPages,
@@ -147,7 +150,9 @@ fun BoxScope.SettingsOverlay(
             flashEnabled = flashEnabled,
             onFlashEnabledChange = commonReaderState::onFlashEnabledChange,
             showClock = showClock,
+            showProgressBar = showProgressBar,
             onShowClockChange = commonReaderState::onShowClockChange,
+            onShowProgressBarChange = commonReaderState::onShowProgressBarChange,
             flashDuration = flashDuration,
             onFlashDurationChange = commonReaderState::onFlashDurationChange,
             flashEveryNPages = flashEveryNPages,

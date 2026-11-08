@@ -52,6 +52,7 @@ class ExposedImageReaderSettingsRepository(database: Database) : ExposedReposito
                         volumeKeysNavigation = it[ImageReaderSettingsTable.volumeKeysNavigation],
                         autoTurnIntervalSeconds = it[ImageReaderSettingsTable.autoTurnIntervalSeconds],
                         showClock = it[ImageReaderSettingsTable.showClock],
+                        showProgressBar = it[ImageReaderSettingsTable.showProgressBar],
                         textAwareAutoTurn = TextAwareAutoTurnSettings(
                             enabled = it[ImageReaderSettingsTable.textAwareAutoTurn],
                             perCharMs = it[ImageReaderSettingsTable.textAwarePerCharMs],
@@ -94,6 +95,7 @@ class ExposedImageReaderSettingsRepository(database: Database) : ExposedReposito
                 it[volumeKeysNavigation] = settings.volumeKeysNavigation
                 it[autoTurnIntervalSeconds] = settings.autoTurnIntervalSeconds
                 it[showClock] = settings.showClock
+                it[showProgressBar] = settings.showProgressBar
                 it[textAwareAutoTurn] = settings.textAwareAutoTurn.enabled
                 it[textAwarePerCharMs] = settings.textAwareAutoTurn.perCharMs
                 it[textAwareMinSeconds] = settings.textAwareAutoTurn.minSeconds

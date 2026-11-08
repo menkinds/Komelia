@@ -89,6 +89,7 @@ class ReaderState(
     val autoTurnEnabled = MutableStateFlow(false)
     val textAwareAutoTurn = TextAwareAutoTurnState(readerSettingsRepository, imageLoader, stateScope)
     val showClock = MutableStateFlow(false)
+    val showProgressBar = MutableStateFlow(false)
     val pixelDensity = MutableStateFlow<Density?>(null)
 
     suspend fun initialize(bookId: KomgaBookId) {
@@ -104,6 +105,7 @@ class ReaderState(
         flashWith.value = readerSettingsRepository.getFlashWith().first()
         volumeKeysNavigation.value = readerSettingsRepository.getVolumeKeysNavigation().first()
         showClock.value = readerSettingsRepository.getShowClock().first()
+        showProgressBar.value = readerSettingsRepository.getShowProgressBar().first()
         autoTurnIntervalSeconds.value = readerSettingsRepository.getAutoTurnIntervalSeconds().first().coerceIn(3, 60)
         textAwareAutoTurn.load()
 
@@ -285,6 +287,11 @@ class ReaderState(
     fun onShowClockChange(show: Boolean) {
         showClock.value = show
         stateScope.launch { readerSettingsRepository.putShowClock(show) }
+    }
+
+    fun onShowProgressBarChange(show: Boolean) {
+        showProgressBar.value = show
+        stateScope.launch { readerSettingsRepository.putShowProgressBar(show) }
     }
 
     fun onFlashEnabledChange(enabled: Boolean) {

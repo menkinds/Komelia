@@ -26,6 +26,8 @@ import snd.komelia.pages.TextAwareAutoTurnSettings
 import snd.komelia.pages.TextAwareDelay
 import snd.komelia.settings.ImageReaderSettingsRepository
 import snd.komelia.ui.reader.image.PageMetadata
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 
 /** Measured amounts of the shown spread and the resulting delay; null values were not measured in time. */
@@ -34,6 +36,8 @@ data class AutoTurnMeasurement(
     val darkPercent: Int?,
     val charCount: Int?,
     val delayMs: Long,
+    /** Moment the page turns. */
+    val turnAt: TimeMark,
 )
 
 /** Settings and per-page character count cache for the text-aware auto page turn. */
@@ -105,7 +109,7 @@ class TextAwareAutoTurnState(
         val charCount = chars?.let { c -> withTimeoutOrNull(left()) { c.await() } }?.get(0)
         val linePercent = drawing?.get(0)
         val targetMs = TextAwareDelay.delayMs(baseSeconds, charCount, linePercent, s)
-        lastMeasurement.value = AutoTurnMeasurement(linePercent, drawing?.get(1), charCount, targetMs)
+        lastMeasurement.value = AutoTurnMeasurement(linePercent, drawing?.get(1), charCount, targetMs, mark + targetMs.milliseconds)
         val remaining = targetMs - mark.elapsedNow().inWholeMilliseconds
         if (remaining > 0) delay(remaining)
     }
