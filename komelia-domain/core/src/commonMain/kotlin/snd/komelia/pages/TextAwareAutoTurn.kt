@@ -28,7 +28,8 @@ data class TextAwareAutoTurnSettings(
 object TextAwareDelay {
     /**
      * delay = clamp(base + max(perChar * charCount, perInkPercent * inkPercent), min, max), in milliseconds.
-     * The drawing (ink) based time is used unless the character based time is longer.
+     * [inkPercent] is the drawing amount ([EdgeRatio], percent of line pixels).
+     * The drawing based time is used unless the character based time is longer.
      * An unknown measure (null) is skipped; with both unknown the plain base delay is returned.
      */
     fun delayMs(baseSeconds: Int, charCount: Int?, inkPercent: Int?, settings: TextAwareAutoTurnSettings): Long {
@@ -39,6 +40,35 @@ object TextAwareDelay {
         val charMs = charCount?.let { settings.perCharMs.toLong() * it.coerceAtLeast(0) } ?: 0L
         val inkMs = inkPercent?.let { settings.perInkPercentMs.toLong() * it.coerceAtLeast(0) } ?: 0L
         return (baseMs + maxOf(charMs, inkMs)).coerceIn(minMs, maxMs)
+    }
+}
+
+/**
+ * Percent (0..100) of line pixels: pixels whose brightness differs from the right or lower neighbour by at
+ * least [EDGE_THRESHOLD]. Line art counts, flat black fills and white areas do not, so the value follows the
+ * amount of drawing rather than how dark the page is. [width] is the image width in pixels.
+ */
+object EdgeRatio {
+    const val EDGE_THRESHOLD = 48
+
+    fun percent(pixels: ByteArray, bands: Int, width: Int): Int {
+        if (bands <= 0 || width <= 0) return 0
+        val total = pixels.size / bands
+        val height = total / width
+        if (height <= 0) return 0
+        val lum = IntArray(width * height) { InkRatio.luminance(pixels, it * bands, bands) }
+        var edges = 0
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                val i = y * width + x
+                val l = lum[i]
+                val right = x + 1 < width && kotlin.math.abs(l - lum[i + 1]) >= EDGE_THRESHOLD
+                val down = y + 1 < height && kotlin.math.abs(l - lum[i + width]) >= EDGE_THRESHOLD
+                if (right || down) edges++
+            }
+        }
+        val n = width * height
+        return (edges * 100 + n / 2) / n
     }
 }
 
@@ -54,14 +84,16 @@ object InkRatio {
         val total = pixels.size / bands
         var dark = 0
         for (i in 0 until total) {
-            val o = i * bands
-            val lum = if (bands >= 3) {
-                ((pixels[o].toInt() and 0xFF) + (pixels[o + 1].toInt() and 0xFF) + (pixels[o + 2].toInt() and 0xFF)) / 3
-            } else pixels[o].toInt() and 0xFF
-            if (lum < DARK_THRESHOLD) dark++
+            if (luminance(pixels, i * bands, bands) < DARK_THRESHOLD) dark++
         }
         return (dark * 100 + total / 2) / total
     }
+
+    /** 0..255 brightness of the pixel at byte offset [o]; RGB is averaged, a fourth (alpha) band is ignored. */
+    fun luminance(pixels: ByteArray, o: Int, bands: Int): Int =
+        if (bands >= 3) {
+            ((pixels[o].toInt() and 0xFF) + (pixels[o + 1].toInt() and 0xFF) + (pixels[o + 2].toInt() and 0xFF)) / 3
+        } else pixels[o].toInt() and 0xFF
 }
 
 /** One recognized text line with the recognizer confidence (0 = unknown). */

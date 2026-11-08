@@ -18,6 +18,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import snd.komelia.image.BookImageLoader
 import snd.komelia.image.KomeliaImage
 import snd.komelia.pages.AutoTurnMeasure
+import snd.komelia.pages.EdgeRatio
 import snd.komelia.pages.InkRatio
 import snd.komelia.pages.OcrLanguage
 import snd.komelia.pages.SimpleLru
@@ -27,6 +28,14 @@ import snd.komelia.settings.ImageReaderSettingsRepository
 import snd.komelia.ui.reader.image.PageMetadata
 import kotlin.time.TimeSource
 
+/** Measured amounts of the shown spread and the resulting delay; null values were not measured in time. */
+data class AutoTurnMeasurement(
+    val linePercent: Int?,
+    val darkPercent: Int?,
+    val charCount: Int?,
+    val delayMs: Long,
+)
+
 /** Settings and per-page character count cache for the text-aware auto page turn. */
 class TextAwareAutoTurnState(
     private val repository: ImageReaderSettingsRepository,
@@ -35,11 +44,15 @@ class TextAwareAutoTurnState(
 ) {
     val settings = MutableStateFlow(TextAwareAutoTurnSettings())
 
+    /** Shows [lastMeasurement] on the reader to tune the per-unit times. Not saved. */
+    val showMeasurements = MutableStateFlow(false)
+    val lastMeasurement = MutableStateFlow<AutoTurnMeasurement?>(null)
+
     private val ocrScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val ocrMutex = Mutex()
 
     // only accessed from the UI coroutine that starts the auto turn timer
-    private val cache = SimpleLru<String, Deferred<Int?>>(50)
+    private val cache = SimpleLru<String, Deferred<IntArray?>>(50)
 
     suspend fun load() {
         settings.value = repository.getTextAwareAutoTurn().first().let {
@@ -87,9 +100,12 @@ class TextAwareAutoTurnState(
 
         val mark = TimeSource.Monotonic.markNow()
         fun left() = (baseMs - mark.elapsedNow().inWholeMilliseconds).coerceAtLeast(0)
-        val inkPercent = withTimeoutOrNull(left()) { ink.await() }
-        val charCount = chars?.let { c -> withTimeoutOrNull(left()) { c.await() } }
-        val targetMs = TextAwareDelay.delayMs(baseSeconds, charCount, inkPercent, s)
+        lastMeasurement.value = null
+        val drawing = withTimeoutOrNull(left()) { ink.await() }
+        val charCount = chars?.let { c -> withTimeoutOrNull(left()) { c.await() } }?.get(0)
+        val linePercent = drawing?.get(0)
+        val targetMs = TextAwareDelay.delayMs(baseSeconds, charCount, linePercent, s)
+        lastMeasurement.value = AutoTurnMeasurement(linePercent, drawing?.get(1), charCount, targetMs)
         val remaining = targetMs - mark.elapsedNow().inWholeMilliseconds
         if (remaining > 0) delay(remaining)
     }
@@ -99,11 +115,12 @@ class TextAwareAutoTurnState(
         settings: TextAwareAutoTurnSettings,
         measure: AutoTurnMeasure,
         pages: List<PageMetadata>,
-    ): Deferred<Int?> {
+    ): Deferred<IntArray?> {
         val perPage = pages.map { pageAmount(recognizer, settings.ocrLanguage, measure, it) }
         return ocrScope.async {
             val counts = perPage.awaitAll()
-            if (counts.any { it == null }) null else counts.sumOf { it!! }
+            if (counts.any { it == null }) null
+            else IntArray(counts.first()!!.size) { i -> counts.sumOf { it!![i] } }
         }
     }
 
@@ -113,8 +130,8 @@ class TextAwareAutoTurnState(
         language: OcrLanguage,
         measure: AutoTurnMeasure,
         page: PageMetadata,
-    ): Deferred<Int?> {
-        val unit = if (measure == AutoTurnMeasure.INK) "INK" else language.name
+    ): Deferred<IntArray?> {
+        val unit = if (measure == AutoTurnMeasure.INK) "DRAWING" else language.name
         val key = "${page.bookId.value}:${page.pageNumber}:$unit"
         cache[key]?.let { existing ->
             val failed = existing.isCancelled || (existing.isCompleted && existing.getCompleted() == null)
@@ -126,8 +143,8 @@ class TextAwareAutoTurnState(
                     val image = imageLoader.loadImage(page.bookId, page.pageNumber).image ?: return@withLock null
                     image.use {
                         when (measure) {
-                            AutoTurnMeasure.CHARS -> recognizer.countChars(language, it)
-                            AutoTurnMeasure.INK -> inkPercent(it)
+                            AutoTurnMeasure.CHARS -> recognizer.countChars(language, it)?.let { n -> intArrayOf(n) }
+                            AutoTurnMeasure.INK -> drawingAmount(it)
                         }
                     }
                 }
@@ -141,13 +158,17 @@ class TextAwareAutoTurnState(
         return deferred
     }
 
-    private suspend fun inkPercent(image: KomeliaImage): Int {
+    /** [line percent, dark percent] of the page shrunk to [INK_SAMPLE_WIDTH] pixels wide. */
+    private suspend fun drawingAmount(image: KomeliaImage): IntArray {
         val width = minOf(INK_SAMPLE_WIDTH, image.width).coerceAtLeast(1)
         val height = (image.height.toLong() * width / image.width.coerceAtLeast(1)).toInt().coerceAtLeast(1)
-        return image.resize(width, height).use { small -> InkRatio.percent(small.getBytes(), small.bands) }
+        return image.resize(width, height).use { small ->
+            val bytes = small.getBytes()
+            intArrayOf(EdgeRatio.percent(bytes, small.bands, small.width), InkRatio.percent(bytes, small.bands))
+        }
     }
 
     private companion object {
-        const val INK_SAMPLE_WIDTH = 300
+        const val INK_SAMPLE_WIDTH = 400
     }
 }

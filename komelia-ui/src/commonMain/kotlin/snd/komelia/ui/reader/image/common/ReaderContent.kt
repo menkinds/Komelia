@@ -55,6 +55,7 @@ import snd.komelia.ui.reader.image.paged.PagedReaderContent
 import snd.komelia.ui.reader.image.paged.PagedReaderState
 import snd.komelia.ui.reader.image.settings.SettingsOverlay
 import snd.komelia.ui.settings.imagereader.onnxruntime.OnnxRuntimeSettingsState
+import snd.komelia.ui.pages.AutoTurnMeasurementOverlay
 import snd.komelia.ui.pages.rememberPageTextRecognizer
 import snd.komelia.ui.strings.AppStrings
 
@@ -206,6 +207,9 @@ fun ReaderContent(
 
         // hidden while the tap overlay is open so it never covers the page slider
         if (commonReaderState.showClock.collectAsState().value && !showSettingsMenu) ReaderClockOverlay()
+        if (autoTurnEnabled && textAwareSettings.enabled && !showSettingsMenu &&
+            commonReaderState.textAwareAutoTurn.showMeasurements.collectAsState().value
+        ) AutoTurnMeasurementOverlay(commonReaderState.textAwareAutoTurn.lastMeasurement.collectAsState().value)
 
         EInkFlashOverlay(
             enabled = commonReaderState.flashOnPageChange.collectAsState().value,
