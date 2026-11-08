@@ -9,7 +9,8 @@
     <string name="auto_turn_text_aware_per_ink">그림(선) 1%당 %1$d ms</string>
     <string name="auto_turn_show_measurements">측정값 화면에 표시</string>
     <string name="auto_turn_measuring">측정 중…</string>
-    <string name="auto_turn_measurement">선 %1$s · 검은 %2$s · 글자 %3$s → %4$s초</string>
+    <string name="auto_turn_measurement">선 %1$s · 검은 %2$s · 글자 %3$s → %4$s초 (%5$s초)</string>
+    <string name="reader_show_progress_bar">책 진행 막대 표시</string>
     <string name="auto_turn_ocr_language">OCR 언어</string>
     <string name="auto_turn_ocr_japanese">일본어</string>
     <string name="auto_turn_ocr_korean">한국어</string>

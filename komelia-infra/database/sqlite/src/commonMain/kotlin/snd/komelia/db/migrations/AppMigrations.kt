@@ -27,6 +27,7 @@ class AppMigrations : MigrationResourcesProvider() {
         "V18__fork_library_series_filter.sql",
         "V19__fork_text_aware_auto_turn.sql",
         "V20__fork_auto_turn_ink.sql",
+        "V21__fork_show_progress_bar.sql",
     )
 
     override suspend fun getMigration(name: String): ByteArray? {

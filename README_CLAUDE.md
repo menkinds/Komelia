@@ -2,8 +2,9 @@
 
 
 ## 현재 상태 (2026-11-02 일일 정리, KST)
+- 2026-11-08 (2): PR #31 병합(main 970ef65) → android-release 성공, 릴리스 v0.2.20. 자동 넘기기의 그림 기준을 검은 픽셀 %에서 선(경계) 픽셀 %(`EdgeRatio`, 샘플 폭 400px, 이웃 밝기 차 48 이상)로 교체. 설정 "측정값 화면에 표시"(저장 안 함)를 켜면 리더 왼쪽 위에 `선 · 검은 · 글자 → 초` 표시. 슬라이더 "그림(선) 1%당 ms"(DB 컬럼 `fork_auto_turn_per_ink_percent_ms` 그대로, 기본 300). TextAwareAutoTurnTest 17/17, komelia-ui JVM 컴파일 통과. 실제 페이지의 선 %는 미측정.
 - 2026-11-08: PR #30 병합(main a3f6f2e) → android-release 성공, 릴리스 v0.2.19(서명 arm64 APK). 자동 넘기기가 그림(검은 픽셀 %) 기준 시간과 OCR 글자 기준 시간 중 더 긴 쪽을 씀. DB V20(`fork_auto_turn_per_ink_percent_ms`, 기본 300). TextAwareAutoTurnTest 14/14 통과, komelia-ui·sqlite JVM 컴파일 통과(이 세션에서 실제 실행). 실기기 감(1%당 ms 기본값)은 미확인.
-- 저장소: menkinds/Komelia (Snd-R/Komelia 포크, 앱 이름 PAGES, Android 전용). 기본 브랜치 main. main 최신: PR #30 병합(2026-11-08 22:14 KST, 커밋 a3f6f2e, 릴리스 v0.2.19).
+- 저장소: menkinds/Komelia (Snd-R/Komelia 포크, 앱 이름 PAGES, Android 전용). 기본 브랜치 main. main 최신: PR #31 병합(2026-11-09 00:03 KST, 커밋 970ef65, 릴리스 v0.2.20).
 - PR 상태 (main의 git log 기준. gh는 이 세션에 없어 미사용. PR 본문·CI 결과는 미확인):
   - #1~#17: 병합됨 (2026-11-01 이전. 상세는 AI_CASE_LOG.md와 아래 절).
   - #18 텍스트 인식 자동 넘김(OCR): 병합됨 (2026-11-02 07:59 KST). job 135204는 11-01 시작.
@@ -49,7 +50,7 @@
 - 미검증: SDK 없음. rg로 참조만 확인. Release 빌드(CI)가 컴파일 확인.
 
 ## 열린 항목
-- 자동 넘기기 그림 기준(#30) 실기기 확인: 요츠바랑 같은 책에서 1%당 300ms 기본값이 적당한지. 사용자 피드백 받아 기본값 조정.
+- 자동 넘기기 그림(선) 기준(#31) 실기기 확인: v0.2.20에서 '측정값 화면에 표시'로 요츠바랑 등의 선 %를 사용자에게 받아 '그림(선) 1%당 ms' 기본값(300)과 경계 임계값(48)·샘플 폭(400)을 조정.
 - android-release 실제 러너 실행 결과(SDK 설치, 네이티브 Docker 빌드, 서명, 자동 릴리스) — 미확인.
 - `./gradlew :komelia-domain:core:jvmTest` 중 TextAwareAutoTurnTest는 11-08 통과. 나머지(AdultLockStateTest, komelia-ui jvmTest)는 미실행.
 - 빌드 팁(11-08): Maven Central 429면 Gradle init 스크립트로 repo.maven.apache.org를 `https://maven-central.storage-download.googleapis.com/maven2/`로 바꿔서 돌림(settings 저장소만 교체, 저장소 추가 금지). 먼저 `git submodule update --init --depth 1`. Android SDK 없음.
@@ -61,7 +62,7 @@
 - 동시 머지 시 가운데 릴리스 실행이 취소될 수 있음(아래 자동 릴리스 항목).
 
 ## 다음 단계 (제안, 추정)
-- 사용자가 v0.2.19로 요츠바랑 등을 넘겨 본 결과를 받아 "검은 영역 1%당 ms" 기본값(300) 조정. (릴리스 빌드는 11-08 #30 기준 성공해 V16~V20 컴파일은 확인됨.)
+- 사용자가 v0.2.20 측정값 표시로 본 선 %를 받아 "그림(선) 1%당 ms" 기본값(300) 조정. (릴리스 빌드는 11-08 #30·#31 기준 성공해 V16~V20 컴파일은 확인됨.)
 - 첫 자동 릴리스 태그와 앱 내 업데이트, 19+ 재인증 흐름, OCR 자동 넘김을 실기기로 확인.
 
 
@@ -195,4 +196,5 @@
 
 ## 세션 기록
 
+- [[Komelia-2026-11-08-2-handoff]] — 자동 넘기기: 그림 양을 선(경계) 픽셀로 측정, 측정값 화면 표시, PR #31 병합, v0.2.20 릴리스 #2026-11
 - [[Komelia-2026-11-08-1-handoff]] — 자동 넘기기: 그림(흑백 비율)과 글자 수 중 더 긴 시간 사용, PR #30 병합, v0.2.19 릴리스 #2026-11

@@ -75,7 +75,9 @@ interface ImageReaderSettingsRepository {
     suspend fun putTextAwareAutoTurn(settings: TextAwareAutoTurnSettings)
 
     fun getShowClock(): Flow<Boolean>
+    fun getShowProgressBar(): Flow<Boolean>
     suspend fun putShowClock(show: Boolean)
+    suspend fun putShowProgressBar(show: Boolean)
 
     fun getUpscalerMode(): Flow<UpscaleMode>
     suspend fun putUpscalerMode(mode: UpscaleMode)

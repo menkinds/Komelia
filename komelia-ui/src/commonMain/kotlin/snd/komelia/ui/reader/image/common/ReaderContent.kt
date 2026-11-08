@@ -207,6 +207,12 @@ fun ReaderContent(
 
         // hidden while the tap overlay is open so it never covers the page slider
         if (commonReaderState.showClock.collectAsState().value && !showSettingsMenu) ReaderClockOverlay()
+        if (commonReaderState.showProgressBar.collectAsState().value && !showSettingsMenu) {
+            ReaderProgressBar(
+                page = commonReaderState.readProgressPage.collectAsState().value,
+                pageCount = commonReaderState.booksState.collectAsState().value?.currentBookPages?.size ?: 0,
+            )
+        }
         if (autoTurnEnabled && textAwareSettings.enabled && !showSettingsMenu &&
             commonReaderState.textAwareAutoTurn.showMeasurements.collectAsState().value
         ) AutoTurnMeasurementOverlay(commonReaderState.textAwareAutoTurn.lastMeasurement.collectAsState().value)

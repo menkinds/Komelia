@@ -188,6 +188,14 @@ class ReaderSettingsRepositoryWrapper(
         wrapper.transform { it.copy(showClock = show) }
     }
 
+    override fun getShowProgressBar(): Flow<Boolean> {
+        return wrapper.mapState { it.showProgressBar }
+    }
+
+    override suspend fun putShowProgressBar(show: Boolean) {
+        wrapper.transform { it.copy(showProgressBar = show) }
+    }
+
     override fun getUpscalerMode(): Flow<UpscaleMode> {
         return wrapper.mapState { it.ortUpscalerMode }
     }
