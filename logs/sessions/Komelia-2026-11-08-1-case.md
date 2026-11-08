@@ -11,11 +11,11 @@ skills: ""
 free_llm: ""
 applied: "예 (menkinds/Komelia)"
 tags: ["case", "Komelia"]
-hub: "[[sources/menkinds/project-logs/Komelia/AI_CASE_LOG.md|AI_CASE_LOG]]"
+hub: "[[gbrain-notes/bossard/project-logs/Komelia/AI_CASE_LOG.md|AI_CASE_LOG]]"
 pair: "[[Komelia-2026-11-08-1-handoff]]"
 prev: ""
 next: ""
-gbrain: "미전송"
+gbrain: "전송됨"
 ---
 
 # 2026-11-08 — 자동 넘기기: 그림(흑백 비율)과 글자 수 중 더 긴 시간 사용, PR #30 병합, v0.2.19 릴리스
@@ -42,7 +42,7 @@ gbrain: "미전송"
 - 결과물: 최근 커밋: a3f6f2e Merge pull request #30 from menkinds/ccr-8c8be647-367lxl; cc08513 자동 넘기기: 모드 선택 대신 그림·글자 기준 중 더 긴 시간을 자동으로 사용; b797d5d 자동 넘기기: 글자 수 대신 흑백 비율(검은 픽셀 %)로 페이지 시간을 정하는 모드 추가; 60f0aa0 Merge pull request #29 from menkinds/claude/friendly-babbage-2yplaz; e4f09c2 Series cover: tap or red button opens the book in progress, else next unread, else the first; 6e703e0 Merge pull request #28 from menkinds/claude/hook-20261102-151123-05311a; b7708ac 2026-11-02 일일 정리: README_CLAUDE를 main(#27)에 맞추고 AI_CASE_LOG에 11-02 기록 추가; 1ff9dee Merge pull request #27 from menkinds/claude/hook-20261102-121345-87c941 / 변경 파일: README_CLAUDE.md
 
 ## 연결
-- 허브: [[sources/menkinds/project-logs/Komelia/AI_CASE_LOG.md|AI_CASE_LOG]]
+- 허브: [[gbrain-notes/bossard/project-logs/Komelia/AI_CASE_LOG.md|AI_CASE_LOG]]
 - 짝: [[Komelia-2026-11-08-1-handoff]]
 - 이전:
 - 다음:

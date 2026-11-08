@@ -5,11 +5,11 @@ date: "2026-11-08"
 session: 1
 summary: "자동 넘기기: 그림(흑백 비율)과 글자 수 중 더 긴 시간 사용, PR #30 병합, v0.2.19 릴리스"
 tags: ["handoff", "Komelia"]
-hub: "[[sources/menkinds/project-logs/Komelia/README_CLAUDE.md|README_CLAUDE]]"
+hub: "[[gbrain-notes/bossard/project-logs/Komelia/README_CLAUDE.md|README_CLAUDE]]"
 pair: "[[Komelia-2026-11-08-1-case]]"
 prev: ""
 next: ""
-gbrain: "미전송"
+gbrain: "전송됨"
 ---
 
 # 2026-11-08 — 자동 넘기기: 그림(흑백 비율)과 글자 수 중 더 긴 시간 사용, PR #30 병합, v0.2.19 릴리스
@@ -34,7 +34,7 @@ gbrain: "미전송"
 - 사용자가 v0.2.19로 요츠바랑 등을 넘겨 보고 1%당 ms 기본값 피드백 → 필요하면 기본값 조정.
 
 ## 연결
-- 허브: [[sources/menkinds/project-logs/Komelia/README_CLAUDE.md|README_CLAUDE]]
+- 허브: [[gbrain-notes/bossard/project-logs/Komelia/README_CLAUDE.md|README_CLAUDE]]
 - 짝: [[Komelia-2026-11-08-1-case]]
 - 이전:
 - 다음:
