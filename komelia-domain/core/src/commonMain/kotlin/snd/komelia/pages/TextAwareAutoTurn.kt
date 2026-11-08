@@ -4,6 +4,9 @@ import kotlinx.serialization.Serializable
 
 enum class OcrLanguage { JAPANESE, KOREAN, CHINESE, LATIN }
 
+/** What a page is measured by: recognized characters (OCR) or the share of dark pixels. */
+enum class AutoTurnMeasure { CHARS, INK }
+
 /** Auto page turn mode where the delay depends on the amount of text on the page (PAGES fork). */
 @Serializable
 data class TextAwareAutoTurnSettings(
@@ -12,9 +15,11 @@ data class TextAwareAutoTurnSettings(
     val minSeconds: Int = DEFAULT_MIN_SECONDS,
     val maxSeconds: Int = DEFAULT_MAX_SECONDS,
     val ocrLanguage: OcrLanguage = OcrLanguage.JAPANESE,
+    val perInkPercentMs: Int = DEFAULT_PER_INK_PERCENT_MS,
 ) {
     companion object {
         const val DEFAULT_PER_CHAR_MS = 100
+        const val DEFAULT_PER_INK_PERCENT_MS = 300
         const val DEFAULT_MIN_SECONDS = 2
         const val DEFAULT_MAX_SECONDS = 30
     }
@@ -22,16 +27,40 @@ data class TextAwareAutoTurnSettings(
 
 object TextAwareDelay {
     /**
-     * delay = clamp(base + perChar * charCount, min, max), in milliseconds.
-     * Returns the plain base delay when [charCount] is unknown (OCR unavailable or failed).
+     * delay = clamp(base + max(perChar * charCount, perInkPercent * inkPercent), min, max), in milliseconds.
+     * The drawing (ink) based time is used unless the character based time is longer.
+     * An unknown measure (null) is skipped; with both unknown the plain base delay is returned.
      */
-    fun delayMs(baseSeconds: Int, charCount: Int?, settings: TextAwareAutoTurnSettings): Long {
+    fun delayMs(baseSeconds: Int, charCount: Int?, inkPercent: Int?, settings: TextAwareAutoTurnSettings): Long {
         val baseMs = baseSeconds * 1000L
-        if (charCount == null) return baseMs
+        if (charCount == null && inkPercent == null) return baseMs
         val minMs = settings.minSeconds * 1000L
         val maxMs = maxOf(minMs, settings.maxSeconds * 1000L)
-        val raw = baseMs + settings.perCharMs.toLong() * charCount.coerceAtLeast(0)
-        return raw.coerceIn(minMs, maxMs)
+        val charMs = charCount?.let { settings.perCharMs.toLong() * it.coerceAtLeast(0) } ?: 0L
+        val inkMs = inkPercent?.let { settings.perInkPercentMs.toLong() * it.coerceAtLeast(0) } ?: 0L
+        return (baseMs + maxOf(charMs, inkMs)).coerceIn(minMs, maxMs)
+    }
+}
+
+object InkRatio {
+    private const val DARK_THRESHOLD = 128
+
+    /**
+     * Percent (0..100) of pixels darker than mid gray in packed 8-bit pixel data with [bands] channels.
+     * For 3+ bands the first three are averaged as RGB; a fourth (alpha) band is ignored.
+     */
+    fun percent(pixels: ByteArray, bands: Int): Int {
+        if (bands <= 0 || pixels.size < bands) return 0
+        val total = pixels.size / bands
+        var dark = 0
+        for (i in 0 until total) {
+            val o = i * bands
+            val lum = if (bands >= 3) {
+                ((pixels[o].toInt() and 0xFF) + (pixels[o + 1].toInt() and 0xFF) + (pixels[o + 2].toInt() and 0xFF)) / 3
+            } else pixels[o].toInt() and 0xFF
+            if (lum < DARK_THRESHOLD) dark++
+        }
+        return (dark * 100 + total / 2) / total
     }
 }
 

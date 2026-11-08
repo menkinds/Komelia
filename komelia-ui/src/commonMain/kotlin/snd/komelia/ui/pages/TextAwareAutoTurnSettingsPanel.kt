@@ -39,6 +39,7 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.auto_turn_text_
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.auto_turn_text_aware_max
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.auto_turn_text_aware_min
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.auto_turn_text_aware_per_char
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.auto_turn_text_aware_per_ink
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.common.components.AppSliderDefaults
@@ -97,6 +98,10 @@ fun TextAwareAutoTurnSettingsPanel(state: TextAwareAutoTurnState) {
             stringResource(Res.string.auto_turn_text_aware_per_char, settings.perCharMs),
             settings.perCharMs, 0..500, step = 10,
         ) { v -> state.update { it.copy(perCharMs = v) } }
+        LabeledSlider(
+            stringResource(Res.string.auto_turn_text_aware_per_ink, settings.perInkPercentMs),
+            settings.perInkPercentMs, 0..1000, step = 10,
+        ) { v -> state.update { it.copy(perInkPercentMs = v) } }
         LabeledSlider(
             stringResource(Res.string.auto_turn_text_aware_min, settings.minSeconds),
             settings.minSeconds, 1..30,

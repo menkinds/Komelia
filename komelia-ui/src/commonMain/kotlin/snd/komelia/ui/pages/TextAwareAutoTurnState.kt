@@ -16,6 +16,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import snd.komelia.image.BookImageLoader
+import snd.komelia.image.KomeliaImage
+import snd.komelia.pages.AutoTurnMeasure
+import snd.komelia.pages.InkRatio
 import snd.komelia.pages.OcrLanguage
 import snd.komelia.pages.SimpleLru
 import snd.komelia.pages.TextAwareAutoTurnSettings
@@ -42,6 +45,7 @@ class TextAwareAutoTurnState(
         settings.value = repository.getTextAwareAutoTurn().first().let {
             it.copy(
                 perCharMs = it.perCharMs.coerceIn(0, 2000),
+                perInkPercentMs = it.perInkPercentMs.coerceIn(0, 2000),
                 minSeconds = it.minSeconds.coerceIn(1, 60),
                 maxSeconds = it.maxSeconds.coerceIn(1, 120),
             )
@@ -56,9 +60,10 @@ class TextAwareAutoTurnState(
 
     /**
      * Waits for the delay of the page(s) shown in [pages].
-     * The timer starts with the base interval; if the character count arrives before it ends,
-     * the remaining time is adjusted. OCR failure or unavailability means the base interval.
-     * [nextPages] are recognized in the background for the following turn.
+     * The timer starts with the base interval. The drawing (dark pixel) amount is measured first, then the
+     * character count when OCR is ready; the longer of the two times wins. Measures that do not arrive
+     * before the base interval ends are skipped, and with none the base interval is used.
+     * [nextPages] are measured in the background for the following turn.
      */
     suspend fun awaitTurnDelay(
         recognizer: PageTextRecognizer,
@@ -68,26 +73,34 @@ class TextAwareAutoTurnState(
     ) {
         val s = settings.value
         val baseMs = baseSeconds * 1000L
-        if (!s.enabled || pages.isEmpty() || !recognizer.isReady(s.ocrLanguage)) {
+        if (!s.enabled || pages.isEmpty()) {
             delay(baseMs)
             return
         }
-        val current = spreadCount(recognizer, s.ocrLanguage, pages)
-        if (!nextPages.isNullOrEmpty()) spreadCount(recognizer, s.ocrLanguage, nextPages)
+        val ocr = recognizer.isReady(s.ocrLanguage)
+        val ink = spreadAmount(recognizer, s, AutoTurnMeasure.INK, pages)
+        val chars = if (ocr) spreadAmount(recognizer, s, AutoTurnMeasure.CHARS, pages) else null
+        if (!nextPages.isNullOrEmpty()) {
+            spreadAmount(recognizer, s, AutoTurnMeasure.INK, nextPages)
+            if (ocr) spreadAmount(recognizer, s, AutoTurnMeasure.CHARS, nextPages)
+        }
 
         val mark = TimeSource.Monotonic.markNow()
-        val count = withTimeoutOrNull(baseMs) { current.await() }
-        val targetMs = TextAwareDelay.delayMs(baseSeconds, count, s)
+        fun left() = (baseMs - mark.elapsedNow().inWholeMilliseconds).coerceAtLeast(0)
+        val inkPercent = withTimeoutOrNull(left()) { ink.await() }
+        val charCount = chars?.let { c -> withTimeoutOrNull(left()) { c.await() } }
+        val targetMs = TextAwareDelay.delayMs(baseSeconds, charCount, inkPercent, s)
         val remaining = targetMs - mark.elapsedNow().inWholeMilliseconds
         if (remaining > 0) delay(remaining)
     }
 
-    private fun spreadCount(
+    private fun spreadAmount(
         recognizer: PageTextRecognizer,
-        language: OcrLanguage,
+        settings: TextAwareAutoTurnSettings,
+        measure: AutoTurnMeasure,
         pages: List<PageMetadata>,
     ): Deferred<Int?> {
-        val perPage = pages.map { pageCount(recognizer, language, it) }
+        val perPage = pages.map { pageAmount(recognizer, settings.ocrLanguage, measure, it) }
         return ocrScope.async {
             val counts = perPage.awaitAll()
             if (counts.any { it == null }) null else counts.sumOf { it!! }
@@ -95,8 +108,14 @@ class TextAwareAutoTurnState(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun pageCount(recognizer: PageTextRecognizer, language: OcrLanguage, page: PageMetadata): Deferred<Int?> {
-        val key = "${page.bookId.value}:${page.pageNumber}:${language.name}"
+    private fun pageAmount(
+        recognizer: PageTextRecognizer,
+        language: OcrLanguage,
+        measure: AutoTurnMeasure,
+        page: PageMetadata,
+    ): Deferred<Int?> {
+        val unit = if (measure == AutoTurnMeasure.INK) "INK" else language.name
+        val key = "${page.bookId.value}:${page.pageNumber}:$unit"
         cache[key]?.let { existing ->
             val failed = existing.isCancelled || (existing.isCompleted && existing.getCompleted() == null)
             if (!failed) return existing
@@ -105,7 +124,12 @@ class TextAwareAutoTurnState(
             try {
                 ocrMutex.withLock {
                     val image = imageLoader.loadImage(page.bookId, page.pageNumber).image ?: return@withLock null
-                    image.use { recognizer.countChars(language, it) }
+                    image.use {
+                        when (measure) {
+                            AutoTurnMeasure.CHARS -> recognizer.countChars(language, it)
+                            AutoTurnMeasure.INK -> inkPercent(it)
+                        }
+                    }
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -115,5 +139,15 @@ class TextAwareAutoTurnState(
         }
         cache[key] = deferred
         return deferred
+    }
+
+    private suspend fun inkPercent(image: KomeliaImage): Int {
+        val width = minOf(INK_SAMPLE_WIDTH, image.width).coerceAtLeast(1)
+        val height = (image.height.toLong() * width / image.width.coerceAtLeast(1)).toInt().coerceAtLeast(1)
+        return image.resize(width, height).use { small -> InkRatio.percent(small.getBytes(), small.bands) }
+    }
+
+    private companion object {
+        const val INK_SAMPLE_WIDTH = 300
     }
 }

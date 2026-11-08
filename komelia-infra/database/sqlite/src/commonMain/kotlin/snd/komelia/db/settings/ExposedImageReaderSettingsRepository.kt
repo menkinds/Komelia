@@ -59,6 +59,7 @@ class ExposedImageReaderSettingsRepository(database: Database) : ExposedReposito
                             maxSeconds = it[ImageReaderSettingsTable.textAwareMaxSeconds],
                             ocrLanguage = runCatching { OcrLanguage.valueOf(it[ImageReaderSettingsTable.textAwareOcrLanguage]) }
                                 .getOrDefault(OcrLanguage.JAPANESE),
+                            perInkPercentMs = it[ImageReaderSettingsTable.textAwarePerInkPercentMs],
                         ),
                         ortUpscalerMode = UpscaleMode.valueOf(it[ImageReaderSettingsTable.ortUpscalerMode]),
                         ortUpscalerUserModelPath = it[ImageReaderSettingsTable.ortUpscalerUserModelPath]
@@ -98,6 +99,7 @@ class ExposedImageReaderSettingsRepository(database: Database) : ExposedReposito
                 it[textAwareMinSeconds] = settings.textAwareAutoTurn.minSeconds
                 it[textAwareMaxSeconds] = settings.textAwareAutoTurn.maxSeconds
                 it[textAwareOcrLanguage] = settings.textAwareAutoTurn.ocrLanguage.name
+                it[textAwarePerInkPercentMs] = settings.textAwareAutoTurn.perInkPercentMs
                 it[upsamplingMode] = settings.upsamplingMode.name
                 it[ortUpscalerMode] = settings.ortUpscalerMode.name
                 it[ortUpscalerUserModelPath] = settings.ortUpscalerUserModelPath?.path
