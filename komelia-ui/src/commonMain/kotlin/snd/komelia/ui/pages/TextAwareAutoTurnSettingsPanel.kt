@@ -40,6 +40,7 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.auto_turn_text_
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.auto_turn_text_aware_min
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.auto_turn_text_aware_per_char
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.auto_turn_text_aware_per_ink
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.auto_turn_show_measurements
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.common.components.AppSliderDefaults
@@ -83,6 +84,14 @@ fun TextAwareAutoTurnSettingsPanel(state: TextAwareAutoTurnState) {
         }
         if (!settings.enabled) return@Column
 
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(Res.string.auto_turn_show_measurements),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.weight(1f),
+            )
+            Switch(state.showMeasurements.collectAsState().value, { state.showMeasurements.value = it })
+        }
         val selectedState = statuses[settings.ocrLanguage]?.state
         val reason = when {
             !recognizer.supported -> Res.string.auto_turn_ocr_reason_unsupported

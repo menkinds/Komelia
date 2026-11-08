@@ -71,4 +71,24 @@ class TextAwareAutoTurnTest {
 
     @Test
     fun inkPercentEmpty() = assertEquals(0, InkRatio.percent(ByteArray(0), 1))
+
+    private fun gray(rows: List<String>): ByteArray =
+        rows.joinToString("").map { if (it == '#') 0.toByte() else 255.toByte() }.toByteArray()
+
+    @Test
+    fun edgeIgnoresFlatAreas() {
+        assertEquals(0, EdgeRatio.percent(gray(listOf("####", "####")), 1, 4))
+        assertEquals(0, EdgeRatio.percent(gray(listOf("....", "....")), 1, 4))
+    }
+
+    @Test
+    fun edgeCountsLines() =
+        // 4x2: the white pixel left of each black/white border and the pixel above a vertical change count
+        assertEquals(25, EdgeRatio.percent(gray(listOf("..##", "..##")), 1, 4))
+
+    @Test
+    fun edgeBlackFillCountsOnlyItsBorder() {
+        val fill = List(10) { "#".repeat(10) + ".".repeat(10) }
+        assertEquals(5, EdgeRatio.percent(gray(fill), 1, 20)) // 10 border pixels of 200
+    }
 }
