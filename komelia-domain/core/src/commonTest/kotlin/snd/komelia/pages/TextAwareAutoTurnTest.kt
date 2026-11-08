@@ -8,23 +8,23 @@ class TextAwareAutoTurnTest {
     private val s = TextAwareAutoTurnSettings(enabled = true)
 
     @Test
-    fun unknownCountUsesBase() = assertEquals(10_000, TextAwareDelay.delayMs(10, null, s))
+    fun unknownCountUsesBase() = assertEquals(10_000, TextAwareDelay.delayMs(10, null, null, s))
 
     @Test
-    fun basePlusPerChar() = assertEquals(15_000, TextAwareDelay.delayMs(10, 50, s))
+    fun basePlusPerChar() = assertEquals(15_000, TextAwareDelay.delayMs(10, 50, null, s))
 
     @Test
-    fun clampsToMax() = assertEquals(30_000, TextAwareDelay.delayMs(10, 1000, s))
+    fun clampsToMax() = assertEquals(30_000, TextAwareDelay.delayMs(10, 1000, null, s))
 
     @Test
-    fun clampsToMin() = assertEquals(2_000, TextAwareDelay.delayMs(1, 0, s.copy(perCharMs = 0)))
+    fun clampsToMin() = assertEquals(2_000, TextAwareDelay.delayMs(1, 0, null, s.copy(perCharMs = 0)))
 
     @Test
     fun maxBelowMinUsesMin() =
-        assertEquals(5_000, TextAwareDelay.delayMs(3, 100, s.copy(minSeconds = 5, maxSeconds = 4)))
+        assertEquals(5_000, TextAwareDelay.delayMs(3, 100, null, s.copy(minSeconds = 5, maxSeconds = 4)))
 
     @Test
-    fun negativeCountTreatedAsZero() = assertEquals(10_000, TextAwareDelay.delayMs(10, -5, s))
+    fun negativeCountTreatedAsZero() = assertEquals(10_000, TextAwareDelay.delayMs(10, -5, null, s))
 
     @Test
     fun countIgnoresWhitespaceSymbolsAndShortBlocks() {
@@ -49,10 +49,13 @@ class TextAwareAutoTurnTest {
     }
 
     @Test
-    fun inkModeUsesPerInkPercent() = assertEquals(
-        16_000,
-        TextAwareDelay.delayMs(10, 20, s.copy(measure = AutoTurnMeasure.INK, perInkPercentMs = 300))
-    )
+    fun inkOnly() = assertEquals(16_000, TextAwareDelay.delayMs(10, null, 20, s.copy(perInkPercentMs = 300)))
+
+    @Test
+    fun inkLongerThanChars() = assertEquals(16_000, TextAwareDelay.delayMs(10, 10, 20, s.copy(perInkPercentMs = 300)))
+
+    @Test
+    fun charsLongerThanInk() = assertEquals(20_000, TextAwareDelay.delayMs(10, 100, 5, s.copy(perInkPercentMs = 300)))
 
     @Test
     fun inkPercentGrayscale() = assertEquals(

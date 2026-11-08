@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 enum class OcrLanguage { JAPANESE, KOREAN, CHINESE, LATIN }
 
-/** What the page delay is measured by: recognized characters (OCR) or the share of dark pixels. */
+/** What a page is measured by: recognized characters (OCR) or the share of dark pixels. */
 enum class AutoTurnMeasure { CHARS, INK }
 
 /** Auto page turn mode where the delay depends on the amount of text on the page (PAGES fork). */
@@ -15,7 +15,6 @@ data class TextAwareAutoTurnSettings(
     val minSeconds: Int = DEFAULT_MIN_SECONDS,
     val maxSeconds: Int = DEFAULT_MAX_SECONDS,
     val ocrLanguage: OcrLanguage = OcrLanguage.JAPANESE,
-    val measure: AutoTurnMeasure = AutoTurnMeasure.CHARS,
     val perInkPercentMs: Int = DEFAULT_PER_INK_PERCENT_MS,
 ) {
     companion object {
@@ -28,21 +27,18 @@ data class TextAwareAutoTurnSettings(
 
 object TextAwareDelay {
     /**
-     * delay = clamp(base + perUnit * amount, min, max), in milliseconds.
-     * [amount] is the character count ([AutoTurnMeasure.CHARS]) or the dark pixel percent ([AutoTurnMeasure.INK]).
-     * Returns the plain base delay when [amount] is unknown (OCR unavailable or failed).
+     * delay = clamp(base + max(perChar * charCount, perInkPercent * inkPercent), min, max), in milliseconds.
+     * The drawing (ink) based time is used unless the character based time is longer.
+     * An unknown measure (null) is skipped; with both unknown the plain base delay is returned.
      */
-    fun delayMs(baseSeconds: Int, amount: Int?, settings: TextAwareAutoTurnSettings): Long {
+    fun delayMs(baseSeconds: Int, charCount: Int?, inkPercent: Int?, settings: TextAwareAutoTurnSettings): Long {
         val baseMs = baseSeconds * 1000L
-        if (amount == null) return baseMs
+        if (charCount == null && inkPercent == null) return baseMs
         val minMs = settings.minSeconds * 1000L
         val maxMs = maxOf(minMs, settings.maxSeconds * 1000L)
-        val perUnit = when (settings.measure) {
-            AutoTurnMeasure.CHARS -> settings.perCharMs
-            AutoTurnMeasure.INK -> settings.perInkPercentMs
-        }
-        val raw = baseMs + perUnit.toLong() * amount.coerceAtLeast(0)
-        return raw.coerceIn(minMs, maxMs)
+        val charMs = charCount?.let { settings.perCharMs.toLong() * it.coerceAtLeast(0) } ?: 0L
+        val inkMs = inkPercent?.let { settings.perInkPercentMs.toLong() * it.coerceAtLeast(0) } ?: 0L
+        return (baseMs + maxOf(charMs, inkMs)).coerceIn(minMs, maxMs)
     }
 }
 
