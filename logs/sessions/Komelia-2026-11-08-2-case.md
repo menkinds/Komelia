@@ -15,7 +15,7 @@ hub: "[[gbrain-notes/bossard/project-logs/Komelia/AI_CASE_LOG.md|AI_CASE_LOG]]"
 pair: "[[Komelia-2026-11-08-2-handoff]]"
 prev: "[[Komelia-2026-11-08-1-case]]"
 next: ""
-gbrain: "미전송"
+gbrain: "전송됨"
 ---
 
 # 2026-11-08 — 자동 넘기기: 그림 양을 선(경계) 픽셀로 측정, 측정값 화면 표시, PR #31 병합, v0.2.20 릴리스
