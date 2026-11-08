@@ -26,6 +26,8 @@ object ImageReaderSettingsTable : Table("ImageReaderSettings") {
     val textAwareMinSeconds = integer("fork_auto_turn_min_seconds")
     val textAwareMaxSeconds = integer("fork_auto_turn_max_seconds")
     val textAwareOcrLanguage = text("fork_auto_turn_ocr_language")
+    val textAwareMeasure = text("fork_auto_turn_measure")
+    val textAwarePerInkPercentMs = integer("fork_auto_turn_per_ink_percent_ms")
 
     val flashOnPageChange = bool("flash_on_page_change")
     val flashDuration = long("flash_duration")

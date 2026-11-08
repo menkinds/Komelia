@@ -47,4 +47,25 @@ class TextAwareAutoTurnTest {
         assertEquals(1, lru[1])
         assertEquals(2, lru.size)
     }
+
+    @Test
+    fun inkModeUsesPerInkPercent() = assertEquals(
+        16_000,
+        TextAwareDelay.delayMs(10, 20, s.copy(measure = AutoTurnMeasure.INK, perInkPercentMs = 300))
+    )
+
+    @Test
+    fun inkPercentGrayscale() = assertEquals(
+        50,
+        InkRatio.percent(byteArrayOf(0, 10, 200.toByte(), 255.toByte()), 1)
+    )
+
+    @Test
+    fun inkPercentRgbaIgnoresAlpha() = assertEquals(
+        50,
+        InkRatio.percent(byteArrayOf(0, 0, 0, 0, 255.toByte(), 255.toByte(), 255.toByte(), 0), 4)
+    )
+
+    @Test
+    fun inkPercentEmpty() = assertEquals(0, InkRatio.percent(ByteArray(0), 1))
 }

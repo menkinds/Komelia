@@ -6,6 +6,9 @@
     <string name="auto_turn_text_aware_per_char">글자당 %1$d ms</string>
     <string name="auto_turn_text_aware_min">최소 %1$d초</string>
     <string name="auto_turn_text_aware_max">최대 %1$d초</string>
+    <string name="auto_turn_measure_chars">글자 수(OCR)</string>
+    <string name="auto_turn_measure_ink">흑백 비율(그림 양)</string>
+    <string name="auto_turn_text_aware_per_ink">검은 영역 1%당 %1$d ms</string>
     <string name="auto_turn_ocr_language">OCR 언어</string>
     <string name="auto_turn_ocr_japanese">일본어</string>
     <string name="auto_turn_ocr_korean">한국어</string>

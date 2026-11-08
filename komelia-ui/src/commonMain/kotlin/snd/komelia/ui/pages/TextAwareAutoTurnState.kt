@@ -16,7 +16,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import snd.komelia.image.BookImageLoader
-import snd.komelia.pages.OcrLanguage
+import snd.komelia.image.KomeliaImage
+import snd.komelia.pages.AutoTurnMeasure
+import snd.komelia.pages.InkRatio
 import snd.komelia.pages.SimpleLru
 import snd.komelia.pages.TextAwareAutoTurnSettings
 import snd.komelia.pages.TextAwareDelay
@@ -42,6 +44,7 @@ class TextAwareAutoTurnState(
         settings.value = repository.getTextAwareAutoTurn().first().let {
             it.copy(
                 perCharMs = it.perCharMs.coerceIn(0, 2000),
+                perInkPercentMs = it.perInkPercentMs.coerceIn(0, 2000),
                 minSeconds = it.minSeconds.coerceIn(1, 60),
                 maxSeconds = it.maxSeconds.coerceIn(1, 120),
             )
@@ -68,12 +71,13 @@ class TextAwareAutoTurnState(
     ) {
         val s = settings.value
         val baseMs = baseSeconds * 1000L
-        if (!s.enabled || pages.isEmpty() || !recognizer.isReady(s.ocrLanguage)) {
+        val ready = s.measure == AutoTurnMeasure.INK || recognizer.isReady(s.ocrLanguage)
+        if (!s.enabled || pages.isEmpty() || !ready) {
             delay(baseMs)
             return
         }
-        val current = spreadCount(recognizer, s.ocrLanguage, pages)
-        if (!nextPages.isNullOrEmpty()) spreadCount(recognizer, s.ocrLanguage, nextPages)
+        val current = spreadCount(recognizer, s, pages)
+        if (!nextPages.isNullOrEmpty()) spreadCount(recognizer, s, nextPages)
 
         val mark = TimeSource.Monotonic.markNow()
         val count = withTimeoutOrNull(baseMs) { current.await() }
@@ -84,10 +88,10 @@ class TextAwareAutoTurnState(
 
     private fun spreadCount(
         recognizer: PageTextRecognizer,
-        language: OcrLanguage,
+        settings: TextAwareAutoTurnSettings,
         pages: List<PageMetadata>,
     ): Deferred<Int?> {
-        val perPage = pages.map { pageCount(recognizer, language, it) }
+        val perPage = pages.map { pageCount(recognizer, settings, it) }
         return ocrScope.async {
             val counts = perPage.awaitAll()
             if (counts.any { it == null }) null else counts.sumOf { it!! }
@@ -95,8 +99,15 @@ class TextAwareAutoTurnState(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun pageCount(recognizer: PageTextRecognizer, language: OcrLanguage, page: PageMetadata): Deferred<Int?> {
-        val key = "${page.bookId.value}:${page.pageNumber}:${language.name}"
+    private fun pageCount(
+        recognizer: PageTextRecognizer,
+        settings: TextAwareAutoTurnSettings,
+        page: PageMetadata,
+    ): Deferred<Int?> {
+        val language = settings.ocrLanguage
+        val measure = settings.measure
+        val unit = if (measure == AutoTurnMeasure.INK) "INK" else language.name
+        val key = "${page.bookId.value}:${page.pageNumber}:$unit"
         cache[key]?.let { existing ->
             val failed = existing.isCancelled || (existing.isCompleted && existing.getCompleted() == null)
             if (!failed) return existing
@@ -105,7 +116,12 @@ class TextAwareAutoTurnState(
             try {
                 ocrMutex.withLock {
                     val image = imageLoader.loadImage(page.bookId, page.pageNumber).image ?: return@withLock null
-                    image.use { recognizer.countChars(language, it) }
+                    image.use {
+                        when (measure) {
+                            AutoTurnMeasure.CHARS -> recognizer.countChars(language, it)
+                            AutoTurnMeasure.INK -> inkPercent(it)
+                        }
+                    }
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -115,5 +131,15 @@ class TextAwareAutoTurnState(
         }
         cache[key] = deferred
         return deferred
+    }
+
+    private suspend fun inkPercent(image: KomeliaImage): Int {
+        val width = minOf(INK_SAMPLE_WIDTH, image.width).coerceAtLeast(1)
+        val height = (image.height.toLong() * width / image.width.coerceAtLeast(1)).toInt().coerceAtLeast(1)
+        return image.resize(width, height).use { small -> InkRatio.percent(small.getBytes(), small.bands) }
+    }
+
+    private companion object {
+        const val INK_SAMPLE_WIDTH = 300
     }
 }

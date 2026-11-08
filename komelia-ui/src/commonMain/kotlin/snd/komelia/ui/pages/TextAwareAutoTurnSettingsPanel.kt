@@ -39,9 +39,13 @@ import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.auto_turn_text_
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.auto_turn_text_aware_max
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.auto_turn_text_aware_min
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.auto_turn_text_aware_per_char
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.auto_turn_text_aware_per_ink
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.auto_turn_measure_chars
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.auto_turn_measure_ink
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.common.components.AppSliderDefaults
+import snd.komelia.pages.AutoTurnMeasure
 import snd.komelia.pages.OcrLanguage
 import kotlin.math.roundToInt
 
@@ -82,8 +86,27 @@ fun TextAwareAutoTurnSettingsPanel(state: TextAwareAutoTurnState) {
         }
         if (!settings.enabled) return@Column
 
+        AutoTurnMeasure.entries.forEach { measure ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(
+                    selected = settings.measure == measure,
+                    onClick = { state.update { it.copy(measure = measure) } },
+                )
+                Text(
+                    stringResource(
+                        when (measure) {
+                            AutoTurnMeasure.CHARS -> Res.string.auto_turn_measure_chars
+                            AutoTurnMeasure.INK -> Res.string.auto_turn_measure_ink
+                        }
+                    )
+                )
+            }
+        }
+        val chars = settings.measure == AutoTurnMeasure.CHARS
+
         val selectedState = statuses[settings.ocrLanguage]?.state
         val reason = when {
+            !chars -> null
             !recognizer.supported -> Res.string.auto_turn_ocr_reason_unsupported
             !servicesAvailable -> Res.string.auto_turn_ocr_reason_no_services
             selectedState != OcrModelState.INSTALLED -> Res.string.auto_turn_ocr_reason_model_missing
@@ -93,10 +116,14 @@ fun TextAwareAutoTurnSettingsPanel(state: TextAwareAutoTurnState) {
             Text(stringResource(reason), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
         }
 
-        LabeledSlider(
+        if (chars) LabeledSlider(
             stringResource(Res.string.auto_turn_text_aware_per_char, settings.perCharMs),
             settings.perCharMs, 0..500, step = 10,
         ) { v -> state.update { it.copy(perCharMs = v) } }
+        else LabeledSlider(
+            stringResource(Res.string.auto_turn_text_aware_per_ink, settings.perInkPercentMs),
+            settings.perInkPercentMs, 0..1000, step = 10,
+        ) { v -> state.update { it.copy(perInkPercentMs = v) } }
         LabeledSlider(
             stringResource(Res.string.auto_turn_text_aware_min, settings.minSeconds),
             settings.minSeconds, 1..30,
@@ -106,7 +133,7 @@ fun TextAwareAutoTurnSettingsPanel(state: TextAwareAutoTurnState) {
             settings.maxSeconds, 5..120,
         ) { v -> state.update { it.copy(maxSeconds = v, minSeconds = minOf(it.minSeconds, v)) } }
 
-        if (!recognizer.supported) return@Column
+        if (!chars || !recognizer.supported) return@Column
         Text(stringResource(Res.string.auto_turn_ocr_language), style = MaterialTheme.typography.titleSmall)
         OcrLanguage.entries.forEach { language ->
             val status = statuses[language] ?: OcrModelStatus(OcrModelState.UNKNOWN)

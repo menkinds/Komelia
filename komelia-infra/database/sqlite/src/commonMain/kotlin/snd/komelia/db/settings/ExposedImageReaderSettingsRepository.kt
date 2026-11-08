@@ -14,6 +14,7 @@ import snd.komelia.image.ReduceKernel
 import snd.komelia.image.UpsamplingMode
 import snd.komelia.image.UpscaleMode
 import snd.komelia.pages.OcrLanguage
+import snd.komelia.pages.AutoTurnMeasure
 import snd.komelia.pages.TextAwareAutoTurnSettings
 import snd.komelia.settings.model.ContinuousReadingDirection
 import snd.komelia.settings.model.LayoutScaleType
@@ -59,6 +60,9 @@ class ExposedImageReaderSettingsRepository(database: Database) : ExposedReposito
                             maxSeconds = it[ImageReaderSettingsTable.textAwareMaxSeconds],
                             ocrLanguage = runCatching { OcrLanguage.valueOf(it[ImageReaderSettingsTable.textAwareOcrLanguage]) }
                                 .getOrDefault(OcrLanguage.JAPANESE),
+                            measure = runCatching { AutoTurnMeasure.valueOf(it[ImageReaderSettingsTable.textAwareMeasure]) }
+                                .getOrDefault(AutoTurnMeasure.CHARS),
+                            perInkPercentMs = it[ImageReaderSettingsTable.textAwarePerInkPercentMs],
                         ),
                         ortUpscalerMode = UpscaleMode.valueOf(it[ImageReaderSettingsTable.ortUpscalerMode]),
                         ortUpscalerUserModelPath = it[ImageReaderSettingsTable.ortUpscalerUserModelPath]
@@ -98,6 +102,8 @@ class ExposedImageReaderSettingsRepository(database: Database) : ExposedReposito
                 it[textAwareMinSeconds] = settings.textAwareAutoTurn.minSeconds
                 it[textAwareMaxSeconds] = settings.textAwareAutoTurn.maxSeconds
                 it[textAwareOcrLanguage] = settings.textAwareAutoTurn.ocrLanguage.name
+                it[textAwareMeasure] = settings.textAwareAutoTurn.measure.name
+                it[textAwarePerInkPercentMs] = settings.textAwareAutoTurn.perInkPercentMs
                 it[upsamplingMode] = settings.upsamplingMode.name
                 it[ortUpscalerMode] = settings.ortUpscalerMode.name
                 it[ortUpscalerUserModelPath] = settings.ortUpscalerUserModelPath?.path

@@ -759,6 +759,9 @@
     <string name="auto_turn_text_aware_per_char">Per character: %1$d ms</string>
     <string name="auto_turn_text_aware_min">Minimum: %1$d s</string>
     <string name="auto_turn_text_aware_max">Maximum: %1$d s</string>
+    <string name="auto_turn_measure_chars">Character count (OCR)</string>
+    <string name="auto_turn_measure_ink">Black and white ratio (amount of drawing)</string>
+    <string name="auto_turn_text_aware_per_ink">Per 1% dark area: %1$d ms</string>
     <string name="auto_turn_ocr_language">OCR language</string>
     <string name="auto_turn_ocr_japanese">Japanese</string>
     <string name="auto_turn_ocr_korean">Korean</string>
