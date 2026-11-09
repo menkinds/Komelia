@@ -9,7 +9,7 @@ hub: "[[gbrain-notes/bossard/project-logs/Komelia/README_CLAUDE.md|README_CLAUDE
 pair: "[[Komelia-2026-11-09-1-case]]"
 prev: "[[Komelia-2026-11-08-2-handoff]]"
 next: ""
-gbrain: "미전송"
+gbrain: "전송됨"
 ---
 
 # 2026-11-09 — 리더 하단 책 진행 막대(V21), 측정값 왼쪽 아래 + 남은 초, PR #32 병합, v0.2.21 릴리스
