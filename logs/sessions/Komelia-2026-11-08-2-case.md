@@ -14,7 +14,7 @@ tags: ["case", "Komelia"]
 hub: "[[gbrain-notes/bossard/project-logs/Komelia/AI_CASE_LOG.md|AI_CASE_LOG]]"
 pair: "[[Komelia-2026-11-08-2-handoff]]"
 prev: "[[Komelia-2026-11-08-1-case]]"
-next: ""
+next: "[[Komelia-2026-11-09-1-case]]"
 gbrain: "전송됨"
 ---
 
@@ -41,4 +41,4 @@ gbrain: "전송됨"
 - 허브: [[gbrain-notes/bossard/project-logs/Komelia/AI_CASE_LOG.md|AI_CASE_LOG]]
 - 짝: [[Komelia-2026-11-08-2-handoff]]
 - 이전: [[Komelia-2026-11-08-1-case]]
-- 다음:
+- 다음: [[Komelia-2026-11-09-1-case]]
