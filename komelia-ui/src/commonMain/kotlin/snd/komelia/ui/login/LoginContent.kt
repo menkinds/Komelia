@@ -33,6 +33,9 @@ import androidx.compose.ui.unit.dp
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_android_lan_access_dialog
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_cancel
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_cf_access
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_cf_access_client_id
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_cf_access_client_secret
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_go_offline
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_login
 import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_offline_mode
@@ -60,6 +63,10 @@ fun LoginContent(
     onUserChange: (String) -> Unit,
     password: String,
     onPasswordChange: (String) -> Unit,
+    cfClientId: String,
+    onCfClientIdChange: (String) -> Unit,
+    cfClientSecret: String,
+    onCfClientSecretChange: (String) -> Unit,
     userLoginError: String?,
     autoLoginError: String?,
     onAutoLoginRetry: () -> Unit,
@@ -89,6 +96,10 @@ fun LoginContent(
                 onUserChange = onUserChange,
                 password = password,
                 onPasswordChange = onPasswordChange,
+                cfClientId = cfClientId,
+                onCfClientIdChange = onCfClientIdChange,
+                cfClientSecret = cfClientSecret,
+                onCfClientSecretChange = onCfClientSecretChange,
                 errorMessage = userLoginError,
                 onLogin = onLogin,
                 offlineIsAvailable = offlineIsAvailable,
@@ -106,6 +117,10 @@ fun ColumnScope.LoginForm(
     onUserChange: (String) -> Unit,
     password: String,
     onPasswordChange: (String) -> Unit,
+    cfClientId: String,
+    onCfClientIdChange: (String) -> Unit,
+    cfClientSecret: String,
+    onCfClientSecretChange: (String) -> Unit,
     errorMessage: String?,
     onLogin: () -> Unit,
     offlineIsAvailable: Boolean,
@@ -151,6 +166,28 @@ fun ColumnScope.LoginForm(
             .focusRequester(third),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
     )
+
+    var showCfAccess by remember { mutableStateOf(cfClientId.isNotBlank()) }
+    if (showCfAccess) {
+        OutlinedTextField(
+            value = cfClientId,
+            onValueChange = onCfClientIdChange,
+            label = { Text(stringResource(Res.string.login_cf_access_client_id)) },
+            singleLine = true,
+            modifier = Modifier.withTextFieldNavigation()
+        )
+        OutlinedTextField(
+            value = cfClientSecret,
+            onValueChange = onCfClientSecretChange,
+            visualTransformation = PasswordVisualTransformation(),
+            label = { Text(stringResource(Res.string.login_cf_access_client_secret)) },
+            singleLine = true,
+            modifier = Modifier.withTextFieldNavigation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+        )
+    } else {
+        TextButton(onClick = { showCfAccess = true }) { Text(stringResource(Res.string.login_cf_access)) }
+    }
 
     if (errorMessage != null) {
         Text(errorMessage, style = TextStyle(color = MaterialTheme.colorScheme.error))

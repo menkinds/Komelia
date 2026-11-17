@@ -86,7 +86,21 @@ class AndroidAppModule(
     private val databases = KomeliaDatabase(context.filesDir.absolutePath.toString())
 
     private val okHttpLogger = KotlinLogging.logger("http.logging")
+    private val secretsRepository = AndroidSecretsRepository(
+        context.getSharedPreferences("io.github.snd-r.komelia.preferences", Context.MODE_PRIVATE)
+    )
     private val okHttpClientWithoutCache: OkHttpClient = OkHttpClient.Builder()
+        .addInterceptor { chain ->
+            val request = chain.request()
+            val token = secretsRepository.cfAccessToken(request.url.host)
+            chain.proceed(
+                if (token == null) request
+                else request.newBuilder()
+                    .header("CF-Access-Client-Id", token.first)
+                    .header("CF-Access-Client-Secret", token.second)
+                    .build()
+            )
+        }
         .connectTimeout(0, TimeUnit.SECONDS)
         .writeTimeout(0, TimeUnit.SECONDS)
         .readTimeout(0, TimeUnit.SECONDS)
@@ -112,11 +126,6 @@ class AndroidAppModule(
 
 
     override suspend fun createAppRepositories(): AppRepositories {
-        val sharedPreferences = context.getSharedPreferences(
-            "io.github.snd-r.komelia.preferences",
-            Context.MODE_PRIVATE
-        )
-
         return AppRepositories(
             settingsRepository = ExposedSettingsRepository(databases.app).let { repository ->
                 SettingsRepositoryWrapper(
@@ -145,7 +154,7 @@ class AndroidAppModule(
             colorCurvesPresetsRepository = ExposedColorCurvesPresetRepository(databases.app),
             colorLevelsPresetRepository = ExposedColorLevelsPresetRepository(databases.app),
             bookColorCorrectionRepository = ExposedBookColorCorrectionRepository(databases.app),
-            secretsRepository = AndroidSecretsRepository(sharedPreferences),
+            secretsRepository = secretsRepository,
             homeScreenFilterRepository = ExposedHomeScreenFilterRepository(databases.app).let { repository ->
                 HomeScreenFilterRepositoryWrapper(
                     SettingsStateWrapper(

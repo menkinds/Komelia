@@ -779,4 +779,7 @@
     <string name="auto_turn_ocr_reason_model_missing">The selected OCR language is not installed. Only the amount of drawing is used.</string>
     <string name="adult_lock_locked">Locked</string>
     <string name="adult_lock_unlock">Unlock</string>
+    <string name="login_cf_access">Cloudflare Access</string>
+    <string name="login_cf_access_client_id">CF Access Client ID</string>
+    <string name="login_cf_access_client_secret">CF Access Client Secret</string>
 </resources>

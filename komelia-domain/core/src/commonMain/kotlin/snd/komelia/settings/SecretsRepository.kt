@@ -13,4 +13,8 @@ interface SecretsRepository {
     suspend fun setApiKey(url: String, apiKey: String)
     suspend fun deleteApiKey(url: String)
 
+    // Cloudflare Access service token (client id to secret); only Android stores it
+    suspend fun getCfAccessToken(url: String): Pair<String, String>? = null
+    suspend fun setCfAccessToken(url: String, clientId: String, clientSecret: String) {}
+
 }

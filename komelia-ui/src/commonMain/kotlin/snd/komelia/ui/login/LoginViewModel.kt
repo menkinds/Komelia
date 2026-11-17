@@ -53,6 +53,8 @@ class LoginViewModel(
     var url = MutableStateFlow("")
     var user = MutableStateFlow("")
     var password = MutableStateFlow("")
+    var cfClientId = MutableStateFlow("")
+    var cfClientSecret = MutableStateFlow("")
     var userLoginError = MutableStateFlow<String?>(null)
     var autoLoginError = MutableStateFlow<String?>(null)
     val offlineIsAvailable = MutableStateFlow(false)
@@ -69,6 +71,10 @@ class LoginViewModel(
         screenModelScope.launch {
             url.value = settingsRepository.getServerUrl().first()
             user.value = settingsRepository.getCurrentUser().first()
+            secretsRepository.getCfAccessToken(url.value)?.let { (id, secret) ->
+                cfClientId.value = id
+                cfClientSecret.value = secret
+            }
             val cookie = secretsRepository.getCookie(url.value)
             if (cookie == null) {
                 user.value = ""
@@ -111,6 +117,7 @@ class LoginViewModel(
             userLoginError.value = null
             settingsRepository.putServerUrl(url.value)
             settingsRepository.putCurrentUser(user.value)
+            secretsRepository.setCfAccessToken(url.value, cfClientId.value, cfClientSecret.value)
             tryUserLogin(user.value, password.value)
         }
     }

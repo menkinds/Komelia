@@ -26,4 +26,7 @@
     <string name="auto_turn_ocr_reason_model_missing">선택한 OCR 언어가 설치되어 있지 않습니다. 그림 양만으로 계산합니다.</string>
     <string name="adult_lock_locked">잠김</string>
     <string name="adult_lock_unlock">잠금 해제</string>
+    <string name="login_cf_access">Cloudflare Access 토큰</string>
+    <string name="login_cf_access_client_id">CF Access 클라이언트 ID</string>
+    <string name="login_cf_access_client_secret">CF Access 클라이언트 시크릿</string>
 </resources>
