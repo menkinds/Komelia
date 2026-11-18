@@ -2,23 +2,13 @@
 
 
 ## 현재 상태 (2026-11-02 일일 정리, KST)
+- 2026-11-18: PR #33 병합(main 48ee22a). 로그인 화면에 선택 항목 "Cloudflare Access 토큰"(클라이언트 ID·시크릿). SharedPreferences에 서버 호스트와 함께 저장, `AndroidAppModule`의 OkHttp 인터셉터가 그 호스트 요청에만 `CF-Access-Client-Id`/`CF-Access-Client-Secret`를 붙임. 목적: Komga를 Cloudflare Access 뒤에 두기(자바 CVE-2026-114938 대응). 컴파일·실기기 미확인. 병합 후 android-release #30은 코드와 무관하게 체크아웃에서 실패(`microsoft/onnxruntime` 서브모듈 "Repository not found") → CI에서 그 서브모듈을 건너뛰는 수정(795ae15)을 작업 브랜치에 올림.
 - 2026-11-08 (2): PR #31 병합(main 970ef65) → android-release 성공, 릴리스 v0.2.20. 자동 넘기기의 그림 기준을 검은 픽셀 %에서 선(경계) 픽셀 %(`EdgeRatio`, 샘플 폭 400px, 이웃 밝기 차 48 이상)로 교체. 설정 "측정값 화면에 표시"(저장 안 함)를 켜면 리더 왼쪽 위에 `선 · 검은 · 글자 → 초` 표시. 슬라이더 "그림(선) 1%당 ms"(DB 컬럼 `fork_auto_turn_per_ink_percent_ms` 그대로, 기본 300). TextAwareAutoTurnTest 17/17, komelia-ui JVM 컴파일 통과. 실제 페이지의 선 %는 미측정.
 - 2026-11-08: PR #30 병합(main a3f6f2e) → android-release 성공, 릴리스 v0.2.19(서명 arm64 APK). 자동 넘기기가 그림(검은 픽셀 %) 기준 시간과 OCR 글자 기준 시간 중 더 긴 쪽을 씀. DB V20(`fork_auto_turn_per_ink_percent_ms`, 기본 300). TextAwareAutoTurnTest 14/14 통과, komelia-ui·sqlite JVM 컴파일 통과(이 세션에서 실제 실행). 실기기 감(1%당 ms 기본값)은 미확인.
 - 저장소: menkinds/Komelia (Snd-R/Komelia 포크, 앱 이름 PAGES, Android 전용). 기본 브랜치 main. main 최신: PR #31 병합(2026-11-09 00:03 KST, 커밋 970ef65, 릴리스 v0.2.20).
-- PR 상태 (main의 git log 기준. gh는 이 세션에 없어 미사용. PR 본문·CI 결과는 미확인):
-  - #1~#17: 병합됨 (2026-11-01 이전. 상세는 AI_CASE_LOG.md와 아래 절).
-  - #18 텍스트 인식 자동 넘김(OCR): 병합됨 (2026-11-02 07:59 KST). job 135204는 11-01 시작.
-  - #19 2026-11-01 일일 정리: 병합됨 (11-02 08:10 KST).
-  - #20 19+ 잠금 오버레이 개선: 병합됨 (08:48).
-  - #21 별점 프롬프트 코루틴 수정: 병합됨 (09:26).
-  - #22 최근 앱 미리보기 숨김: 병합됨 (11:36).
-  - #23 ML Kit 릴리스 크래시 수정: 병합됨 (16:18).
-  - #24 기능 4개 제거(ttsu, 패널 감지, 공지, Komf): 병합됨 (18:26).
-  - #25 웹앱(wasm)·안드로이드 ONNX 제거: 병합됨 (19:48).
-  - #26 onnxruntime:jvm android 플러그인 제거: 병합됨 (20:32).
-  - #27 androidApp에 vips 직접 의존 추가: 병합됨 (21:15).
 - 옮긴 옛 기록: [[Komelia-readme-archive-2026-11]] #2026-11
 - 옮긴 옛 기록: [[Komelia-readme-archive-2026-10]] #2026-10
+- 옮긴 옛 기록: [[komelia-readme-archive-2026-11]] #2026-11
 
 ## 2026-11-07 시리즈 커버 읽기 버튼 (브랜치 claude/friendly-babbage-2yplaz)
 - 시리즈 화면 커버 가운데 빨간 원형 버튼(#FF0335, MenuBook 아이콘). 커버를 탭해도 같은 동작. Komga 웹 UI의 같은 기능과 맞춤.
@@ -50,6 +40,7 @@
 - 미검증: SDK 없음. rg로 참조만 확인. Release 빌드(CI)가 컴파일 확인.
 
 ## 열린 항목
+- CF Access 토큰(#33): android-release를 다시 돌려 컴파일 확인. 실기기에서 Service Auth 정책 뒤 Komga 로그인·자동 로그인·이미지 확인. Access가 막으면 앱은 "예상치 못한 응답"만 표시.
 - 자동 넘기기 그림(선) 기준(#31) 실기기 확인: v0.2.20에서 '측정값 화면에 표시'로 요츠바랑 등의 선 %를 사용자에게 받아 '그림(선) 1%당 ms' 기본값(300)과 경계 임계값(48)·샘플 폭(400)을 조정.
 - android-release 실제 러너 실행 결과(SDK 설치, 네이티브 Docker 빌드, 서명, 자동 릴리스) — 미확인.
 - `./gradlew :komelia-domain:core:jvmTest` 중 TextAwareAutoTurnTest는 11-08 통과. 나머지(AdultLockStateTest, komelia-ui jvmTest)는 미실행.
@@ -62,6 +53,7 @@
 - 동시 머지 시 가운데 릴리스 실행이 취소될 수 있음(아래 자동 릴리스 항목).
 
 ## 다음 단계 (제안, 추정)
+- onnxruntime 건너뛰기 수정(795ae15)을 main에 합친 뒤 android-release를 수동 실행(workflow_dispatch). `.github/**`·`*.md`만 바뀌면 push로는 릴리스가 안 돎.
 - 사용자가 v0.2.20 측정값 표시로 본 선 %를 받아 "그림(선) 1%당 ms" 기본값(300) 조정. (릴리스 빌드는 11-08 #30·#31 기준 성공해 V16~V20 컴파일은 확인됨.)
 - 첫 자동 릴리스 태그와 앱 내 업데이트, 19+ 재인증 흐름, OCR 자동 넘김을 실기기로 확인.
 
@@ -196,5 +188,6 @@
 
 ## 세션 기록
 
+- [[komelia-2026-11-18-1-handoff]] — PAGES Cloudflare Access 서비스 토큰 헤더(PR #33), 자바 취약점 대응 점검, CI onnxruntime 서브모듈 건너뛰기 #2026-11
 - [[Komelia-2026-11-08-2-handoff]] — 자동 넘기기: 그림 양을 선(경계) 픽셀로 측정, 측정값 화면 표시, PR #31 병합, v0.2.20 릴리스 #2026-11
 - [[Komelia-2026-11-08-1-handoff]] — 자동 넘기기: 그림(흑백 비율)과 글자 수 중 더 긴 시간 사용, PR #30 병합, v0.2.19 릴리스 #2026-11

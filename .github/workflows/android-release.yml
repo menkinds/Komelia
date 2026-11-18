@@ -95,8 +95,13 @@ jobs:
           fi
 
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
+
+      # onnxruntime is desktop-only (CMakeLists.txt skips it on Android) and its
+      # upstream clone URL started returning "Repository not found", so skip it.
+      - name: Checkout submodules (without onnxruntime)
+        run: |
+          git -c submodule.third_party/onnxruntime.update=none \
+            submodule update --init --recursive --depth 1
 
       # Sets RELEASE_TAG for later steps. Empty = build only (manual run
       # without tag). Runs for main are serialized by the concurrency group,
