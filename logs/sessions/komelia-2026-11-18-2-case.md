@@ -15,7 +15,7 @@ hub: "[[gbrain-notes/bossard/project-logs/Komelia/AI_CASE_LOG.md|AI_CASE_LOG]]"
 pair: "[[komelia-2026-11-18-2-handoff]]"
 prev: "[[komelia-2026-11-18-1-case]]"
 next: ""
-gbrain: "미전송"
+gbrain: "전송됨"
 ---
 
 # 2026-11-18 — PR #34 병합·v0.2.22 릴리스(토큰 기능 첫 컴파일), Java4Shell은 AVX-512 CPU 한정 → DS723+ 해당 없음, 패치 확인 예약 끔
