@@ -78,8 +78,12 @@
 ## 2026-11-18 PAGES Cloudflare Access 서비스 토큰 (자바 취약점 대응) #2026-11
 - 자바 CVE-2026-114938 기사를 계기로 Komga(자바 25, 패치 전 빌드)를 Cloudflare Access 뒤에 두기로 함. PAGES 로그인 화면에 CF Access 토큰 입력, 저장한 서버 호스트 요청에만 헤더를 붙이는 OkHttp 인터셉터 추가. PR #33 병합. 릴리스 빌드는 onnxruntime 서브모듈 클론 실패로 빌드 전 중단 → CI 수정 커밋. 컴파일·실기기 미확인.
 
+## 2026-11-18 (2) PAGES v0.2.22 릴리스, Java4Shell 영향 판정 #2026-11
+- CI가 onnxruntime 서브모듈을 건너뛰게 고친 PR #34 병합으로 android-release 성공(v0.2.22), #33 토큰 코드 첫 컴파일 확인. oss-security·NVD 1차 자료로 취약점이 AVX-512 VBMI CPU 한정임을 확인해 사용자 NAS(DS723+, Ryzen R1600)는 해당 없음으로 판정. 교훈: 보안 기사는 영향 조건(CPU·설정)을 1차 자료에서 먼저 확인.
+
 ## 세션 기록
 
+- [[komelia-2026-11-18-2-case]] — PR #34 병합·v0.2.22 릴리스(토큰 기능 첫 컴파일), Java4Shell은 AVX-512 CPU 한정 → DS723+ 해당 없음, 패치 확인 예약 끔 #2026-11
 - [[komelia-2026-11-18-1-case]] — PAGES Cloudflare Access 서비스 토큰 헤더(PR #33), 자바 취약점 대응 점검, CI onnxruntime 서브모듈 건너뛰기 #2026-11
 - [[Komelia-2026-11-08-2-case]] — 자동 넘기기: 그림 양을 선(경계) 픽셀로 측정, 측정값 화면 표시, PR #31 병합, v0.2.20 릴리스 #2026-11
 - [[Komelia-2026-11-08-1-case]] — 자동 넘기기: 그림(흑백 비율)과 글자 수 중 더 긴 시간 사용, PR #30 병합, v0.2.19 릴리스 #2026-11
