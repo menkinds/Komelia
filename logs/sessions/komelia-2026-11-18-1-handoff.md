@@ -8,7 +8,7 @@ tags: ["handoff", "komelia"]
 hub: "[[gbrain-notes/bossard/project-logs/Komelia/README_CLAUDE.md|README_CLAUDE]]"
 pair: "[[komelia-2026-11-18-1-case]]"
 prev: "[[Komelia-2026-11-08-2-handoff]]"
-next: ""
+next: "[[komelia-2026-11-18-2-handoff]]"
 gbrain: "전송됨"
 ---
 
@@ -44,4 +44,4 @@ gbrain: "전송됨"
 - 허브: [[gbrain-notes/bossard/project-logs/Komelia/README_CLAUDE.md|README_CLAUDE]]
 - 짝: [[komelia-2026-11-18-1-case]]
 - 이전: [[Komelia-2026-11-08-2-handoff]]
-- 다음:
+- 다음: [[komelia-2026-11-18-2-handoff]]
