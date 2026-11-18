@@ -11,11 +11,11 @@ skills: ""
 free_llm: ""
 applied: "아니오 (main에 없음)"
 tags: ["case", "komelia"]
-hub: "[[sources/menkinds/project-logs/komelia/AI_CASE_LOG.md|AI_CASE_LOG]]"
+hub: "[[gbrain-notes/bossard/project-logs/Komelia/AI_CASE_LOG.md|AI_CASE_LOG]]"
 pair: "[[komelia-2026-11-18-1-handoff]]"
 prev: "[[Komelia-2026-11-08-2-case]]"
 next: ""
-gbrain: "미전송"
+gbrain: "전송됨"
 ---
 
 # 2026-11-18 — PAGES Cloudflare Access 서비스 토큰 헤더(PR #33), 자바 취약점 대응 점검, CI onnxruntime 서브모듈 건너뛰기
@@ -37,7 +37,7 @@ gbrain: "미전송"
 - 결과물: 최근 커밋: 795ae15 ci: skip desktop-only onnxruntime submodule in android-release / 변경 파일: .github/workflows/android-release.yml, README_CLAUDE.md
 
 ## 연결
-- 허브: [[sources/menkinds/project-logs/komelia/AI_CASE_LOG.md|AI_CASE_LOG]]
+- 허브: [[gbrain-notes/bossard/project-logs/Komelia/AI_CASE_LOG.md|AI_CASE_LOG]]
 - 짝: [[komelia-2026-11-18-1-handoff]]
 - 이전: [[Komelia-2026-11-08-2-case]]
 - 다음:

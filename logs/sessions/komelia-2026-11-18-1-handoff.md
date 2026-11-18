@@ -5,11 +5,11 @@ date: "2026-11-18"
 session: 1
 summary: "PAGES Cloudflare Access 서비스 토큰 헤더(PR #33), 자바 취약점 대응 점검, CI onnxruntime 서브모듈 건너뛰기"
 tags: ["handoff", "komelia"]
-hub: "[[sources/menkinds/project-logs/komelia/README_CLAUDE.md|README_CLAUDE]]"
+hub: "[[gbrain-notes/bossard/project-logs/Komelia/README_CLAUDE.md|README_CLAUDE]]"
 pair: "[[komelia-2026-11-18-1-case]]"
 prev: "[[Komelia-2026-11-08-2-handoff]]"
 next: ""
-gbrain: "미전송"
+gbrain: "전송됨"
 ---
 
 # 2026-11-18 — PAGES Cloudflare Access 서비스 토큰 헤더(PR #33), 자바 취약점 대응 점검, CI onnxruntime 서브모듈 건너뛰기
@@ -41,7 +41,7 @@ gbrain: "미전송"
 - 그때까지 Komga는 내려 두거나 내부망·VPN으로만.
 
 ## 연결
-- 허브: [[sources/menkinds/project-logs/komelia/README_CLAUDE.md|README_CLAUDE]]
+- 허브: [[gbrain-notes/bossard/project-logs/Komelia/README_CLAUDE.md|README_CLAUDE]]
 - 짝: [[komelia-2026-11-18-1-case]]
 - 이전: [[Komelia-2026-11-08-2-handoff]]
 - 다음:
