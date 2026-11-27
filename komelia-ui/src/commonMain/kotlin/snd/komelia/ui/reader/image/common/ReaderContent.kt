@@ -29,17 +29,10 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_continuous
-import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.reader_type_paged
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.getString
-import org.jetbrains.compose.resources.rememberResourceEnvironment
-import snd.komelia.AppNotification
 import snd.komelia.settings.model.ReaderType.CONTINUOUS
 import snd.komelia.settings.model.ReaderType.PAGED
-import snd.komelia.ui.LocalNotifications
 import snd.komelia.ui.LocalPlatform
 import snd.komelia.ui.LocalWindowState
 import snd.komelia.ui.common.components.LoadingMaxSizeIndicator
@@ -57,7 +50,6 @@ import snd.komelia.ui.reader.image.settings.SettingsOverlay
 import snd.komelia.ui.settings.imagereader.onnxruntime.OnnxRuntimeSettingsState
 import snd.komelia.ui.pages.AutoTurnMeasurementOverlay
 import snd.komelia.ui.pages.rememberPageTextRecognizer
-import snd.komelia.ui.strings.AppStrings
 
 @Composable
 fun ReaderContent(
@@ -94,7 +86,6 @@ fun ReaderContent(
     LaunchedEffect(density) {
         commonReaderState.pixelDensity.value = density
     }
-    ReaderTypeNotification(commonReaderState, pagedReaderState, continuousReaderState)
 
     val topLevelFocus = remember { FocusRequester() }
     val volumeKeysNavigation = commonReaderState.volumeKeysNavigation.collectAsState().value
@@ -276,43 +267,5 @@ fun ReaderControlsOverlay(
         contentAlignment = Alignment.Center
     ) {
         content()
-    }
-}
-
-@Composable
-private fun ReaderTypeNotification(
-    commonReaderState: ReaderState,
-    pagedReaderState: PagedReaderState,
-    continuousReaderState: ContinuousReaderState,
-) {
-    val notifications = LocalNotifications.current
-    val environment = rememberResourceEnvironment()
-
-    LaunchedEffect(Unit) {
-        val str = when (commonReaderState.readerType.value) {
-            PAGED -> buildString {
-                append(getString(environment, Res.string.reader_type_paged))
-                append("\n")
-                append(
-                    getString(
-                        environment,
-                        AppStrings.forReadingDirection(pagedReaderState.readingDirection.value)
-                    )
-                )
-            }
-
-            CONTINUOUS -> buildString {
-                append(getString(environment, Res.string.reader_type_continuous))
-                append("\n")
-                append(
-                    getString(
-                        environment,
-                        AppStrings.forReadingDirection(continuousReaderState.readingDirection.value)
-                    )
-                )
-            }
-        }
-
-        notifications.add(AppNotification.Normal(str))
     }
 }
