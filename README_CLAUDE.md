@@ -2,6 +2,7 @@
 
 
 ## 현재 상태 (2026-11-02 일일 정리, KST)
+- 2026-11-27: PR #36 병합(main 1194568) → android-release #32 성공(14:52 UTC). 리더를 열 때마다 뜨던 `Paged / Left to right` 같은 모드·방향 알림 제거(`reader/image/common/ReaderContent.kt`의 `ReaderTypeNotification` 호출·함수와 그 함수만 쓰던 import 8개, -47줄). 모드·방향 동작은 그대로. `:komelia-ui:compileKotlinJvm` 통과. 실기기 미확인.
 - 2026-11-18 (2): PR #34 병합(main 9a9d705) → android-release #31 성공, 릴리스 v0.2.22. CI가 onnxruntime 서브모듈을 건너뛰고(`submodule.third_party/onnxruntime.update=none`) #33 CF Access 토큰 코드가 처음으로 컴파일됨. 실기기 미확인. 자바 CVE-2026-114938은 AVX-512 VBMI x86-64 CPU에서만 발생(oss-security 2026-11-17) → 사용자 NAS DS723+(Ryzen R1600, Zen 1)는 해당 없음(CPU 플래그는 사용자 확인 전). 사용자 결정: 토큰 기능은 그대로 둠, Temurin 확인 예약 작업은 끔.
 - 2026-11-18: PR #33 병합(main 48ee22a). 로그인 화면에 선택 항목 "Cloudflare Access 토큰"(클라이언트 ID·시크릿). SharedPreferences에 서버 호스트와 함께 저장, `AndroidAppModule`의 OkHttp 인터셉터가 그 호스트 요청에만 `CF-Access-Client-Id`/`CF-Access-Client-Secret`를 붙임. 목적: Komga를 Cloudflare Access 뒤에 두기(자바 CVE-2026-114938 대응). 컴파일·실기기 미확인. 병합 후 android-release #30은 코드와 무관하게 체크아웃에서 실패(`microsoft/onnxruntime` 서브모듈 "Repository not found") → CI에서 그 서브모듈을 건너뛰는 수정(795ae15)을 작업 브랜치에 올림.
 - 2026-11-08 (2): PR #31 병합(main 970ef65) → android-release 성공, 릴리스 v0.2.20. 자동 넘기기의 그림 기준을 검은 픽셀 %에서 선(경계) 픽셀 %(`EdgeRatio`, 샘플 폭 400px, 이웃 밝기 차 48 이상)로 교체. 설정 "측정값 화면에 표시"(저장 안 함)를 켜면 리더 왼쪽 위에 `선 · 검은 · 글자 → 초` 표시. 슬라이더 "그림(선) 1%당 ms"(DB 컬럼 `fork_auto_turn_per_ink_percent_ms` 그대로, 기본 300). TextAwareAutoTurnTest 17/17, komelia-ui JVM 컴파일 통과. 실제 페이지의 선 %는 미측정.
@@ -54,6 +55,8 @@
 - 동시 머지 시 가운데 릴리스 실행이 취소될 수 있음(아래 자동 릴리스 항목).
 
 ## 다음 단계 (제안, 추정)
+- 2026-11-27: 폰에 #32 릴리스 APK 설치 후 책을 열 때 알림이 안 뜨는지 확인.
+- 빌드 팁 추가(11-27): `git submodule update --init`이 `microsoft/onnxruntime`(세션 범위 밖)에서 실패하면 뒤 서브모듈이 빈 채로 남음. Gradle에 필요한 `third_party/ChipTextField`, `compose-sonner`, `secret-service`만 기록된 커밋으로 `fetch --depth 1 origin <sha>` + `checkout -f <sha>`. Maven 429는 2분 간격 재시도.
 - android-release push 조건: `*.md`·`.github/**`만 바뀌면 안 돌지만 `android-release.yml` 자체는 예외로 포함돼 그 파일을 바꾸면 main 병합만으로 릴리스됨(#34에서 확인).
 - 사용자가 v0.2.20 측정값 표시로 본 선 %를 받아 "그림(선) 1%당 ms" 기본값(300) 조정. (릴리스 빌드는 11-08 #30·#31 기준 성공해 V16~V20 컴파일은 확인됨.)
 - 첫 자동 릴리스 태그와 앱 내 업데이트, 19+ 재인증 흐름, OCR 자동 넘김을 실기기로 확인.
@@ -189,6 +192,7 @@
 
 ## 세션 기록
 
+- [[komelia-2026-11-28-1-handoff]] — 리더를 열 때 뜨던 읽기 방식 알림(ReaderTypeNotification) 제거, PR #36 머지·릴리스 #32 #2026-11
 - [[komelia-2026-11-18-2-handoff]] — PR #34 병합·v0.2.22 릴리스(토큰 기능 첫 컴파일), Java4Shell은 AVX-512 CPU 한정 → DS723+ 해당 없음, 패치 확인 예약 끔 #2026-11
 - [[komelia-2026-11-18-1-handoff]] — PAGES Cloudflare Access 서비스 토큰 헤더(PR #33), 자바 취약점 대응 점검, CI onnxruntime 서브모듈 건너뛰기 #2026-11
 - [[Komelia-2026-11-08-2-handoff]] — 자동 넘기기: 그림 양을 선(경계) 픽셀로 측정, 측정값 화면 표시, PR #31 병합, v0.2.20 릴리스 #2026-11
