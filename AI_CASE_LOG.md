@@ -81,8 +81,12 @@
 ## 2026-11-18 (2) PAGES v0.2.22 릴리스, Java4Shell 영향 판정 #2026-11
 - CI가 onnxruntime 서브모듈을 건너뛰게 고친 PR #34 병합으로 android-release 성공(v0.2.22), #33 토큰 코드 첫 컴파일 확인. oss-security·NVD 1차 자료로 취약점이 AVX-512 VBMI CPU 한정임을 확인해 사용자 NAS(DS723+, Ryzen R1600)는 해당 없음으로 판정. 교훈: 보안 기사는 영향 조건(CPU·설정)을 1차 자료에서 먼저 확인.
 
+## 2026-11-27 PAGES 리더 시작 알림 제거 #2026-11
+- 책을 열 때마다 뜨던 `Paged / Left to right` 알림을 뺌(PR #36, release #32 성공). AI가 처음엔 Komga 웹 리더로 잘못 짚었고, 저장소를 붙여 팝업 문구를 코드에서 찾고서야 출처가 앱임을 확인. 교훈: 화면 문구로 출처부터 확인. 실기기 미확인.
+
 ## 세션 기록
 
+- [[komelia-2026-11-28-1-case]] — 리더를 열 때 뜨던 읽기 방식 알림(ReaderTypeNotification) 제거, PR #36 머지·릴리스 #32 #2026-11
 - [[komelia-2026-11-18-2-case]] — PR #34 병합·v0.2.22 릴리스(토큰 기능 첫 컴파일), Java4Shell은 AVX-512 CPU 한정 → DS723+ 해당 없음, 패치 확인 예약 끔 #2026-11
 - [[komelia-2026-11-18-1-case]] — PAGES Cloudflare Access 서비스 토큰 헤더(PR #33), 자바 취약점 대응 점검, CI onnxruntime 서브모듈 건너뛰기 #2026-11
 - [[Komelia-2026-11-08-2-case]] — 자동 넘기기: 그림 양을 선(경계) 픽셀로 측정, 측정값 화면 표시, PR #31 병합, v0.2.20 릴리스 #2026-11
